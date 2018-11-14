@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<!-- <meta name="viewport" content="width=device-width, user-scalable=yes"> -->
+		<meta name="viewport" content="width=device-width,height=device-height initial-scale=1"> 
+		<link rel="stylesheet" href="/css/main.css">
+	</head>
+	<body>
+		<% include nav %>
+		<section id="dataContent">
+		</section>
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+			function loadPage( name )
+			{
+				
+			}
+			
+			let socket = io ( );
+
+			let users = <%- JSON.stringify(users) %>;
+			let thisUser = undefined;
+			let voix = <%- JSON.stringify(voix) %>;
+			let score = <%- JSON.stringify(score) %>;
+
+			console.log( score);
+
+			socket.on ( 'scores', function ( data )
+			{
+				if ( !score[ data.users ] )
+				{
+					score[ data.users ] = [];
+				}
+				if ( data.voix )
+				{
+					score[ data.users ][ data.voix ] = data.value;
+				}
+				updateTable ( );
+				drawTable ( );
+			});
+
+			socket.on ( 'users', function ( name )
+			{
+				if ( !users.includes ( name ) )
+				{
+					users.push ( name );
+				}
+				
+				if ( !score[ name ] )
+				{
+					score[ name ] = [];
+				}
+				updateTable ( );
+				drawTable ( );
+			});
+
+			function updateTable ( id = voix.length )
+			{
+				// voix.length : total
+				// voix.length + 1 : rank
+				for ( let i = 0; i < users.length; i++ )
+				{
+					if ( !score[ users[ i ] ] )
+					{
+						continue;
+					}
+					let some = 0;
+					for ( let j = 0; j < voix.length; j++ )
+					{
+						if ( ( voix[ j ].type == 'vitesse' ) &&
+							score[ users[ i ] ][ j ] )
+						{
+							let tmp = ( voix[ j ].score.time - score[ users[ i ] ][ j ] )
+							some += ( tmp < 0 )? 0: tmp;
+						}
+						else
+						{
+							some += score[ users[ i ] ][ j ] | 0;
+						}
+					}
+					score[ users[ i ] ][ voix.length ] = some;
+				}
+
+				// put user without score at the end
+				for ( let i = 0; i < users.length - 1; i++ )
+				{
+					if ( !score[ users[ i ] ] )
+					{
+						for ( let j = i+1; j < users.length; j++ )
+						{
+							if ( !score[ users[ j ] ] )
+							{
+								continue;
+							}
+							
+							let tmp = users[ i ];
+							users[ i ] = users[ j ];
+							users[ j ] = tmp;
+							break;
+						}
+						continue;
+					}
+				}
+
+				// order users
+				for ( let i = 0; i < users.length - 1; i++ )
+				{
+					if ( !score[ users[ i ] ] )
+					{
+						break;
+					}
+
+					for ( let j = i+1; j < users.length; j++ )
+					{
+						if ( !score[ users[ j ] ] )
+						{
+							break;
+						}
+
+
+						if ( !score[ users[ i ] ][ id ] || 
+							score[ users[ j ] ][ id ] &&
+							( score[ users[ i ] ][ id ] < score[ users[ j ] ][ id ] ) )
+						{
+							let tmp = users[ i ];
+							users[ i ] = users[ j ];
+							users[ j ] = tmp;
+						}
+					}
+				}
+
+				let lastPoint = score[ users[ 0 ] ][ id ];
+				let lastRank = 1;
+
+				for ( let i = 0; i < users.length - 1; i++ )
+				{
+					if ( !score[ users[ i ] ] )
+					{
+						break;
+					}
+
+					if ( lastPoint != score[ users[ i ] ][ id ] )
+					{
+						lastPoint = score[ users[ i ] ][ id ];
+						lastRank = i + 1;
+					}
+					score[ users[ i ] ][ voix.length + 1 ] = lastRank;
+				}
+			}
+
+			function drawTable ( id = voix.length )
+			{
+				let str = "<table><tr><td></td>";
+				// header
+				for ( let j = 0; j < voix.length; j++ )
+				{
+					str += '<td onclick="updateTable('+j+');drawTable('+j+');">'+voix[ j ].name+'</td>';
+				}
+				str += '<td onclick="updateTable();drawTable();">Total</td><td>rank</td>';
+
+				for ( let i = 0; i < users.length; i++ )
+				{
+					// nom
+					if ( users[ i ] == thisUser )
+					{
+						str += '<tr style="background-color:grey;">';
+					}
+					else
+					{
+						str += '<tr>';
+					}
+					str += '<td onclick="updateUser(this.innerHTML);">'+users[ i ]+'</td>';
+					if ( !score[ users[ i ] ] )
+					{
+						str += '</tr>';
+						continue;
+					}
+
+					// score
+					for ( let j = 0; j < voix.length + 2; j++ )
+					{
+						if ( j == id )
+						{
+							str += '<td style="background-color:grey;">';
+						}
+						else
+						{
+							str += '<td>';
+						}
+
+						if ( score[ users[ i ] ][ j ] )
+						{
+							str += score[ users[ i ] ][ j ]+'</td>';
+						}
+
+						str+='</td>';
+					}
+					str += '</tr>';
+				}
+				document.getElementById ( "dataContent" ).innerHTML = str+'</table>';
+			}
+
+			function updateUser ( user )
+			{
+				if ( !user )
+				{
+					return ( false );
+				}
+
+				if ( users.includes ( user ) )
+				{
+					thisUser = user;
+					drawTable ( );
+				}
+			}
+
+			updateTable ( );
+			drawTable ( );
+		</script>
+	</body>
+</html>

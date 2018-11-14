@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<link rel="stylesheet" href="/css/main.css">
+	</head>
+	<body>
+		<% include nav %>
+		<section>
+			<input id="user" type="text" placeholder="new user" onkeyup="exist(this);"/>
+			<select id="categorie">
+				<option value="microbe">microbe</option>
+				<option value="poussin">poussin</option>
+				<option value="bejamin">bejamin</option>
+				<option value="minime">minime</option>
+				<option value="cadet">cadet</option>
+				<option value="senior">senior</option>
+				<option value="veterant">veterant</option>
+			</select>
+			<button onclick="addUser()">Ok</button>
+		</section>
+		<script type="text/javascript"> // password
+			function addUser ( )
+			{
+
+				let user = document.getElementById( 'user' );
+				let categorie = document.getElementById ( 'categorie' ).value;
+
+				if ( user.value == "" )
+				{
+					user.style.color = "";
+					return;
+				}
+
+				let xhr = new XMLHttpRequest();
+
+				xhr.open('POST', '/addUser' );
+				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+				xhr.addEventListener ( 'readystatechange', function ( )
+				{
+					if ( xhr.readyState === XMLHttpRequest.DONE )
+					{
+						if ( xhr.status === 200 )
+						{
+							user.value = "";
+						}
+					}
+				});
+
+				xhr.overrideMimeType("text/plain");
+				xhr.send("user="+user.value+"&categorie="+ );
+			}
+
+			function exist ( user )
+			{
+				if ( user.value == "" )
+				{
+					user.style.color = "";
+					return;
+				}
+				let xhr = new XMLHttpRequest();
+
+				xhr.open('POST', '/userExist' );
+				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+				xhr.addEventListener ( 'readystatechange', function ( )
+				{
+					if ( ( xhr.readyState === XMLHttpRequest.DONE )
+						&& ( xhr.status === 200 ) )
+					{
+						if ( xhr.responseText != "exist" )
+						{
+							user.style.color = "#afa";
+						}
+						else
+						{
+							user.style.color = "#faa";
+						}
+					}
+				});
+
+				xhr.overrideMimeType("text/plain");
+				xhr.send("user="+user.value);
+			}
+		</script>
+	</body>
+</html>

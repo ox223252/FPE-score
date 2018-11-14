@@ -1,0 +1,23 @@
+<nav>
+	<% if ( loged ) { %>
+		<a href="/">Scores</a>
+		<a href="/login">Logout</a>
+		<a href="/addUser">New user</a>
+		<select onchange="window.location.href = '/set/'+this.value;">
+			<option disabled value="">voix</option>
+			<option value="bloc" <% if(page == 'bloc'){%>selected<%}%>>bloc</option>
+			<option value="diff" <% if(page == 'diff'){%>selected<%}%>>diff</option>
+			
+			<%
+			for ( var i = 0; i < voix.length; i++ )
+			{
+			%><option value="<%-voix[i].name%>" <% if(page == voix[i].name){%>selected<%}%>><%- voix[i].type + ' : ' + voix[i].name %></option><%
+			}
+			%>
+		</select>
+	<% }
+	else
+	{ %>
+	<a href="/login">Login</a>
+	<% } %>
+</nav>

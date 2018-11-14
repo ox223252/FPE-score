@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<link rel="stylesheet" href="/css/main.css">
+	</head>
+	<body>
+		<% include nav %>
+		<section>
+			<div id="dataContent">
+				<select id="usr"></select>
+				<select id="voix" onchange="updateMode();"></select>
+				<select id="mode" onchange="updatePoints();"></select>
+				<div id="score" style="display:inline-block"></div>
+			</div>
+			<button id="validate" onclick="validate(this);"">Validate</button>
+		</section>
+		<script type="text/javascript">
+			let current = "<%- page %>";
+
+			function loadPage( name )
+			{
+				window.location.href = '/set/'+name;
+			}
+
+			let users = <%- JSON.stringify(users) %>;
+			let voix = <%- JSON.stringify(voix) %>;
+
+			function updateUsers ( )
+			{
+				let select = document.getElementById ( 'usr' );
+				while ( select.options.length )
+				{
+					select.options.remove ( 0 );
+				}
+
+				for ( let i = 0; i < users.length; i++ )
+				{
+					select.options.add ( new Option ( users[ i ], i ) );
+					select.options[ i ].value = users[ i ];
+				}
+			}
+
+			function updateVoix ( name )
+			{
+				let select = document.getElementById ( 'voix' );
+				while ( select.options.length )
+				{
+					select.options.remove ( 0 );
+				}
+
+				switch ( name )
+				{
+					case "bloc":
+					case "diff":
+					{
+						select.options.add ( new Option ( name, 0 ) );
+						select.options[ 0 ].disabled = true;
+						select.options[ 0 ].selected = true;
+
+						for ( let i = 0, j = 1; i < voix.length; i++ )
+						{
+							if ( voix[ i ].type != name )
+							{
+								continue;
+							}
+
+							select.options.add ( new Option ( voix[i].name, j ) );
+							select.options[ j ].value = i;
+							j++;
+						}
+
+						break;
+					}
+					default:
+					{
+						let i = 0;
+						while ( voix[ i ].name != name )
+						{
+							i++;
+						}
+						select.options.add ( new Option ( name, 0 ) );
+						select.options[ 0 ].value = i;
+
+						updateMode ( );
+						break;
+					}
+				}
+			}
+
+			function updateMode ( )
+			{
+				let select = document.getElementById ( 'mode' );
+				let id = document.getElementById ( 'voix' ).value;
+				if ( id >= voix.length )
+				{
+					return ( false );
+				}
+
+				if ( voix[ id ].type == 'diff' )
+				{
+					document.getElementById ( 'score' ).innerHTML = '';
+
+					while ( select.options.length )
+					{
+						select.options.remove ( 0 );
+					}
+					select.style.display = "";
+
+					let i = 0;
+					if ( voix[ id ].score[ 'moul' ] &&
+						voix[ id ].score[ 'tete' ] )
+					{
+						select.options.add  ( new Option ( 'mode', i ) );
+						select.options[ i ].disabled = true;
+						select.options[ i ].selected = true;
+						i++;
+					}
+
+					if ( voix[ id ].score[ 'moul' ] )
+					{
+						select.options.add  ( new Option ( 'moul', i ) );
+						select.options[ i ].value = 'moul';
+						i++;
+					}
+
+					if ( voix[ id ].score[ 'tete' ] )
+					{
+						select.options.add  ( new Option ( 'tete', i ) );
+						select.options[ i ].value = 'tete';
+						i++;
+					}
+
+					if ( !voix[ id ].score[ 'moul' ] ||
+						!voix[ id ].score[ 'tete' ] )
+					{
+						updatePoints ( );
+					}
+				}
+				else
+				{
+					select.style.display = "none";
+					updatePoints ( );
+				}
+			}
+
+			function updatePoints ( )
+			{
+				let id = document.getElementById ( "voix" ).value;
+				if ( !voix[ id ] )
+				{
+					return;
+				}
+
+				let el = document.getElementById ( 'score' );
+				el.innerHTML = '';
+
+				switch ( voix[ id ].type )
+				{
+					case 'bloc':
+					{
+						el.innerHTML = '<select id="points"></select>'
+						select = document.getElementById ( 'points' );
+						select.options.add ( new Option ( 'echec', 0 ) );
+						select.options[0].value = 0;
+						select.options.add ( new Option ( 'zone', 1 ) );
+						select.options[1].value = voix[ id ].score.zone;
+						select.options.add ( new Option ( 'fin', 2 ) );
+						select.options[2].value = voix[ id ].score.fin;
+						break;
+					}
+					case 'diff':
+					{
+						let mode = document.getElementById ( 'mode' ).value;
+						el.innerHTML = '<select id="points"></select>'
+						select = document.getElementById ( 'points' );
+
+						select.options.add ( new Option ( 'echec', 0 ) );
+						select.options[ 0 ].value = 0;
+
+						console.log( id );
+						console.log( mode );
+						console.log( voix );
+						for ( let i = 0; i < voix[ id ].score[ mode ].length; i++ )
+						{
+							select.options.add ( new Option ( 'p_' + ( i + 1 ), i + 1 ) );
+							select.options[ i + 1 ].value = voix[ id ].score[ mode ][ i ];
+						}
+						break;
+					}
+					case 'vitesse':
+					{
+						el.innerHTML = '<input id="points" type="number" min="0.0" step="0.01">'
+						break;
+					}
+					case 'slack':
+					{
+						el.innerHTML = '<input id="points" type="number" min="0.0" step="0.01">'
+						break;
+					}
+				}
+			}
+		</script>
+		<script type="text/javascript">
+			function validate ( el )
+			{
+				console.log( document.getElementById( 'usr' ) );
+				console.log( document.getElementById( 'voix' ) );
+				console.log( document.getElementById( 'points' ) );
+
+				let user = document.getElementById( 'usr' ).value;
+				let voix = document.getElementById( 'voix' ).value;
+				let points = document.getElementById( 'points' ).value;
+
+				console.log( user );
+				console.log( voix );
+				console.log( points );
+
+				if ( ( user == "" ) ||
+					( voix == "" ) ||
+					( points == "" ) )
+				{
+					return;
+				}
+
+				let xhr = new XMLHttpRequest();
+
+				xhr.open('POST', '/validate' );
+				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+				xhr.addEventListener ( 'readystatechange', function ( )
+				{
+					if ( xhr.readyState === XMLHttpRequest.DONE )
+					{
+						if ( xhr.status === 200 )
+						{
+							document.getElementById( 'usr' ).value = "";
+							document.getElementById( 'points' ).value = "";
+							el.disabled = false;
+						}
+						else if ( xhr.status === 401 )
+						{
+							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:#f55;\">" + xhr.responseText + "</span>";
+						}
+					}
+				});
+
+				xhr.overrideMimeType("text/plain");
+				xhr.send("usr="+user+"&voix="+voix+"&points="+points);
+				el.disabled = true;
+			}
+		</script>
+		<script type="text/javascript">
+			window.onload = function ( )
+			{
+				updateUsers ( );
+				updateVoix ( "<%-page%>" );
+			}
+		</script>
+	</body>
+</html>

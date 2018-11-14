@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<link rel="stylesheet" href="/css/main.css">
+	</head>
+	<body>
+		<nav>
+			<a href="/">Scores</a>
+		</nav>
+		<section>
+			<input id="user" type="text" placeholder="user" />
+			<input id="password" type="password" placeholder="password" />
+			<p id="serverMsg"></p>
+			<a href="/">back</a>
+		</section>
+		<script type="text/javascript"> // password
+			function login ( )
+			{
+
+				let user = document.getElementById( 'user' ).value;
+				let password = document.getElementById( 'password' ).value;
+
+				if ( ( user == "" ) ||
+				 ( password == "" ) )
+				{
+					return;
+				}
+
+				let xhr = new XMLHttpRequest();
+
+				xhr.open('POST', '/login' );
+				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+				xhr.addEventListener ( 'readystatechange', function ( )
+				{
+					if ( xhr.readyState === XMLHttpRequest.DONE )
+					{
+						if ( xhr.status === 200 )
+						{
+							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:green;\">Ok</span>";
+							window.location.href = "/";
+						}
+						else if ( xhr.status === 401 )
+						{
+							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:#f55;\">" + xhr.responseText + "</span>";
+						}
+					}
+				});
+
+				xhr.overrideMimeType("text/plain");
+				xhr.send("user="+user+"&password="+password);
+			}
+		</script>
+	</body>
+</html>
