@@ -37,8 +37,8 @@
 
 				for ( let i = 0; i < users.length; i++ )
 				{
-					select.options.add ( new Option ( users[ i ], i ) );
-					select.options[ i ].value = users[ i ];
+					select.options.add ( new Option ( users[ i ].name, i ) );
+					select.options[ i ].value = users[ i ].name;
 				}
 			}
 

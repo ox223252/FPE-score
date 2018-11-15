@@ -10,6 +10,7 @@
 		<section>
 			<input id="user" type="text" placeholder="new user" onkeyup="exist(this);"/>
 			<select id="categorie">
+				<option disabled selected></option>
 				<option value="microbe">microbe</option>
 				<option value="poussin">poussin</option>
 				<option value="bejamin">bejamin</option>
@@ -17,6 +18,11 @@
 				<option value="cadet">cadet</option>
 				<option value="senior">senior</option>
 				<option value="veterant">veterant</option>
+			</select>
+			<select id="genre">
+				<option disabled selected></option>
+				<option value="homme">homme</option>
+				<option value="femme">femme</option>
 			</select>
 			<button onclick="addUser()">Ok</button>
 		</section>
@@ -26,8 +32,11 @@
 
 				let user = document.getElementById( 'user' );
 				let categorie = document.getElementById ( 'categorie' ).value;
+				let genre = document.getElementById ( 'genre' ).value;
 
-				if ( user.value == "" )
+				if ( ( user.value == "" ) ||
+					!categorie ||
+					!genre )
 				{
 					user.style.color = "";
 					return;
@@ -50,7 +59,7 @@
 				});
 
 				xhr.overrideMimeType("text/plain");
-				xhr.send("user="+user.value+"&categorie="+ );
+				xhr.send("user="+user.value+"&categorie="+categorie+"&genre="+genre );
 			}
 
 			function exist ( user )

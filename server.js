@@ -3,6 +3,7 @@ const voixDataBase = './private/voix.json';
 const userDataBase = './private/users.json';
 const port = 6683;
 
+const program = require ( 'commander' );
 const express = require ( 'express' );
 const session = require ( 'express-session' );
 const bodyParser = require ( 'body-parser' );
@@ -125,9 +126,14 @@ app.all ( '/addUser', function ( req, res )
 	{
 		if ( req.body.user )
 		{
-			if ( !users.includes( req.body.user ) )
+			if ( !userExist( req.body.user ) )
 			{
-				users[ req.body.categorie ].push ( req.body.user );
+				let tmp = {};
+				tmp.name = req.body.user;
+				tmp.categorie = req.body.categorie;
+				tmp.genre = req.body.genre;
+
+				users.push ( tmp );
 				fs.writeFileSync ( userDataBase, JSON.stringify ( users ), 'utf8' );
 				io.emit ( 'users', req.body.user );
 
@@ -164,7 +170,7 @@ app.all ( '/addUser', function ( req, res )
 app.all ( '/userExist', function ( req, res )
 {
 	if ( ( req.body.user != undefined ) && 
-		users.includes( req.body.user ) )
+		userExist( req.body.user ) )
 	{
 		res.status(200);
 		res.end ( "exist" );
@@ -182,7 +188,6 @@ app.use ( function ( req, res, next)
 	res.status(404);
 });
 
-
 io.on('connection', function( socket )
 {
 	// socket.emit ( 'id', id );
@@ -199,3 +204,14 @@ io.on('connection', function( socket )
 	});
 });
 
+function userExist ( name )
+{
+	for ( let i = 0; i < users.length; i++ )
+	{
+		if ( users[ i ].name == name )
+		{
+			return ( true );
+		}
+	}
+	return ( false );
+}

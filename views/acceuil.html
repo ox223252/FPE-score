@@ -8,7 +8,13 @@
 	</head>
 	<body>
 		<% include nav %>
-		<section id="dataContent">
+
+		<section>
+			<form>
+				<select id="genre" onchange="drawTable();"></select><select id="categorie" onchange="drawTable();"></select>
+			</form>
+			<div id="dataContent">
+			</div>
 		</section>
 		<script src="/socket.io/socket.io.js"></script>
 		<script type="text/javascript">
@@ -23,6 +29,9 @@
 			let thisUser = undefined;
 			let voix = <%- JSON.stringify(voix) %>;
 			let score = <%- JSON.stringify(score) %>;
+
+			let g_categorie = document.getElementById ( "categorie" );
+			let g_genre = document.getElementById ( "genre" );
 
 			console.log( score);
 
@@ -42,7 +51,16 @@
 
 			socket.on ( 'users', function ( name )
 			{
-				if ( !users.includes ( name ) )
+				let i;
+				for ( i = 0; i < users.length; i++ )
+				{
+					if ( users[ i ].name == name )
+					{
+						break;
+					}
+				}
+
+				if ( i == users.length )
 				{
 					users.push ( name );
 				}
@@ -51,6 +69,7 @@
 				{
 					score[ name ] = [];
 				}
+
 				updateTable ( );
 				drawTable ( );
 			});
@@ -61,7 +80,7 @@
 				// voix.length + 1 : rank
 				for ( let i = 0; i < users.length; i++ )
 				{
-					if ( !score[ users[ i ] ] )
+					if ( !score[ users[ i ].name ] )
 					{
 						continue;
 					}
@@ -69,27 +88,27 @@
 					for ( let j = 0; j < voix.length; j++ )
 					{
 						if ( ( voix[ j ].type == 'vitesse' ) &&
-							score[ users[ i ] ][ j ] )
+							score[ users[ i ].name ][ j ] )
 						{
-							let tmp = ( voix[ j ].score.time - score[ users[ i ] ][ j ] )
+							let tmp = ( voix[ j ].score.time - score[ users[ i ].name ][ j ] )
 							some += ( tmp < 0 )? 0: tmp;
 						}
 						else
 						{
-							some += score[ users[ i ] ][ j ] | 0;
+							some += score[ users[ i ].name ][ j ] | 0;
 						}
 					}
-					score[ users[ i ] ][ voix.length ] = some;
+					score[ users[ i ].name ][ voix.length ] = some;
 				}
 
 				// put user without score at the end
 				for ( let i = 0; i < users.length - 1; i++ )
 				{
-					if ( !score[ users[ i ] ] )
+					if ( !score[ users[ i ].name ] )
 					{
 						for ( let j = i+1; j < users.length; j++ )
 						{
-							if ( !score[ users[ j ] ] )
+							if ( !score[ users[ j ].name ] )
 							{
 								continue;
 							}
@@ -106,22 +125,22 @@
 				// order users
 				for ( let i = 0; i < users.length - 1; i++ )
 				{
-					if ( !score[ users[ i ] ] )
+					if ( !score[ users[ i ].name ] )
 					{
 						break;
 					}
 
 					for ( let j = i+1; j < users.length; j++ )
 					{
-						if ( !score[ users[ j ] ] )
+						if ( !score[ users[ j ].name ] )
 						{
 							break;
 						}
 
 
-						if ( !score[ users[ i ] ][ id ] || 
-							score[ users[ j ] ][ id ] &&
-							( score[ users[ i ] ][ id ] < score[ users[ j ] ][ id ] ) )
+						if ( !score[ users[ i ].name ][ id ] || 
+							score[ users[ j ].name ][ id ] &&
+							( score[ users[ i ].name ][ id ] < score[ users[ j ].name ][ id ] ) )
 						{
 							let tmp = users[ i ];
 							users[ i ] = users[ j ];
@@ -130,22 +149,22 @@
 					}
 				}
 
-				let lastPoint = score[ users[ 0 ] ][ id ];
+				let lastPoint = score[ users[ 0 ].name ][ id ];
 				let lastRank = 1;
 
 				for ( let i = 0; i < users.length - 1; i++ )
 				{
-					if ( !score[ users[ i ] ] )
+					if ( !score[ users[ i ].name ] )
 					{
 						break;
 					}
 
-					if ( lastPoint != score[ users[ i ] ][ id ] )
+					if ( lastPoint != score[ users[ i ].name ][ id ] )
 					{
-						lastPoint = score[ users[ i ] ][ id ];
+						lastPoint = score[ users[ i ].name ][ id ];
 						lastRank = i + 1;
 					}
-					score[ users[ i ] ][ voix.length + 1 ] = lastRank;
+					score[ users[ i ].name ][ voix.length + 1 ] = lastRank;
 				}
 			}
 
@@ -161,8 +180,22 @@
 
 				for ( let i = 0; i < users.length; i++ )
 				{
+					if ( ( g_categorie.value != "all" ) &&
+						( users[ i ].categorie != g_categorie.value ) )
+					{
+						console.log( g_categorie.value );
+						continue;
+					}
+
+					if ( ( g_genre.value != "all" ) &&
+						( users[ i ].genre != g_genre.value ) )
+					{
+						console.log( g_genre.value );
+						continue;
+					}
+
 					// nom
-					if ( users[ i ] == thisUser )
+					if ( users[ i ].name == thisUser )
 					{
 						str += '<tr style="background-color:grey;">';
 					}
@@ -170,8 +203,8 @@
 					{
 						str += '<tr>';
 					}
-					str += '<td onclick="updateUser(this.innerHTML);">'+users[ i ]+'</td>';
-					if ( !score[ users[ i ] ] )
+					str += '<td onclick="updateUser(this.innerHTML);">'+users[ i ].name+'</td>';
+					if ( !score[ users[ i ].name ] )
 					{
 						str += '</tr>';
 						continue;
@@ -189,9 +222,9 @@
 							str += '<td>';
 						}
 
-						if ( score[ users[ i ] ][ j ] )
+						if ( score[ users[ i ].name ][ j ] )
 						{
-							str += score[ users[ i ] ][ j ]+'</td>';
+							str += score[ users[ i ].name ][ j ]+'</td>';
 						}
 
 						str+='</td>';
@@ -215,6 +248,52 @@
 				}
 			}
 
+			function updateSelector ( )
+			{
+				let genre = [];
+				let categorie = [];
+
+				for ( let i = 0; i < users.length; i++ )
+				{
+					if ( !categorie.includes( users[ i ].categorie ) )
+					{
+						categorie.push ( users[ i ].categorie );
+					}
+
+					if ( !genre.includes( users[ i ].genre ) )
+					{
+						genre.push ( users[ i ].genre );
+					}
+				}
+
+				
+				while ( g_genre.options.length )
+				{
+					g_genre.options.remove ( 0 );
+				}
+				g_genre.options.add ( new Option ( "genre", 0 ) );
+				g_genre.options[ 0 ].value = "all";
+				for ( let i = 0; i < genre.length; i++ )
+				{
+					g_genre.options.add ( new Option ( genre[ i ], i + 1 ) );
+					g_genre.options[ i + 1 ].value = genre[ i ];
+				}
+
+
+				while ( g_categorie.options.length )
+				{
+					g_categorie.options.remove ( 0 );
+				}
+				g_categorie.options.add ( new Option ( "age", 0 ) );
+				g_categorie.options[ 0 ].value = "all";
+				for ( let i = 0; i < categorie.length; i++ )
+				{
+					g_categorie.options.add ( new Option ( categorie[ i ], i + 1 ) );
+					g_categorie.options[ i + 1 ].value = categorie[ i ];
+				}
+			}
+
+			updateSelector ( );
 			updateTable ( );
 			drawTable ( );
 		</script>

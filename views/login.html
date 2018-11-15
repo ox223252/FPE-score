@@ -10,8 +10,8 @@
 			<a href="/">Scores</a>
 		</nav>
 		<section>
-			<input id="user" type="text" placeholder="user" />
-			<input id="password" type="password" placeholder="password" />
+			<input id="user" type="text" placeholder="user" onchange="login();"/>
+			<input id="password" type="password" placeholder="password" onchange="login();"/>
 			<p id="serverMsg"></p>
 			<a href="/">back</a>
 		</section>
@@ -22,9 +22,11 @@
 				let user = document.getElementById( 'user' ).value;
 				let password = document.getElementById( 'password' ).value;
 
+				console.log( "in" );
 				if ( ( user == "" ) ||
-				 ( password == "" ) )
+					( password == "" ) )
 				{
+					console.log( "exit" );
 					return;
 				}
 
@@ -42,7 +44,7 @@
 							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:green;\">Ok</span>";
 							window.location.href = "/";
 						}
-						else if ( xhr.status === 401 )
+						else
 						{
 							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:#f55;\">" + xhr.responseText + "</span>";
 						}
