@@ -170,7 +170,7 @@
 
 			function drawTable ( id = voix.length )
 			{
-				let str = "<table><tr><td></td>";
+				let str = "<table><tr><td></td><td>h/f</td><td>cat.</td>";
 				// header
 				for ( let j = 0; j < voix.length; j++ )
 				{
@@ -203,7 +203,11 @@
 					{
 						str += '<tr>';
 					}
+
 					str += '<td onclick="updateUser(this.innerHTML);">'+users[ i ].name+'</td>';
+					str += '<td>'+((users[ i ].genre=="homme")?"M":"F")+'</td>';
+					str += '<td>'+users[ i ].categorie+'</td>';
+
 					if ( !score[ users[ i ].name ] )
 					{
 						str += '</tr>';
