@@ -12,13 +12,97 @@
 		<section>
 			<div>
 				<form>
-					<select id="genre" onchange="drawTable();"></select><select id="categorie" onchange="drawTable();"></select>
+					<select id="genre" onchange="drawTable();drawCurves();"></select>
+					<select id="categorie" onchange="drawTable();drawCurves();"></select>
 				</form>
 				<div id="dataContent">
+				</div>
+				<div>
+					<canvas width="500" height="300" class="chartjs-render-monitor" id="canvas"></canvas>
 				</div>
 			</div>
 		</section>
 		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript" src="/js/chartjs.js"></script>
+		<script type="text/javascript"> // graph
+			var config = {
+				type: 'line',
+				data: {
+					labels: [],
+					datasets: [
+						{
+							label: 'points',
+							backgroundColor: "rgba(128,0,0,0.2)",
+							borderColor: "#f00",
+							data: [],
+							fill: true,
+						},
+					]
+				},
+				options: {
+					animation: false,
+					responsive: true,
+					legend: {
+						display: true,
+					},
+					title: {
+						display: false,
+						text: 'Accuracy'
+					},
+					tooltips: {
+						mode: 'index',
+						intersect: false,
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scales: {
+						xAxes: [{
+							display: true,
+							scaleLabel: {
+								display: true,
+								labelString: 'users rank'
+							}
+						}],
+						yAxes: [{
+							display: true,
+							scaleLabel: {
+								display: true,
+								labelString: 'points',
+							},
+							ticks: {
+								suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
+							}
+						}]
+					}
+				}
+			};
+
+			function drawCurves ( id = voix.length )
+			{
+				let ctx = document.getElementById ( "canvas" ).getContext ( "2d" );
+
+				config.data.datasets[ 0 ].data = [];
+				config.data.labels = [];
+
+				// score[ users[ i ].name ][ voix.length ] = some;
+
+				for ( let i = 0; i < users.length; i++ )
+				{
+					console.log( score[ users[ i ].name ] );
+					if ( !score[ users[ i ].name ] )
+					{
+						continue;
+					}
+
+					config.data.datasets[ 0 ].data.push ( score[ users[ i ].name ][ id ] );
+					config.data.labels.push ( i + 1 );
+				}
+
+				new Chart ( ctx, config );
+			}
+		</script>
 		<script type="text/javascript">
 			function loadPage( name )
 			{
@@ -34,8 +118,6 @@
 
 			let g_categorie = document.getElementById ( "categorie" );
 			let g_genre = document.getElementById ( "genre" );
-
-			console.log( score);
 
 			socket.on ( 'scores', function ( data )
 			{
@@ -74,6 +156,7 @@
 
 				updateTable ( );
 				drawTable ( );
+				drawCurves ( );
 			});
 
 			function updateTable ( id = voix.length )
@@ -176,9 +259,9 @@
 				// header
 				for ( let j = 0; j < voix.length; j++ )
 				{
-					str += '<td onclick="updateTable('+j+');drawTable('+j+');">'+voix[ j ].name+'</td>';
+					str += '<td onclick="updateTable('+j+');drawTable('+j+');drawCurves('+j+');">'+voix[ j ].name+'</td>';
 				}
-				str += '<td onclick="updateTable();drawTable();">Total</td><td>rank</td>';
+				str += '<td onclick="updateTable();drawTable();drawCurves();">Total</td><td>rank</td>';
 
 				for ( let i = 0; i < users.length; i++ )
 				{
@@ -300,6 +383,7 @@
 			updateSelector ( );
 			updateTable ( );
 			drawTable ( );
+			drawCurves ( );
 		</script>
 	</body>
 </html>
