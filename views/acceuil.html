@@ -208,8 +208,7 @@
 				}
 			}
 		</script>
-		<script type="text/javascript">
-
+		<script type="text/javascript"> // sockets
 			socket.on ( 'scores', function ( data )
 			{
 				console.log ( data );
@@ -248,7 +247,8 @@
 				updateTable ( );
 				drawTable ( );
 			});
-
+		</script>
+		<script type="text/javascript">
 			function updateTable ( id = voie.length )
 			{
 				// voie.length : total
@@ -336,13 +336,23 @@
 
 					for ( let j = i+1; j < users.length; j++ )
 					{
-						if ( !score[ users[ j ].name ] )
+						if ( ( !score[ users[ j ].name ] ) ||
+							( !score[ users[ j ].name ][ id ] ) )
 						{
 							break;
 						}
 
-
-						if ( !score[ users[ i ].name ][ id ] || 
+						if ( ( id < voie.length ) &&
+							( voie[ id ].type == 'vitesse' ) )
+						{ // order speed test (less is better)
+							if ( parseFloat( score[ users[ i ].name ][ id ] ) > parseFloat( score[ users[ j ].name ][ id ] ) )
+							{
+								let tmp = users[ i ];
+								users[ i ] = users[ j ];
+								users[ j ] = tmp;
+							}
+						}
+						else if ( !score[ users[ i ].name ][ id ] || 
 							score[ users[ j ].name ][ id ] &&
 							( score[ users[ i ].name ][ id ] < score[ users[ j ].name ][ id ] ) )
 						{
