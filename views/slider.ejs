@@ -1,0 +1,26 @@
+<link rel="stylesheet" href="/css/slider.css">
+<div id="lightSlider" style="display:flex;margin-left:auto">
+	<div style="font-size: 26px;margin-right: 5px;">
+		<span class="onlyLight">Light</span>
+		<span class="onlyDark">Dark</span>
+	</div>
+	<div>
+		<label class="switch">
+			<input id="lightSelector" onchange="changeLight(this.checked);" type="checkbox">
+			<span class="slider round"></span>
+		</label>
+	</div>
+</div>
+<script type="text/javascript">
+	function changeLight ( flag )
+	{
+		if ( flag )
+		{ // light mode
+			document.getElementById ( 'lightCss' ).href = '/css/colorLight.css';
+		}
+		else
+		{ // dark mode
+			document.getElementById ( 'lightCss' ).href = '/css/colorDark.css';
+		}
+	}
+</script>

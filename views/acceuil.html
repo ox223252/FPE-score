@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<!-- <meta name="viewport" content="width=device-width, user-scalable=yes"> -->
-		<meta name="viewport" content="width=device-width,height=device-height initial-scale=1"> 
-		<link rel="stylesheet" href="/css/main.css">
-	</head>
+	<% include head %>
 	<body>
 		<% include nav %>
 		<section>
@@ -19,7 +14,7 @@
 				<div>
 					<canvas width="700" height="400" class="chartjs-render-monitor" id="pointGraph"></canvas>
 					<canvas width="700" height="700" class="chartjs-render-monitor" id="userGraph"></canvas>
-					<ul id="legendGraph" style="color:grey;">
+					<ul id="legendGraph" class="smothText">
 						<li>moyenne tenté : moyenne des points obtenu pas les personnes ayant tenté cette voie</li>
 						<li>moyenne totale : moyen des points obtenu sur cette voie par toues les personnes ayant participé</li>
 					</ul>
@@ -214,11 +209,6 @@
 			}
 		</script>
 		<script type="text/javascript">
-			function loadPage( name )
-			{
-				
-			}
-			
 
 			socket.on ( 'scores', function ( data )
 			{
@@ -409,7 +399,7 @@
 					// nom
 					if ( users[ i ].name == thisUser )
 					{
-						str += '<tr style="background-color:grey;">';
+						str += '<tr class="hightlight">';
 					}
 					else
 					{
@@ -431,7 +421,7 @@
 					{
 						if ( j == id )
 						{
-							str += '<td style="background-color:grey;">';
+							str += '<td class="hightlight">';
 						}
 						else
 						{

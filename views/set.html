@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no">
-		<link rel="stylesheet" href="/css/main.css">
-		<link rel="stylesheet" href="/css/set.css">
-	</head>
+	<% include head %>
 	<body>
+		<link rel="stylesheet" href="/css/set.css">
 		<% include nav %>
 		<section>
 			<div id="setSection">
 				<div>
 					<label>categorie :</label>
 					<select id="categorie" onchange="updateUsers();">
-						<option value="all">all</option>
+						<option value="all">tous</option>
 						<option value="microbe">microbe</option>
 						<option value="poussin">poussin</option>
 						<option value="bejamin">bejamin</option>
@@ -26,7 +22,7 @@
 				<div>
 					<label>genre :</label>
 					<select id="genre" onchange="updateUsers();">
-						<option value="all">all</option>
+						<option value="all">tous</option>
 						<option value="homme">homme</option>
 						<option value="femme">femme</option>
 					</select>
@@ -44,7 +40,7 @@
 					<select id="mode" onchange="updatePoints();"></select>
 				</div>
 				<div id="score" style="display:inline-block"></div>
-				<button id="validate" onclick="validate(this);"">Validate</button>
+				<button id="validate" onclick="validate(this);"">Valider</button>
 			</div>
 
 			<div id="comments">

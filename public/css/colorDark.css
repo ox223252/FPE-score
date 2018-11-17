@@ -1,0 +1,50 @@
+body
+{
+	color: #fdf6e3;
+	background-color: #333;
+}
+
+select, input, button
+{
+	color: #fdf6e3;
+	background-color: #444;
+	border-color: #222;
+}
+
+path
+{
+	stroke:#fdf6e3;
+}
+
+a
+{
+	color:#fdf6e3;
+}
+a:disabled
+{
+	color:grey;
+}
+
+button:active
+{
+	border-color: #333;
+}
+
+::placeholder {
+	color: #fdf6e3;
+}
+
+.onlyLight
+{
+	display:none;
+}
+
+.hightlight
+{
+	background: grey;
+}
+
+#smothText
+{
+	color: grey;
+}

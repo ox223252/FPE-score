@@ -1,14 +1,11 @@
 html 
 {
 	height: 100%;
-	background: #333;
 }
 
 
 body
 {
-	color: white;
-	background: #333;
 	font:normal 10pt Consolas, Monaco, monospace;
 	height: 100%;
 	margin: 0;
@@ -20,16 +17,6 @@ body
 nav
 {
 	margin: 5px;
-}
-
-
-a
-{
-	color:white;
-}
-a:disabled
-{
-	color:grey;
 }
 
 
@@ -75,36 +62,15 @@ footer
 }
 
 
-input, select
+input, select, button
 {
-	border: none;
-	background-color: #444;
-	border-color: #222;
 	border-radius: 5px;
 	margin-bottom: 5px;
-	color: white;
 }
 
 section input, section select
 {
 	width: 100%;
-}
-
-button
-{
-	background-color: #444;
-	color: white;
-	border-radius: 5px;
-	border-color: #222;
-}
-
-button:active
-{
-	border-color: #333;
-}
-
-::placeholder {
-	color: white;
 }
 
 #results

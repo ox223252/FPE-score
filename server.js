@@ -31,7 +31,7 @@ var io = require ( 'socket.io' ).listen ( server );
 
 app.use ( bodyParser.json( ) );
 app.use ( bodyParser.urlencoded( {extended: true} ) );
-app.use ( favicon ( __dirname + '/public/imgs/ox.png' ) ) // Active la favicon indiquée
+app.use ( favicon ( __dirname + '/public/imgs/climbing.png' ) ) // Active la favicon indiquée
 app.use ( express.static ( __dirname + '/public' ) );
 app.use ( session ( { secret: Math.random()+'', proxy: true,  resave: true, saveUninitialized: true } ) );
 app.engine ( 'html', require ( 'ejs' ).renderFile );
@@ -43,7 +43,7 @@ app.all ( '/', function ( req, res )
 		users:users,
 		voie:voie,
 		score:score,
-		page:undefined
+		page:"acceuil"
 	} );
 });
 
@@ -88,7 +88,7 @@ app.all ( '/set/:id', function ( req, res )
 			users:users,
 			voie:voie,
 			score:score,
-			page:undefined
+			page:"acceuil"
 		} );
 	}
 });
@@ -162,7 +162,8 @@ app.all ( '/addUser', function ( req, res )
 			loged:req.session.loged,
 			users:users,
 			voie:voie,
-			score:score
+			score:score,
+			page:"acceuil"
 		} );
 	}
 });
