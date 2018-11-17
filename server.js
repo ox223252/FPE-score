@@ -13,6 +13,7 @@ const favicon = require ( 'serve-favicon' );
 
 // get user data base
 var score = require ( scoreDataBase );
+// {"bob":["20",null,"15","35",12,"6.25"],"lee":[20,12,25,13,42,"12.43"],"raph":[20,18,"15","35",null,"5.72"],"flo":[null,null,15,6,"27"],"ata":[null,null,null,null,40],"rachid":[null,null,null,"9","12"],"boba":[null,null,"20",null,null,"29"],"jean":[null,null,"10"],"berenice":["10"],"mathilde":["20"],"lucie":[null,"18"],"lucien":["20",null,null,null,null,"9.5"],"korben":[null,null,"15","20","50","4.6"],"jule":[null,null,"20","20","42","6.58"],"vicent":[null,null,null,null,null,"7.12"]}
 var voie = require ( voieDataBase );
 var users = require ( userDataBase );
 
@@ -109,7 +110,12 @@ app.all ( '/validate', function ( req, res )
 				score[ req.body.usr ] = [];
 			}
 
-			score[ req.body.usr ][ req.body.voie ] = req.body.points;
+			if ( !score[ req.body.usr ][ req.body.voie ] )
+			{
+				score[ req.body.usr ][ req.body.voie ] = [];
+			} 
+			score[ req.body.usr ][ req.body.voie ].push ( req.body.points );
+
 			fs.writeFileSync ( scoreDataBase, JSON.stringify ( score ), 'utf8' );
 
 			io.emit ( 'scores', req.body );

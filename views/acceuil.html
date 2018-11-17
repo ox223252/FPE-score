@@ -170,7 +170,7 @@
 						continue;
 					}
 
-					pointConfig.data.datasets[ 0 ].data.push ( score[ users[ i ].name ][ id ] );
+					pointConfig.data.datasets[ 0 ].data.push ( getScore( users[ i ].name, id ) );
 					pointConfig.data.labels.push ( i + 1 );
 				}
 
@@ -187,11 +187,11 @@
 						userConfig.data.labels[ i ] = voie[ i ].name;
 						if ( voie[ i ].type == 'vitesse' )
 						{
-							userConfig.data.datasets[ 0 ].data[ i ] =  ( voie[ i ].score.time - score[ thisUser ][ i ] ) | 0
+							userConfig.data.datasets[ 0 ].data[ i ] =  ( voie[ i ].score.time - getScore( thisUser, i ) ) | 0
 						}
 						else
 						{
-							userConfig.data.datasets[ 0 ].data[ i ] = score[ thisUser ][ i ] | 0;
+							userConfig.data.datasets[ 0 ].data[ i ] = getScore( thisUser, i ) | 0;
 						}
 						userConfig.data.datasets[ 1 ].data[ i ] = average.all[ i ] / average.tryed[ i ];
 						userConfig.data.datasets[ 2 ].data[ i ] = average.all[ i ] / average.player;
@@ -211,18 +211,7 @@
 		<script type="text/javascript"> // sockets
 			socket.on ( 'scores', function ( data )
 			{
-				console.log ( data );
-				console.log ( score );
-				if ( !score[ data.usr ] )
-				{
-					score[ data.usr ] = [];
-				}
-
-				if ( data.voie )
-				{
-					score[ data.usr ][ data.voie ] = data.points;
-				}
-				console.log ( score );
+				setScore ( data.usr, data.voie, data.points );
 
 				updateTable ( );
 				drawTable ( );
@@ -248,6 +237,60 @@
 				drawTable ( );
 			});
 		</script>
+		<script type="text/javascript"> // utils
+			function setScore ( name, id, value )
+			{
+				if ( !name ||
+					( id == undefined ) )
+				{
+					return ( false );
+				}
+
+				if ( !score[ name ] )
+				{
+					score[ name ] = [];
+				}
+
+				if ( !score[ name ][ id ] )
+				{
+					score[ name ][ id ] = [];
+				}
+				
+				score[ name ][ id ].push ( value );
+			}
+			function getScore ( name, id )
+			{
+				if ( !name ||
+					( id == undefined ) ||
+					!score[ name ] ||
+					!score[ name ][ id ] )
+				{
+					return ( false );
+				}
+				
+				let max = score[ name ][ id ][ 0 ];
+				for ( let i = 1; i < score[ name ][ id ].length; i++ )
+				{
+					if ( parseFloat( score[ name ][ id ][ i ] ) > parseFloat( max ) )
+					{
+						max = score[ name ][ id ][ i ];
+					}
+				}
+				return ( max );
+			}
+			function getnbTests ( name, id )
+			{
+				if ( !name ||
+					( id == undefined ) ||
+					!score[ name ] ||
+					!score[ name ][ id ] )
+				{
+					return ( false );
+				}
+
+				return ( score[ name ][ id ].length );
+			}
+		</script>
 		<script type="text/javascript">
 			function updateTable ( id = voie.length )
 			{
@@ -268,28 +311,28 @@
 					{
 						continue;
 					}
-					let some = 0;
+					let somme = 0;
 
 					for ( let j = 0; j < voie.length; j++ )
 					{
 						if ( ( voie[ j ].type == 'vitesse' ) &&
-							score[ users[ i ].name ][ j ] )
+							getScore( users[ i ].name, j ) )
 						{
-							let tmp = ( voie[ j ].score.time - score[ users[ i ].name ][ j ] );
-							some += ( tmp < 0 )? 0: tmp;
+							let tmp = ( voie[ j ].score.time - getScore( users[ i ].name, j ) );
+							somme += ( tmp < 0 )? 0: tmp;
 							
 							average.all[ j ] += tmp; // totalise points for all users
-							if ( score[ users[ i ].name ][ j ] )
+							if ( getScore( users[ i ].name, j ) )
 							{
 								average.tryed[ j ]++;
 							}
 						}
 						else
 						{
-							some += score[ users[ i ].name ][ j ] | 0;
-							average.all[ j ] += score[ users[ i ].name ][ j ] | 0;
+							somme += getScore( users[ i ].name, j ) | 0;
+							average.all[ j ] += getScore( users[ i ].name, j ) | 0;
 
-							if ( score[ users[ i ].name ][ j ] )
+							if ( getScore( users[ i ].name, j ) )
 							{
 								average.tryed[ j ]++;
 							}
@@ -302,7 +345,9 @@
 						average.player++;
 					}
 
-					score[ users[ i ].name ][ voie.length ] = some;
+					console.log( average );
+
+					setScore( users[ i ].name, voie.length, somme );
 				}
 
 				// put user without score at the end
@@ -336,8 +381,7 @@
 
 					for ( let j = i+1; j < users.length; j++ )
 					{
-						if ( ( !score[ users[ j ].name ] ) ||
-							( !score[ users[ j ].name ][ id ] ) )
+						if ( !getScore( users[ j ].name, id ) )
 						{
 							break;
 						}
@@ -345,16 +389,16 @@
 						if ( ( id < voie.length ) &&
 							( voie[ id ].type == 'vitesse' ) )
 						{ // order speed test (less is better)
-							if ( parseFloat( score[ users[ i ].name ][ id ] ) > parseFloat( score[ users[ j ].name ][ id ] ) )
+							if ( parseFloat( getScore( users[ i ].name, id ) ) > parseFloat( getScore( users[ j ].name, id ) ) )
 							{
 								let tmp = users[ i ];
 								users[ i ] = users[ j ];
 								users[ j ] = tmp;
 							}
 						}
-						else if ( !score[ users[ i ].name ][ id ] || 
-							score[ users[ j ].name ][ id ] &&
-							( score[ users[ i ].name ][ id ] < score[ users[ j ].name ][ id ] ) )
+						else if ( !getScore( users[ i ].name, id ) || 
+							getScore( users[ j ].name, id ) &&
+							( getScore( users[ i ].name, id ) < getScore( users[ j ].name, id ) ) )
 						{
 							let tmp = users[ i ];
 							users[ i ] = users[ j ];
@@ -363,7 +407,8 @@
 					}
 				}
 
-				let lastPoint = score[ users[ 0 ].name ][ id ];
+				// set ranks
+				let lastPoint = getScore( users[ 0 ].name, id );
 				let lastRank = 1;
 
 				for ( let i = 0; i < users.length - 1; i++ )
@@ -373,12 +418,12 @@
 						break;
 					}
 
-					if ( lastPoint != score[ users[ i ].name ][ id ] )
+					if ( lastPoint != getScore( users[ i ].name, id ) )
 					{
-						lastPoint = score[ users[ i ].name ][ id ];
+						lastPoint = getScore( users[ i ].name, id );
 						lastRank = i + 1;
 					}
-					score[ users[ i ].name ][ voie.length + 1 ] = lastRank;
+					setScore( users[ i ].name, voie.length + 1, lastRank );
 				}
 			}
 
@@ -438,9 +483,9 @@
 							str += '<td>';
 						}
 
-						if ( score[ users[ i ].name ][ j ] )
+						if ( getScore( users[ i ].name, j ) )
 						{
-							str += score[ users[ i ].name ][ j ]+'</td>';
+							str += getScore( users[ i ].name, j );
 						}
 
 						str+='</td>';
