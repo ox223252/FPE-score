@@ -114,6 +114,13 @@
 							borderColor: "rgba(0,0,255,0.4)",
 							data: [],
 							label: 'moyenne total'
+						},
+						{
+							backgroundColor: "rgba(0,0,0,0)",
+							borderColor: "rgba(0,0,0,1)",
+							borderWidth: 6,
+							data: [],
+							label: 'max'
 						}
 					]
 				},
@@ -195,6 +202,41 @@
 						}
 						userConfig.data.datasets[ 1 ].data[ i ] = average.all[ i ] / average.tryed[ i ];
 						userConfig.data.datasets[ 2 ].data[ i ] = average.all[ i ] / average.player;
+
+						switch ( voie[ i ].type )
+						{
+							case 'bloc':
+							{
+								userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.fin;
+								break;
+							}
+							case 'diff':
+							{
+								if ( voie[ i ].score.tete )
+								{
+									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.tete[ voie[ i ].score.tete.length - 1 ];
+								}
+								else
+								{
+									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.moul[ voie[ i ].score.moul.length - 1 ];
+								}
+								break;
+							}
+							case 'vitesse':
+							{
+								userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.time;
+								break;
+							}
+							case 'slack':
+							{
+								userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.distance;
+								break;
+							}
+							default:
+							{
+								break;
+							}
+						}
 					}
 					userEl.style.display = "";
 					document.getElementById ( "legendGraph" ).style.display = "";

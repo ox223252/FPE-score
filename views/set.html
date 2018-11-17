@@ -255,9 +255,6 @@
 						select.options.add ( new Option ( 'echec', 0 ) );
 						select.options[ 0 ].value = 0;
 
-						console.log( id );
-						console.log( mode );
-						console.log( voie );
 						for ( let i = 0; i < voie[ id ].score[ mode ].length; i++ )
 						{
 							select.options.add ( new Option ( 'p_' + ( i + 1 ), i + 1 ) );
@@ -281,17 +278,9 @@
 		<script type="text/javascript">
 			function validate ( el )
 			{
-				console.log( document.getElementById( 'usr' ) );
-				console.log( document.getElementById( 'voie' ) );
-				console.log( document.getElementById( 'points' ) );
-
 				let user = document.getElementById( 'usr' ).value;
 				let voie = document.getElementById( 'voie' ).value;
 				let points = document.getElementById( 'points' ).value;
-
-				console.log( user );
-				console.log( voie );
-				console.log( points );
 
 				if ( ( user == "" ) ||
 					( voie == "" ) ||
