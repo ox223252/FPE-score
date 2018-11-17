@@ -12,30 +12,44 @@
 		<section>
 			<div>
 				<form>
-					<select id="genre" onchange="drawTable();drawCurves();"></select>
-					<select id="categorie" onchange="drawTable();drawCurves();"></select>
+					<select id="genre" onchange="drawTable();"></select>
+					<select id="categorie" onchange="drawTable();"></select>
 				</form>
 				<div id="dataContent">
 				</div>
 				<div>
-					<canvas width="500" height="300" class="chartjs-render-monitor" id="canvas"></canvas>
+					<canvas width="500" height="300" class="chartjs-render-monitor" id="pointGraph"></canvas>
+					<canvas width="5000" height="3000" class="chartjs-render-monitor" id="userGraph"></canvas>
 				</div>
 			</div>
 		</section>
 		<script src="/socket.io/socket.io.js"></script>
 		<script type="text/javascript" src="/js/chartjs.js"></script>
-		<script type="text/javascript"> // graph
-			var config = {
+		<script type="text/javascript"> // globals vars
+			let socket = io ( );
+
+			let users = <%- JSON.stringify(users) %>;
+			let thisUser = undefined;
+			let voie = <%- JSON.stringify(voie) %>;
+			let score = <%- JSON.stringify(score) %>;
+
+			let g_categorie = document.getElementById ( "categorie" );
+			let g_genre = document.getElementById ( "genre" );
+			
+			var pointConfig = {
+				// type: 'bar',
 				type: 'line',
 				data: {
 					labels: [],
 					datasets: [
 						{
 							label: 'points',
-							backgroundColor: "rgba(128,0,0,0.2)",
+							backgroundColor: "rgba(255,0,0,0.1)",
 							borderColor: "#f00",
 							data: [],
-							fill: true,
+							// fill: true,
+							fill: false,
+							lineTension: 0
 						},
 					]
 				},
@@ -43,7 +57,8 @@
 					animation: false,
 					responsive: true,
 					legend: {
-						display: true,
+						// display: true,
+						display: false,
 					},
 					title: {
 						display: false,
@@ -79,28 +94,109 @@
 				}
 			};
 
-			function drawCurves ( id = voix.length )
+			var userConfig = {
+				type: 'radar',
+				data: {
+					labels: [ ],
+					datasets: [
+						{
+							backgroundColor: "rgba(255,0,0,0.2)",
+							borderColor: "#f00",
+							borderWidth: 1,
+							data: [ ],
+							label: ''
+						},
+						{
+							backgroundColor: "rgba(0,255,255,0.2)",
+							borderColor: "rgba(0,255,255,0.2)",
+							data: [],
+							label: 'moyenne tenté'
+						}
+						// ,
+						// {
+						// 	backgroundColor: "rgba(0,0,255,0.4)",
+						// 	borderColor: "rgba(0,0,255,0.4)",
+						// 	data: [],
+						// 	label: 'moyenne total'
+						// }
+					]
+				},
+				options: {
+
+					maintainAspectRatio: true,
+					spanGaps: false,
+					elements: {
+						line: {
+							tension: 0
+						}
+					},
+        			scale: {
+						ticks: {
+							display:false,
+						}
+					},
+					plugins: {
+						filler: {
+							propagate: false
+						},
+						'samples-filler-analyser': {
+							target: 'chart-analyser'
+						}
+					},
+				}
+			};
+
+			var average = {
+				"all" : [],
+				"tryed" : []
+			}
+		</script>
+		<script type="text/javascript"> // graph
+			function drawCurves ( id = voie.length )
 			{
-				let ctx = document.getElementById ( "canvas" ).getContext ( "2d" );
+				let pointCtx = document.getElementById ( "pointGraph" ).getContext ( "2d" );
+				let userEl = document.getElementById ( "userGraph" );
+				let userCtx = userEl.getContext ( "2d" );
 
-				config.data.datasets[ 0 ].data = [];
-				config.data.labels = [];
+				pointConfig.data.datasets[ 0 ].data = [];
+				pointConfig.data.labels = [];
 
-				// score[ users[ i ].name ][ voix.length ] = some;
-
+				// draw evolution of points for selected way
 				for ( let i = 0; i < users.length; i++ )
 				{
-					console.log( score[ users[ i ].name ] );
 					if ( !score[ users[ i ].name ] )
 					{
 						continue;
 					}
 
-					config.data.datasets[ 0 ].data.push ( score[ users[ i ].name ][ id ] );
-					config.data.labels.push ( i + 1 );
+					pointConfig.data.datasets[ 0 ].data.push ( score[ users[ i ].name ][ id ] );
+					pointConfig.data.labels.push ( i + 1 );
 				}
 
-				new Chart ( ctx, config );
+				new Chart ( pointCtx, pointConfig );
+
+
+				// draw user slelected graph
+				if  ( thisUser &&
+					score[ thisUser ] )
+				{
+					userConfig.data.datasets[ 0 ].label = thisUser;
+					for ( let i = 0; i < voie.length; i++ )
+					{
+						userConfig.data.labels[ i ] = voie[ i ].name;
+						userConfig.data.datasets[ 0 ].data[ i ] = score[ thisUser ][ i ] | 0;
+						userConfig.data.datasets[ 1 ].data[ i ] = average.all[ i ] / average.tryed[ i ];
+						// userConfig.data.datasets[ 2 ].data[ i ] = average.all[ i ] / users.length;
+					}
+					userEl.style.display = "";
+					
+					new Chart ( userCtx, userConfig );
+				}
+				else
+				{
+					userEl.style.display = "none";
+				}
+
 			}
 		</script>
 		<script type="text/javascript">
@@ -109,15 +205,6 @@
 				
 			}
 			
-			let socket = io ( );
-
-			let users = <%- JSON.stringify(users) %>;
-			let thisUser = undefined;
-			let voix = <%- JSON.stringify(voix) %>;
-			let score = <%- JSON.stringify(score) %>;
-
-			let g_categorie = document.getElementById ( "categorie" );
-			let g_genre = document.getElementById ( "genre" );
 
 			socket.on ( 'scores', function ( data )
 			{
@@ -125,9 +212,9 @@
 				{
 					score[ data.users ] = [];
 				}
-				if ( data.voix )
+				if ( data.voie )
 				{
-					score[ data.users ][ data.voix ] = data.value;
+					score[ data.users ][ data.voie ] = data.value;
 				}
 				updateTable ( );
 				drawTable ( );
@@ -156,13 +243,20 @@
 
 				updateTable ( );
 				drawTable ( );
-				drawCurves ( );
 			});
 
-			function updateTable ( id = voix.length )
+			function updateTable ( id = voie.length )
 			{
-				// voix.length : total
-				// voix.length + 1 : rank
+				// voie.length : total
+				// voie.length + 1 : rank
+
+				// init average struct
+				for ( let i = 0; i < voie.length; i++ )
+				{
+					average.all[ i ] = 0;
+					average.tryed[ i ] = 0;
+				}
+
 				for ( let i = 0; i < users.length; i++ )
 				{
 					if ( !score[ users[ i ].name ] )
@@ -170,20 +264,30 @@
 						continue;
 					}
 					let some = 0;
-					for ( let j = 0; j < voix.length; j++ )
+
+					for ( let j = 0; j < voie.length; j++ )
 					{
-						if ( ( voix[ j ].type == 'vitesse' ) &&
+						if ( ( voie[ j ].type == 'vitesse' ) &&
 							score[ users[ i ].name ][ j ] )
 						{
-							let tmp = ( voix[ j ].score.time - score[ users[ i ].name ][ j ] )
+							let tmp = ( voie[ j ].score.time - score[ users[ i ].name ][ j ] );
 							some += ( tmp < 0 )? 0: tmp;
+							
+							average.all[ j ] += tmp; // totalise points for all users
 						}
 						else
 						{
 							some += score[ users[ i ].name ][ j ] | 0;
+							average.all[ j ] += score[ users[ i ].name ][ j ] | 0;
+						}
+
+						if ( score[ users[ i ].name ][ j ] )
+						{
+							average.tryed[ j ]++;
 						}
 					}
-					score[ users[ i ].name ][ voix.length ] = some;
+
+					score[ users[ i ].name ][ voie.length ] = some;
 				}
 
 				// put user without score at the end
@@ -249,19 +353,19 @@
 						lastPoint = score[ users[ i ].name ][ id ];
 						lastRank = i + 1;
 					}
-					score[ users[ i ].name ][ voix.length + 1 ] = lastRank;
+					score[ users[ i ].name ][ voie.length + 1 ] = lastRank;
 				}
 			}
 
-			function drawTable ( id = voix.length )
+			function drawTable ( id = voie.length )
 			{
-				let str = "<table id=\"results\"><tr><td></td><td>h/f</td><td>cat.</td>";
+				let str = "<table id=\"results\"><tr><td onclick=\"updateUser();\"></td><td>h/f</td><td>cat.</td>";
 				// header
-				for ( let j = 0; j < voix.length; j++ )
+				for ( let j = 0; j < voie.length; j++ )
 				{
-					str += '<td onclick="updateTable('+j+');drawTable('+j+');drawCurves('+j+');">'+voix[ j ].name+'</td>';
+					str += '<td onclick="updateTable('+j+');drawTable('+j+');">'+voie[ j ].name+'</td>';
 				}
-				str += '<td onclick="updateTable();drawTable();drawCurves();">Total</td><td>rank</td>';
+				str += '<td onclick="updateTable();drawTable();">Total</td><td>rank</td>';
 
 				for ( let i = 0; i < users.length; i++ )
 				{
@@ -298,7 +402,7 @@
 					}
 
 					// score
-					for ( let j = 0; j < voix.length + 2; j++ )
+					for ( let j = 0; j < voie.length + 2; j++ )
 					{
 						if ( j == id )
 						{
@@ -319,20 +423,13 @@
 					str += '</tr>';
 				}
 				document.getElementById ( "dataContent" ).innerHTML = str+'</table>';
+				drawCurves ( id );
 			}
 
 			function updateUser ( user )
 			{
-				if ( !user )
-				{
-					return ( false );
-				}
-
-				if ( users.includes ( user ) )
-				{
-					thisUser = user;
-					drawTable ( );
-				}
+				thisUser = user;
+				drawTable ( );
 			}
 
 			function updateSelector ( )
@@ -383,7 +480,6 @@
 			updateSelector ( );
 			updateTable ( );
 			drawTable ( );
-			drawCurves ( );
 		</script>
 	</body>
 </html>

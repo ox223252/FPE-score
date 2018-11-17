@@ -1,5 +1,5 @@
 const scoreDataBase = './private/score.json';
-const voixDataBase = './private/voix.json';
+const voieDataBase = './private/voie.json';
 const userDataBase = './private/users.json';
 const port = 6683;
 
@@ -13,7 +13,7 @@ const favicon = require ( 'serve-favicon' );
 
 // get user data base
 var score = require ( scoreDataBase );
-var voix = require ( voixDataBase );
+var voie = require ( voieDataBase );
 var users = require ( userDataBase );
 
 var app = express ( );
@@ -41,7 +41,7 @@ app.all ( '/', function ( req, res )
 	res.render ( 'acceuil.html', {
 		loged:req.session.loged,
 		users:users,
-		voix:voix,
+		voie:voie,
 		score:score,
 		page:undefined
 	} );
@@ -77,7 +77,7 @@ app.all ( '/set/:id', function ( req, res )
 		res.render ( 'set.html', {
 			loged:req.session.loged,
 			users:users,
-			voix:voix,
+			voie:voie,
 			page:req.params.id
 		} );
 	}
@@ -86,7 +86,7 @@ app.all ( '/set/:id', function ( req, res )
 		res.render ( 'acceuil.html', {
 			loged:req.session.loged,
 			users:users,
-			voix:voix,
+			voie:voie,
 			score:score,
 			page:undefined
 		} );
@@ -109,10 +109,10 @@ app.all ( '/validate', function ( req, res )
 				score[ req.body.usr ] = [];
 			}
 
-			score[ req.body.usr ][ req.body.voix ] = req.body.points;
+			score[ req.body.usr ][ req.body.voie ] = req.body.points;
 			fs.writeFileSync ( scoreDataBase, JSON.stringify ( score ), 'utf8' );
 
-			io.emit ( 'scores', {users:req.body.usr,voix:req.body.voix,value:req.body.points} );
+			io.emit ( 'scores', {users:req.body.usr,voie:req.body.voie,value:req.body.points} );
 
 			res.writeHead ( 200 );
 			res.end ( "ok" );
@@ -151,7 +151,7 @@ app.all ( '/addUser', function ( req, res )
 			res.render ( 'addUser.html', {
 				loged:req.session.loged,
 				users:users,
-				voix:voix,
+				voie:voie,
 				page:req.params.id
 			} );
 		}
@@ -161,7 +161,7 @@ app.all ( '/addUser', function ( req, res )
 		res.render ( 'acceuil.html', {
 			loged:req.session.loged,
 			users:users,
-			voix:voix,
+			voie:voie,
 			score:score
 		} );
 	}
