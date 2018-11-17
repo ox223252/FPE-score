@@ -10,10 +10,12 @@
 		<% include nav %>
 
 		<section>
-			<form>
-				<select id="genre" onchange="drawTable();"></select><select id="categorie" onchange="drawTable();"></select>
-			</form>
-			<div id="dataContent">
+			<div>
+				<form>
+					<select id="genre" onchange="drawTable();"></select><select id="categorie" onchange="drawTable();"></select>
+				</form>
+				<div id="dataContent">
+				</div>
 			</div>
 		</section>
 		<script src="/socket.io/socket.io.js"></script>
@@ -170,7 +172,7 @@
 
 			function drawTable ( id = voix.length )
 			{
-				let str = "<table><tr><td></td><td>h/f</td><td>cat.</td>";
+				let str = "<table id=\"results\"><tr><td></td><td>h/f</td><td>cat.</td>";
 				// header
 				for ( let j = 0; j < voix.length; j++ )
 				{
@@ -183,14 +185,12 @@
 					if ( ( g_categorie.value != "all" ) &&
 						( users[ i ].categorie != g_categorie.value ) )
 					{
-						console.log( g_categorie.value );
 						continue;
 					}
 
 					if ( ( g_genre.value != "all" ) &&
 						( users[ i ].genre != g_genre.value ) )
 					{
-						console.log( g_genre.value );
 						continue;
 					}
 

@@ -8,23 +8,27 @@
 	<body>
 		<% include nav %>
 		<section>
-			<input id="user" type="text" placeholder="new user" onkeyup="exist(this);"/>
-			<select id="categorie">
-				<option disabled selected></option>
-				<option value="microbe">microbe</option>
-				<option value="poussin">poussin</option>
-				<option value="bejamin">bejamin</option>
-				<option value="minime">minime</option>
-				<option value="cadet">cadet</option>
-				<option value="senior">senior</option>
-				<option value="veterant">veterant</option>
-			</select>
-			<select id="genre">
-				<option disabled selected></option>
-				<option value="homme">homme</option>
-				<option value="femme">femme</option>
-			</select>
-			<button onclick="addUser()">Ok</button>
+			<div>
+				<div>
+					<input id="user" type="text" placeholder="new user" onkeyup="exist(this);"/>
+					<select id="categorie">
+						<option disabled selected></option>
+						<option value="microbe">microbe</option>
+						<option value="poussin">poussin</option>
+						<option value="bejamin">bejamin</option>
+						<option value="minime">minime</option>
+						<option value="cadet">cadet</option>
+						<option value="senior">senior</option>
+						<option value="veterant">veterant</option>
+					</select>
+					<select id="genre">
+						<option disabled selected></option>
+						<option value="homme">homme</option>
+						<option value="femme">femme</option>
+					</select>
+					<button onclick="addUser()">Ok</button>
+				</div>
+			</div>
 		</section>
 		<script type="text/javascript"> // password
 			function addUser ( )

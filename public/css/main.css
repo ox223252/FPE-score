@@ -4,6 +4,7 @@ html
 	background: #333;
 }
 
+
 body
 {
 	color: white;
@@ -14,10 +15,13 @@ body
 	display: flex;
 	flex-direction: column;
 }
+
+
 nav
 {
 	margin: 5px;
 }
+
 
 a
 {
@@ -28,16 +32,25 @@ a:disabled
 	color:grey;
 }
 
+
 section
 {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
-	min-width: 550px;
-	min-height: 20%;
 }
+section > div
+{
+	flex-shrink: inherit;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height:100%;
+}
+
+
 table
 {
 	border-collapse: collapse;
@@ -53,13 +66,6 @@ table td
 	text-align: center;
 	padding: 5px;
 }
-section div
-{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-}
 
 
 footer
@@ -67,6 +73,7 @@ footer
 	display: flex;
 	justify-content: center;
 }
+
 
 input, select
 {
@@ -76,6 +83,11 @@ input, select
 	border-radius: 5px;
 	margin-bottom: 5px;
 	color: white;
+}
+
+section input, section select
+{
+	width: 100%;
 }
 
 button
@@ -93,4 +105,14 @@ button:active
 
 ::placeholder {
 	color: white;
+}
+
+#results
+{
+	margin: 20px;
+	padding: 5px;
+	max-height: calc( 100% - 100px );
+	max-width: calc( 100% - 100px );
+	overflow-x: auto;
+	overflow-y: auto;
 }

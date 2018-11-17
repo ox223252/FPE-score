@@ -97,7 +97,7 @@ app.all ( '/validate', function ( req, res )
 {
 	if ( req.session.loged )
 	{
-		if ( !users.includes ( req.body.usr ) )
+		if ( !userExist ( req.body.usr ) )
 		{
 			res.writeHead ( 500 );
 			res.end ( "ko" );

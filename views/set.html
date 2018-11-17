@@ -4,17 +4,50 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no">
 		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="/css/set.css">
 	</head>
 	<body>
 		<% include nav %>
 		<section>
-			<div id="dataContent">
-				<select id="usr"></select>
-				<select id="voix" onchange="updateMode();"></select>
-				<select id="mode" onchange="updatePoints();"></select>
+			<div id="setSection">
+				<div>
+					<label>categorie :</label>
+					<select id="categorie" onchange="updateUsers();">
+						<option value="all">all</option>
+						<option value="microbe">microbe</option>
+						<option value="poussin">poussin</option>
+						<option value="bejamin">bejamin</option>
+						<option value="minime">minime</option>
+						<option value="cadet">cadet</option>
+						<option value="senior">senior</option>
+						<option value="veterant">veterant</option>
+					</select>
+				</div>
+				<div>
+					<label>genre :</label>
+					<select id="genre" onchange="updateUsers();">
+						<option value="all">all</option>
+						<option value="homme">homme</option>
+						<option value="femme">femme</option>
+					</select>
+				</div>
+				<div>
+					<label>user :</label>
+					<select id="usr"></select>
+				</div>
+				<div>
+					<label>type :</label>
+					<select id="voix" onchange="updateMode();"></select>
+				</div>
+				<div>
+					<label>status :</label>
+					<select id="mode" onchange="updatePoints();"></select>
+				</div>
 				<div id="score" style="display:inline-block"></div>
+				<button id="validate" onclick="validate(this);"">Validate</button>
 			</div>
-			<button id="validate" onclick="validate(this);"">Validate</button>
+			<p id="serverMsg">
+			</p>
 		</section>
 		<script type="text/javascript">
 			let current = "<%- page %>";
@@ -29,16 +62,32 @@
 
 			function updateUsers ( )
 			{
-				let select = document.getElementById ( 'usr' );
+				let select = document.getElementById ( "usr" );
+				let categorie = document.getElementById ( "categorie" ).value;
+				let genre = document.getElementById ( "genre" ).value;
+
 				while ( select.options.length )
 				{
 					select.options.remove ( 0 );
 				}
 
-				for ( let i = 0; i < users.length; i++ )
+				for ( let i = 0, k = 0; i < users.length; i++ )
 				{
-					select.options.add ( new Option ( users[ i ].name, i ) );
-					select.options[ i ].value = users[ i ].name;
+					if ( ( genre != "all" ) &&
+						(  users[ i ].genre != genre ) )
+					{
+						continue;
+					}
+
+					if ( ( categorie != "all" ) &&
+						(  users[ i ].categorie != categorie ) )
+					{
+						continue;
+					}
+
+					select.options.add ( new Option ( users[ i ].name, k ) );
+					select.options[ k ].value = users[ i ].name;
+					k++;
 				}
 			}
 
@@ -235,9 +284,10 @@
 					{
 						if ( xhr.status === 200 )
 						{
-							document.getElementById( 'usr' ).value = "";
-							document.getElementById( 'points' ).value = "";
+							updateUsers ( );
+							updatePoints ( );
 							el.disabled = false;
+							el.style.backgroundColor = "";
 						}
 						else if ( xhr.status === 401 )
 						{
@@ -248,7 +298,9 @@
 
 				xhr.overrideMimeType("text/plain");
 				xhr.send("usr="+user+"&voix="+voix+"&points="+points);
+				document.getElementById( 'serverMsg' ).innerHTML = "";
 				el.disabled = true;
+				el.style.backgroundColor = "rgba(0,255,0,0.2);";
 			}
 		</script>
 		<script type="text/javascript">
