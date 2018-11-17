@@ -4,14 +4,14 @@
 		<a href="/login">Logout</a>
 		<a href="/addUser">New user</a>
 		<select onchange="window.location.href = '/set/'+this.value;">
-			<option disabled selected style="color:grey;">voix</option>
+			<option disabled selected style="color:grey;">voie</option>
 			<option value="bloc" <% if(page == 'bloc'){%>selected<%}%>>bloc</option>
 			<option value="diff" <% if(page == 'diff'){%>selected<%}%>>diff</option>
 			
 			<%
-			for ( var i = 0; i < voix.length; i++ )
+			for ( var i = 0; i < voie.length; i++ )
 			{
-			%><option value="<%-voix[i].name%>" <% if(page == voix[i].name){%>selected<%}%>><%- voix[i].type + ' : ' + voix[i].name %></option><%
+			%><option value="<%-voie[i].name%>" <% if(page == voie[i].name){%>selected<%}%>><%- voie[i].type + ' : ' + voie[i].name %></option><%
 			}
 			%>
 		</select>

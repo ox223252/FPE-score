@@ -37,7 +37,7 @@
 				</div>
 				<div>
 					<label>type :</label>
-					<select id="voix" onchange="updateMode();"></select>
+					<select id="voie" onchange="updateMode();"></select>
 				</div>
 				<div>
 					<label>status :</label>
@@ -58,7 +58,7 @@
 			}
 
 			let users = <%- JSON.stringify(users) %>;
-			let voix = <%- JSON.stringify(voix) %>;
+			let voie = <%- JSON.stringify(voie) %>;
 
 			function updateUsers ( )
 			{
@@ -93,7 +93,7 @@
 
 			function updateVoix ( name )
 			{
-				let select = document.getElementById ( 'voix' );
+				let select = document.getElementById ( 'voie' );
 				while ( select.options.length )
 				{
 					select.options.remove ( 0 );
@@ -108,14 +108,14 @@
 						select.options[ 0 ].disabled = true;
 						select.options[ 0 ].selected = true;
 
-						for ( let i = 0, j = 1; i < voix.length; i++ )
+						for ( let i = 0, j = 1; i < voie.length; i++ )
 						{
-							if ( voix[ i ].type != name )
+							if ( voie[ i ].type != name )
 							{
 								continue;
 							}
 
-							select.options.add ( new Option ( voix[i].name, j ) );
+							select.options.add ( new Option ( voie[i].name, j ) );
 							select.options[ j ].value = i;
 							j++;
 						}
@@ -125,7 +125,7 @@
 					default:
 					{
 						let i = 0;
-						while ( voix[ i ].name != name )
+						while ( voie[ i ].name != name )
 						{
 							i++;
 						}
@@ -141,13 +141,13 @@
 			function updateMode ( )
 			{
 				let select = document.getElementById ( 'mode' );
-				let id = document.getElementById ( 'voix' ).value;
-				if ( id >= voix.length )
+				let id = document.getElementById ( 'voie' ).value;
+				if ( id >= voie.length )
 				{
 					return ( false );
 				}
 
-				if ( voix[ id ].type == 'diff' )
+				if ( voie[ id ].type == 'diff' )
 				{
 					document.getElementById ( 'score' ).innerHTML = '';
 
@@ -158,8 +158,8 @@
 					select.style.display = "";
 
 					let i = 0;
-					if ( voix[ id ].score[ 'moul' ] &&
-						voix[ id ].score[ 'tete' ] )
+					if ( voie[ id ].score[ 'moul' ] &&
+						voie[ id ].score[ 'tete' ] )
 					{
 						select.options.add  ( new Option ( 'mode', i ) );
 						select.options[ i ].disabled = true;
@@ -167,22 +167,22 @@
 						i++;
 					}
 
-					if ( voix[ id ].score[ 'moul' ] )
+					if ( voie[ id ].score[ 'moul' ] )
 					{
 						select.options.add  ( new Option ( 'moul', i ) );
 						select.options[ i ].value = 'moul';
 						i++;
 					}
 
-					if ( voix[ id ].score[ 'tete' ] )
+					if ( voie[ id ].score[ 'tete' ] )
 					{
 						select.options.add  ( new Option ( 'tete', i ) );
 						select.options[ i ].value = 'tete';
 						i++;
 					}
 
-					if ( !voix[ id ].score[ 'moul' ] ||
-						!voix[ id ].score[ 'tete' ] )
+					if ( !voie[ id ].score[ 'moul' ] ||
+						!voie[ id ].score[ 'tete' ] )
 					{
 						updatePoints ( );
 					}
@@ -196,8 +196,8 @@
 
 			function updatePoints ( )
 			{
-				let id = document.getElementById ( "voix" ).value;
-				if ( !voix[ id ] )
+				let id = document.getElementById ( "voie" ).value;
+				if ( !voie[ id ] )
 				{
 					return;
 				}
@@ -205,7 +205,7 @@
 				let el = document.getElementById ( 'score' );
 				el.innerHTML = '';
 
-				switch ( voix[ id ].type )
+				switch ( voie[ id ].type )
 				{
 					case 'bloc':
 					{
@@ -214,9 +214,9 @@
 						select.options.add ( new Option ( 'echec', 0 ) );
 						select.options[0].value = 0;
 						select.options.add ( new Option ( 'zone', 1 ) );
-						select.options[1].value = voix[ id ].score.zone;
+						select.options[1].value = voie[ id ].score.zone;
 						select.options.add ( new Option ( 'fin', 2 ) );
-						select.options[2].value = voix[ id ].score.fin;
+						select.options[2].value = voie[ id ].score.fin;
 						break;
 					}
 					case 'diff':
@@ -230,11 +230,11 @@
 
 						console.log( id );
 						console.log( mode );
-						console.log( voix );
-						for ( let i = 0; i < voix[ id ].score[ mode ].length; i++ )
+						console.log( voie );
+						for ( let i = 0; i < voie[ id ].score[ mode ].length; i++ )
 						{
 							select.options.add ( new Option ( 'p_' + ( i + 1 ), i + 1 ) );
-							select.options[ i + 1 ].value = voix[ id ].score[ mode ][ i ];
+							select.options[ i + 1 ].value = voie[ id ].score[ mode ][ i ];
 						}
 						break;
 					}
@@ -255,19 +255,19 @@
 			function validate ( el )
 			{
 				console.log( document.getElementById( 'usr' ) );
-				console.log( document.getElementById( 'voix' ) );
+				console.log( document.getElementById( 'voie' ) );
 				console.log( document.getElementById( 'points' ) );
 
 				let user = document.getElementById( 'usr' ).value;
-				let voix = document.getElementById( 'voix' ).value;
+				let voie = document.getElementById( 'voie' ).value;
 				let points = document.getElementById( 'points' ).value;
 
 				console.log( user );
-				console.log( voix );
+				console.log( voie );
 				console.log( points );
 
 				if ( ( user == "" ) ||
-					( voix == "" ) ||
+					( voie == "" ) ||
 					( points == "" ) )
 				{
 					return;
@@ -297,7 +297,7 @@
 				});
 
 				xhr.overrideMimeType("text/plain");
-				xhr.send("usr="+user+"&voix="+voix+"&points="+points);
+				xhr.send("usr="+user+"&voie="+voie+"&points="+points);
 				document.getElementById( 'serverMsg' ).innerHTML = "";
 				el.disabled = true;
 				el.style.backgroundColor = "rgba(0,255,0,0.2);";
