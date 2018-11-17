@@ -8,7 +8,6 @@
 	</head>
 	<body>
 		<% include nav %>
-
 		<section>
 			<div>
 				<form>
@@ -18,8 +17,12 @@
 				<div id="dataContent">
 				</div>
 				<div>
-					<canvas width="500" height="300" class="chartjs-render-monitor" id="pointGraph"></canvas>
-					<canvas width="5000" height="3000" class="chartjs-render-monitor" id="userGraph"></canvas>
+					<canvas width="700" height="400" class="chartjs-render-monitor" id="pointGraph"></canvas>
+					<canvas width="700" height="700" class="chartjs-render-monitor" id="userGraph"></canvas>
+					<ul id="legendGraph" style="color:grey;">
+						<li>moyenne tenté : moyenne des points obtenu pas les personnes ayant tenté cette voie</li>
+						<li>moyenne totale : moyen des points obtenu sur cette voie par toues les personnes ayant participé</li>
+					</ul>
 				</div>
 			</div>
 		</section>
@@ -62,7 +65,6 @@
 					},
 					title: {
 						display: false,
-						text: 'Accuracy'
 					},
 					tooltips: {
 						mode: 'index',
@@ -102,7 +104,7 @@
 						{
 							backgroundColor: "rgba(255,0,0,0.2)",
 							borderColor: "#f00",
-							borderWidth: 1,
+							borderWidth: 2,
 							data: [ ],
 							label: ''
 						},
@@ -111,14 +113,13 @@
 							borderColor: "rgba(0,255,255,0.2)",
 							data: [],
 							label: 'moyenne tenté'
+						},
+						{
+							backgroundColor: "rgba(0,0,255,0.4)",
+							borderColor: "rgba(0,0,255,0.4)",
+							data: [],
+							label: 'moyenne total'
 						}
-						// ,
-						// {
-						// 	backgroundColor: "rgba(0,0,255,0.4)",
-						// 	borderColor: "rgba(0,0,255,0.4)",
-						// 	data: [],
-						// 	label: 'moyenne total'
-						// }
 					]
 				},
 				options: {
@@ -129,6 +130,10 @@
 						line: {
 							tension: 0
 						}
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
 					},
         			scale: {
 						ticks: {
@@ -148,7 +153,8 @@
 
 			var average = {
 				"all" : [],
-				"tryed" : []
+				"tryed" : [],
+				"player" : 0
 			}
 		</script>
 		<script type="text/javascript"> // graph
@@ -184,19 +190,27 @@
 					for ( let i = 0; i < voie.length; i++ )
 					{
 						userConfig.data.labels[ i ] = voie[ i ].name;
-						userConfig.data.datasets[ 0 ].data[ i ] = score[ thisUser ][ i ] | 0;
+						if ( voie[ i ].type == 'vitesse' )
+						{
+							userConfig.data.datasets[ 0 ].data[ i ] =  ( voie[ i ].score.time - score[ thisUser ][ i ] ) | 0
+						}
+						else
+						{
+							userConfig.data.datasets[ 0 ].data[ i ] = score[ thisUser ][ i ] | 0;
+						}
 						userConfig.data.datasets[ 1 ].data[ i ] = average.all[ i ] / average.tryed[ i ];
-						// userConfig.data.datasets[ 2 ].data[ i ] = average.all[ i ] / users.length;
+						userConfig.data.datasets[ 2 ].data[ i ] = average.all[ i ] / average.player;
 					}
 					userEl.style.display = "";
+					document.getElementById ( "legendGraph" ).style.display = "";
 					
 					new Chart ( userCtx, userConfig );
 				}
 				else
 				{
 					userEl.style.display = "none";
+					document.getElementById ( "legendGraph" ).style.display = "none";
 				}
-
 			}
 		</script>
 		<script type="text/javascript">
@@ -208,24 +222,29 @@
 
 			socket.on ( 'scores', function ( data )
 			{
-				if ( !score[ data.users ] )
+				console.log ( data );
+				console.log ( score );
+				if ( !score[ data.usr ] )
 				{
-					score[ data.users ] = [];
+					score[ data.usr ] = [];
 				}
+
 				if ( data.voie )
 				{
-					score[ data.users ][ data.voie ] = data.value;
+					score[ data.usr ][ data.voie ] = data.points;
 				}
+				console.log ( score );
+
 				updateTable ( );
 				drawTable ( );
 			});
 
-			socket.on ( 'users', function ( name )
+			socket.on ( 'users', function ( usr )
 			{
 				let i;
 				for ( i = 0; i < users.length; i++ )
 				{
-					if ( users[ i ].name == name )
+					if ( users[ i ].name == usr.name )
 					{
 						break;
 					}
@@ -233,12 +252,7 @@
 
 				if ( i == users.length )
 				{
-					users.push ( name );
-				}
-				
-				if ( !score[ name ] )
-				{
-					score[ name ] = [];
+					users.push ( usr );
 				}
 
 				updateTable ( );
@@ -255,6 +269,7 @@
 				{
 					average.all[ i ] = 0;
 					average.tryed[ i ] = 0;
+					average.player = 0;
 				}
 
 				for ( let i = 0; i < users.length; i++ )
@@ -274,17 +289,27 @@
 							some += ( tmp < 0 )? 0: tmp;
 							
 							average.all[ j ] += tmp; // totalise points for all users
+							if ( score[ users[ i ].name ][ j ] )
+							{
+								average.tryed[ j ]++;
+							}
 						}
 						else
 						{
 							some += score[ users[ i ].name ][ j ] | 0;
 							average.all[ j ] += score[ users[ i ].name ][ j ] | 0;
+
+							if ( score[ users[ i ].name ][ j ] )
+							{
+								average.tryed[ j ]++;
+							}
 						}
 
-						if ( score[ users[ i ].name ][ j ] )
-						{
-							average.tryed[ j ]++;
-						}
+					}
+
+					if ( score[ users[ i ].name ] )
+					{
+						average.player++;
 					}
 
 					score[ users[ i ].name ][ voie.length ] = some;

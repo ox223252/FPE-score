@@ -37,7 +37,7 @@
 				</div>
 				<div>
 					<label>type :</label>
-					<select id="voie" onchange="updateMode();"></select>
+					<select id="voie" onchange="updateComments();updateMode();"></select>
 				</div>
 				<div>
 					<label>status :</label>
@@ -45,6 +45,9 @@
 				</div>
 				<div id="score" style="display:inline-block"></div>
 				<button id="validate" onclick="validate(this);"">Validate</button>
+			</div>
+
+			<div id="comments">
 			</div>
 			<p id="serverMsg">
 			</p>
@@ -132,6 +135,7 @@
 						select.options.add ( new Option ( name, 0 ) );
 						select.options[ 0 ].value = i;
 
+						updateComments ( );
 						updateMode ( );
 						break;
 					}
@@ -140,8 +144,10 @@
 
 			function updateMode ( )
 			{
+				
 				let select = document.getElementById ( 'mode' );
 				let id = document.getElementById ( 'voie' ).value;
+
 				if ( id >= voie.length )
 				{
 					return ( false );
@@ -191,6 +197,31 @@
 				{
 					select.style.display = "none";
 					updatePoints ( );
+				}
+			}
+
+			function updateComments ( )
+			{
+				let com = document.getElementById ( 'comments' );
+				let id = document.getElementById ( 'voie' ).value;
+				com.innerHTML = '';
+
+				if ( id >= voie.length )
+				{
+					return ( false );
+				}
+				
+				if ( voie[ id ].comment )
+				{
+					com.innerHTML += '<p>'+voie[ id ].comment+'</p>'
+				}
+
+				if ( voie[ id ].picture )
+				{
+					for ( let i = 0; i < voie[ id ].picture.length; i++ )
+					{
+						com.innerHTML += '<img src="'+voie[ id ].picture[ i ]+'">'
+					}
 				}
 			}
 

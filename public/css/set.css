@@ -2,3 +2,15 @@
 {
 	width:100%;
 }
+
+#comments
+{
+	max-width: 700px;
+	max-height: 700px;
+}
+
+#comments > img
+{
+	max-width: 100%;
+	max-height: 100%;
+}

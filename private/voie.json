@@ -6,7 +6,9 @@
 		{
 			"zone":10,
 			"fin":20
-		}
+		},
+		"picture":["/imgs/noire.jpg"],
+		"comment":"bord interdit"
 	},
 	{
 		"name":"bloc_rouge",

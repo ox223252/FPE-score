@@ -112,7 +112,7 @@ app.all ( '/validate', function ( req, res )
 			score[ req.body.usr ][ req.body.voie ] = req.body.points;
 			fs.writeFileSync ( scoreDataBase, JSON.stringify ( score ), 'utf8' );
 
-			io.emit ( 'scores', {users:req.body.usr,voie:req.body.voie,value:req.body.points} );
+			io.emit ( 'scores', req.body );
 
 			res.writeHead ( 200 );
 			res.end ( "ok" );
@@ -135,7 +135,7 @@ app.all ( '/addUser', function ( req, res )
 
 				users.push ( tmp );
 				fs.writeFileSync ( userDataBase, JSON.stringify ( users ), 'utf8' );
-				io.emit ( 'users', req.body.user );
+				io.emit ( 'users', tmp );
 
 				res.status(200);
 				res.end ( "added" );
