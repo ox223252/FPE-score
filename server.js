@@ -40,14 +40,54 @@ let RSA = {
 	public:null
 };
 
-function initRSA ( )
+async function initRSA ( )
 {
 	let PassPhrase = crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" );
 
-	RSA.private = cryptico.generateRSAKey ( PassPhrase, 4096 );
-	RSA.public = cryptico.publicKeyString ( RSA.private );
+	try
+	{
+		RSA.private = await initPrivate ( PassPhrase, 8192 );
+		RSA.public = initPublic ( RSA.private );
+		console.log ( "new key available" );
+	}
+	catch ( e )
+	{
+		console.log ( "the key can't be set" );
+	}
 
-	console.log ( "new key available" );
+	function initPrivate ( str, size )
+	{
+		return ( new Promise ( (resolve, reject) =>
+			{
+				let key = cryptico.generateRSAKey ( str, size );
+				if ( key )
+				{
+					resolve ( key );
+				}
+				else
+				{
+					reject ( null );
+				}
+			})
+		);
+	}
+
+	function initPublic ( private )
+	{
+		return ( new Promise ( (resolve, reject) =>
+			{
+				let key = cryptico.publicKeyString ( private );
+				if ( key )
+				{
+					resolve ( key );
+				}
+				else
+				{
+					reject ( null );
+				}
+			})
+		);
+	}
 }
 
 setTimeout ( initRSA, 500 );
