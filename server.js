@@ -1,3 +1,6 @@
+// https://coolaj86.com/articles/asymmetric-public--private-key-encryption-in-node-js/
+// http://wwwtyro.github.io/cryptico/
+
 const scoreDataBase = './private/score.json';
 const voieDataBase = './private/voie.json';
 const userDataBase = './private/users.json';
@@ -10,6 +13,7 @@ const bodyParser = require ( 'body-parser' );
 const fs = require ( 'fs' );
 const crypto = require ( 'crypto' );
 const favicon = require ( 'serve-favicon' );
+const cryptico = require ( 'cryptico' );
 
 // get user data base
 let score = {};
@@ -30,6 +34,23 @@ if ( fs.existsSync ( userDataBase ) )
 {
 	users = require ( userDataBase );
 }
+
+let RSA = {
+	private:null,
+	public:null
+};
+
+function initRSA ( )
+{
+	let PassPhrase = crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" );
+
+	RSA.private = cryptico.generateRSAKey ( PassPhrase, 4096 );
+	RSA.public = cryptico.publicKeyString ( RSA.private );
+
+	console.log ( "new key available" );
+}
+
+setTimeout ( initRSA, 500 );
 
 
 var app = express ( );
@@ -76,25 +97,38 @@ app.all ( '/statistiques', function ( req, res )
 
 app.all ( '/login', function ( req, res )
 {
-	var pass = "";
-	if ( req.body.password != undefined )
+	let pass = null;
+	let user = null;
+
+	if ( req.body.data )
 	{
-		pass = crypto.createHash( 'sha512' ).update( req.body.password ).digest( "hex" );
+		req.body.data = cryptico.decrypt ( req.body.data, RSA.private );
+		let tmp = JSON.parse ( req.body.data.plaintext );
+		pass = tmp.password;
+		user = tmp.user;
 	}
 
-	if ( ( req.body.user == 'fpe' ) &&
-		( req.body.password == 'test' ) )
+	if ( RSA.public )
 	{
-		req.session.loged = true;
+		if ( ( user == 'fpe' ) &&
+			( pass == 'test' ) )
+		{
+			req.session.loged = true;
 
-		res.writeHead ( 200 );
-		res.end ( "valid" );
+			res.writeHead ( 200 );
+			res.end ( "valid" );
+		}
+		else
+		{
+			req.session.loged = false;
+			res.render ( 'login.html', { pubKey:RSA.public } );
+		}
 	}
 	else
 	{
-		req.session.loged = false;
-		res.render ( 'login.html' );
+		res.render ( 'wait.html', { msg:"RSA key not available, you should wait a momment plz" } );
 	}
+
 });
 
 app.all ( '/set/:id', function ( req, res )

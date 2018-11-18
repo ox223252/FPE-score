@@ -13,14 +13,15 @@
 				<p id="serverMsg"></p>
 			</div>
 		</section>
+		<script type="text/javascript" src="/js/cryptico.min.js"></script>
 		<script type="text/javascript"> // password
+		let pubKey = "<%- pubKey %>";
 			function login ( )
 			{
 
 				let user = document.getElementById( 'user' ).value;
 				let password = document.getElementById( 'password' ).value;
 
-				console.log( "in" );
 				if ( ( user == "" ) ||
 					( password == "" ) )
 				{
@@ -49,8 +50,17 @@
 					}
 				});
 
-				xhr.overrideMimeType("text/plain");
-				xhr.send("user="+user+"&password="+password);
+				let tmp = {
+					"user":user,
+					"password":password
+				};
+
+				let enc = cryptico.encrypt ( JSON.stringify ( tmp ), pubKey );
+				console.log( enc.cipher );
+
+				xhr.overrideMimeType ( "text/plain" );
+				// need encodeURIComponent() for plus (+) signs
+				xhr.send ( "data="+encodeURIComponent ( enc.cipher ) );
 			}
 		</script>
 	</body>
