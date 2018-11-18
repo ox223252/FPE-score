@@ -8,6 +8,7 @@
 				<form>
 					<select id="genre" onchange="drawTable();"></select>
 					<select id="categorie" onchange="drawTable();"></select>
+					<select id="club" onchange="drawTable();"></select>
 				</form>
 				<div id="dataContent">
 				</div>
@@ -33,6 +34,7 @@
 
 			let g_categorie = document.getElementById ( "categorie" );
 			let g_genre = document.getElementById ( "genre" );
+			let g_club = document.getElementById ( "club" );
 			
 			var pointConfig = {
 				// type: 'bar',
@@ -508,6 +510,12 @@
 						continue;
 					}
 
+					if ( ( g_club.value != "all" ) &&
+						( users[ i ].club != g_club.value ) )
+					{
+						continue;
+					}
+
 					// nom
 					if ( users[ i ].name == thisUser )
 					{
@@ -563,6 +571,7 @@
 			{
 				let genre = [];
 				let categorie = [];
+				let club = [];
 
 				for ( let i = 0; i < users.length; i++ )
 				{
@@ -574,6 +583,11 @@
 					if ( !genre.includes( users[ i ].genre ) )
 					{
 						genre.push ( users[ i ].genre );
+					}
+
+					if ( !club.includes( users[ i ].club ) )
+					{
+						club.push ( users[ i ].club );
 					}
 				}
 
@@ -601,6 +615,19 @@
 				{
 					g_categorie.options.add ( new Option ( categorie[ i ], i + 1 ) );
 					g_categorie.options[ i + 1 ].value = categorie[ i ];
+				}
+
+
+				while ( g_club.options.length )
+				{
+					g_club.options.remove ( 0 );
+				}
+				g_club.options.add ( new Option ( "Club", 0 ) );
+				g_club.options[ 0 ].value = "all";
+				for ( let i = 0; i < club.length; i++ )
+				{
+					g_club.options.add ( new Option ( club[ i ], i + 1 ) );
+					g_club.options[ i + 1 ].value = club[ i ];
 				}
 			}
 

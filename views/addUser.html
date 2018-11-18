@@ -22,6 +22,10 @@
 						<option value="homme">homme</option>
 						<option value="femme">femme</option>
 					</select>
+					<input id="club" onkeyup="getClub(this.value,'clubSugest', this.id);" type="text" >
+					<div id="clubSugest" style="display:none">
+						
+					</div>
 					<button onclick="addUser()">Ok</button>
 				</div>
 			</div>
@@ -29,10 +33,10 @@
 		<script type="text/javascript"> // password
 			function addUser ( )
 			{
-
 				let user = document.getElementById( 'user' );
 				let categorie = document.getElementById ( 'categorie' ).value;
 				let genre = document.getElementById ( 'genre' ).value;
+				let club = document.getElementById ( 'club' ).value;
 
 				if ( ( user.value == "" ) ||
 					!categorie ||
@@ -59,7 +63,7 @@
 				});
 
 				xhr.overrideMimeType("text/plain");
-				xhr.send("user="+user.value+"&categorie="+categorie+"&genre="+genre );
+				xhr.send("name="+user.value+"&categorie="+categorie+"&genre="+genre+"&club="+club );
 			}
 
 			function exist ( user )
@@ -93,6 +97,53 @@
 				xhr.overrideMimeType("text/plain");
 				xhr.send("user="+user.value);
 			}
+
+			function getClub ( partName, sugestId, masterId )
+			{
+				if ( partName == "" )
+				{
+					document.getElementById ( sugestId ).style.display = "none";
+					return;
+				}
+				let xhr = new XMLHttpRequest();
+
+				xhr.open('POST', '/getClub' );
+				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+				xhr.addEventListener ( 'readystatechange', function ( )
+				{
+					if ( ( xhr.readyState === XMLHttpRequest.DONE )
+						&& ( xhr.status === 200 ) )
+					{
+						displaySugestions ( JSON.parse ( xhr.responseText ), sugestId, masterId );
+					}
+				});
+
+				xhr.overrideMimeType("text/plain");
+				xhr.send("partName="+partName);
+			}
+
+			function setValue ( sugestId, masterId, value )
+			{
+				document.getElementById ( masterId ).value = value;
+				document.getElementById ( sugestId ).style.display = "none";
+			}
+
+			function displaySugestions ( choices, sugestId, masterId )
+			{
+				let div = document.getElementById ( sugestId );
+				div.style.display = "";
+				div.innerHTML = "";
+
+				console.log( "ici" );
+
+				for ( let i = 0; i < choices.length; i++ )
+				{
+					div.innerHTML += "<div onclick=\"setValue('"+sugestId+"','"+masterId+"',this.innerHTML);\">"+choices[ i ]+"</div>";
+				}
+			}
+
+
 		</script>
 	</body>
 </html>

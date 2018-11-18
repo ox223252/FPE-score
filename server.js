@@ -141,14 +141,15 @@ app.all ( '/addUser', function ( req, res )
 {
 	if ( req.session.loged )
 	{
-		if ( req.body.user )
+		if ( req.body.name )
 		{
-			if ( !userExist( req.body.user ) )
+			if ( !userExist( req.body.name ) )
 			{
 				let tmp = {};
-				tmp.name = req.body.user;
+				tmp.name = req.body.name;
 				tmp.categorie = req.body.categorie;
 				tmp.genre = req.body.genre;
+				tmp.club = req.body.club;
 
 				users.push ( tmp );
 				fs.writeFileSync ( userDataBase, JSON.stringify ( users ), 'utf8' );
@@ -198,6 +199,22 @@ app.all ( '/userExist', function ( req, res )
 		res.status(200);
 		res.end ( "no" );
 	}
+});
+
+app.all ( '/getClub', function ( req, res ) 
+{
+	let clubs = [];
+	for ( let i = 0; i < users.length; i++ )
+	{
+		if ( users[ i ].club && 
+			( users[ i ].club.indexOf ( req.body.partName ) >= 0 ) &&
+			!clubs.includes ( users[ i ].club ) )
+		{
+			clubs.push ( users[ i ].club );
+		}
+	}
+	res.status(200);
+	res.end ( JSON.stringify ( clubs ) );
 });
 
 app.use ( function ( req, res, next)
