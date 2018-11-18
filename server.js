@@ -48,6 +48,17 @@ app.all ( '/', function ( req, res )
 	} );
 });
 
+app.all ( '/statistiques', function ( req, res )
+{
+	res.render ( 'statistiques.html', {
+		loged:req.session.loged,
+		users:users,
+		voie:voie,
+		score:score,
+		page:"statistiques"
+	} );
+});
+
 app.all ( '/login', function ( req, res )
 {
 	var pass = "";

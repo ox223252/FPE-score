@@ -68,7 +68,7 @@ input, select, button
 	margin-bottom: 5px;
 }
 
-section input, section select
+section input[type='text'], section input[type='number'], section select
 {
 	width: 100%;
 }

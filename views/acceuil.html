@@ -158,13 +158,13 @@
 				"tryed" : [],
 				"player" : 0
 			}
+
+			let chartjs = {};
 		</script>
 		<script type="text/javascript"> // graph
 			function drawCurves ( id = voie.length )
 			{
-				let pointCtx = document.getElementById ( "pointGraph" ).getContext ( "2d" );
 				let userEl = document.getElementById ( "userGraph" );
-				let userCtx = userEl.getContext ( "2d" );
 
 				pointConfig.data.datasets[ 0 ].data = [];
 				pointConfig.data.labels = [];
@@ -181,9 +181,15 @@
 					pointConfig.data.labels.push ( i + 1 );
 				}
 
-				new Chart ( pointCtx, pointConfig );
-
-
+				if  ( chartjs[ 'point' ] )
+				{
+					chartjs[ 'point' ].update ( );
+				}
+				else
+				{
+					chartjs[ 'point' ] = new Chart ( document.getElementById ( "pointGraph" ).getContext ( "2d" ), pointConfig );
+				}
+				
 				// draw user slelected graph
 				if  ( thisUser &&
 					score[ thisUser ] )
@@ -194,7 +200,9 @@
 						userConfig.data.labels[ i ] = voie[ i ].name;
 						if ( voie[ i ].type == 'vitesse' )
 						{
-							userConfig.data.datasets[ 0 ].data[ i ] =  ( voie[ i ].score.time - getScore( thisUser, i ) ) | 0
+							userConfig.data.datasets[ 0 ].data[ i ] =  ( getScore( thisUser, i ) )? voie[ i ].score.time - getScore( thisUser, i ) : 0;
+							console.log( thisUser );
+							console.log( userConfig.data.datasets[ 0 ].data[ i ] );
 						}
 						else
 						{
@@ -240,8 +248,15 @@
 					}
 					userEl.style.display = "";
 					document.getElementById ( "legendGraph" ).style.display = "";
-					
-					new Chart ( userCtx, userConfig );
+
+					if  ( chartjs[ 'user' ] )
+					{
+						chartjs[ 'user' ].update ( );
+					}
+					else
+					{
+						chartjs[ 'user' ] = new Chart (  userEl.getContext ( "2d" ), userConfig );
+					}
 				}
 				else
 				{
