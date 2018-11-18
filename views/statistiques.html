@@ -4,17 +4,17 @@
 	<body>
 		<% include nav %>
 		<section>
-			<div>
+			<div class="graphPaper">
 				<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_average"></canvas>
 				<span class="smothText"><label for="avreage_percent"> affichage en %</label><input type="checkbox" id="avreage_percent" onchange="drawCurves ( );"></span>
 			</div>
-			<div>
+			<div class="graphPaper">
 				<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_nbTry"></canvas>
 			</div>
 		</section>
 		<script type="text/javascript" src="/js/chartjs.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
-		<script type="text/javascript">
+		<script type="text/javascript"> // globals vars
 			let socket = io ( );
 			let users = <%- JSON.stringify(users) %>;
 			let voie = <%- JSON.stringify(voie) %>;
@@ -28,28 +28,30 @@
 						labels: [ ],
 						datasets: [
 							{
-								backgroundColor: "rgba(255,0,0,0.2)",
-								borderColor: "#f00",
+								backgroundColor: "rgba(255,0,0,0.7)",
+								borderColor: "rgba(255,0,0,0.7)",
 								data: [ ],
 								label: 'nb reussite'
 							},
 							{
-								backgroundColor: "rgba(255,255,0,0.2)",
-								borderColor: "#ff0",
+								backgroundColor: "rgba(255,255,0,0.7)",
+								borderColor: "rgba(255,255,0,0.7)",
 								data: [ ],
 								label: 'nb joueur ayant tenté'
 							},
 							{
-								backgroundColor: "rgba(0,255,255,0.2)",
-								borderColor: "rgba(0,255,255,0.2)",
+								backgroundColor: "rgba(0,255,0,0.7)",
+								borderColor: "rgba(0,255,0,0.7)",
 								data: [],
 								label: 'nb tentatives'
 							},
 							{
-								backgroundColor: "rgba(0,0,255,0.4)",
-								borderColor: "rgba(0,0,255,0.4)",
+								backgroundColor: "rgba(0,0,255,0.7)",
+								borderColor: "rgba(0,0,255,0.7)",
 								data: [],
-								label: 'nb participants'
+								label: 'nb participants',
+								fill:false,
+								type: 'line'
 							}
 						]
 					},
@@ -99,20 +101,20 @@
 						labels: [ ],
 						datasets: [
 							{
-								backgroundColor: "rgba(255,0,0,0.2)",
-								borderColor: "#f00",
+								backgroundColor: "rgba(255,0,0,0.7)",
+								borderColor: "rgba(255,0,0,0.7)",
 								data: [ ],
 								label: "moyenne totale"
 							},
 							{
-								backgroundColor: "rgba(255,255,0,0.2)",
-								borderColor: "rgba(255,255,0,0.2)",
+								backgroundColor: "rgba(255,255,0,0.7)",
+								borderColor: "rgba(255,255,0,0.7)",
 								data: [ ],
 								label: "moyenne des gens l'ayant tenté"
 							},
 							{
-								backgroundColor: "rgba(0,0,255,0.4)",
-								borderColor: "rgba(0,0,255,0.4)",
+								backgroundColor: "rgba(0,0,255,0.7)",
+								borderColor: "rgba(0,0,255,0.7)",
 								data: [ ],
 								label: "maximum"
 							}
@@ -260,18 +262,20 @@
 				// draw evolution of points for selected way
 				for ( let i = 0; i < average.length; i++ )
 				{
-					config[ 'average' ].data.labels.push ( average[ i ].name );
 					if ( pourcent )
 					{
-						config[ 'average' ].data.datasets[ 0 ].data.push ( average[ i ].total / player / average[ i ].max * 100 );
-						config[ 'average' ].data.datasets[ 1 ].data.push ( average[ i ].total / average[ i ].nbTry / average[ i ].max * 100 );
-						config[ 'average' ].data.datasets[ 2 ].data.push ( 100 );
+						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "% max de points";
+						config[ 'average' ].data.labels.push ( average[ i ].name + ' %' );
+						config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player / average[ i ].max * 100 ) | 0 );
+						config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt / average[ i ].max * 100 ) | 0 );
 					}
 					else
 					{
-						config[ 'average' ].data.datasets[ 0 ].data.push ( average[ i ].total / player );
-						config[ 'average' ].data.datasets[ 1 ].data.push ( average[ i ].total / average[ i ].nbTry );
-						config[ 'average' ].data.datasets[ 2 ].data.push ( average[ i ].max );
+						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "points";
+						config[ 'average' ].data.labels.push ( average[ i ].name );
+						config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player ) | 0 );
+						config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt ) | 0 );
+						config[ 'average' ].data.datasets[ 2 ].data.push ( ( average[ i ].max ) | 0 );
 					}
 				}
 				console.log( config[ 'average' ].data.datasets );

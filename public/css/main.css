@@ -82,3 +82,8 @@ section input[type='text'], section input[type='number'], section select
 	overflow-x: auto;
 	overflow-y: auto;
 }
+
+.graphPaper
+{
+	margin:5px;
+}
