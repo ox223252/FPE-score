@@ -35,6 +35,11 @@ section > div
 	align-items: center;
 	justify-content: center;
 	height:100%;
+	max-width: 100%;
+}
+section > div > *
+{
+	max-width: 100%;
 }
 
 

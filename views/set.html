@@ -70,7 +70,11 @@
 					select.options.remove ( 0 );
 				}
 
-				for ( let i = 0, k = 0; i < users.length; i++ )
+				select.options.add ( new Option ( "", 0 ) );
+				select.options[ 0 ].selected = true;
+				select.options[ 0 ].disabled = true;
+
+				for ( let i = 0, k = 1; i < users.length; i++ )
 				{
 					if ( ( genre != "all" ) &&
 						(  users[ i ].genre != genre ) )

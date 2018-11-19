@@ -17,7 +17,7 @@
 					<canvas width="700" height="700" class="chartjs-render-monitor" id="userGraph"></canvas>
 					<ul id="legendGraph" class="smothText">
 						<li>moyenne tenté : moyenne des points obtenu pas les personnes ayant tenté cette voie</li>
-						<li>moyenne totale : moyen des points obtenu sur cette voie par toues les personnes ayant participé</li>
+						<li>moyenne totale : moyenne des points obtenu sur cette voie par toues les personnes ayant participé</li>
 					</ul>
 				</div>
 			</div>
@@ -203,8 +203,6 @@
 						if ( voie[ i ].type == 'vitesse' )
 						{
 							userConfig.data.datasets[ 0 ].data[ i ] =  ( getScore( thisUser, i ) )? voie[ i ].score.time - getScore( thisUser, i ) : 0;
-							console.log( thisUser );
-							console.log( userConfig.data.datasets[ 0 ].data[ i ] );
 						}
 						else
 						{
@@ -403,8 +401,6 @@
 					{
 						average.player++;
 					}
-
-					console.log( average );
 
 					setScore( users[ i ].name, voie.length, somme );
 				}
