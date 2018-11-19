@@ -11,6 +11,8 @@
 			<div class="graphPaper">
 				<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_nbTry"></canvas>
 			</div>
+			<div class="graphPaper" id="clubsGrpahs">
+			</div>
 		</section>
 		<script type="text/javascript" src="/js/chartjs.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
@@ -58,13 +60,9 @@
 					options: {
 						animation: false,
 						responsive: true,
-						legend: {
-							// display: true,
-							display: false,
-						},
 						title: {
 							display: true,
-							text: "Tentativés"
+							text: "Tentatives"
 						},
 						tooltips: {
 							mode: 'index',
@@ -123,10 +121,6 @@
 					options: {
 						animation: false,
 						responsive: true,
-						legend: {
-							// display: true,
-							display: false,
-						},
 						title: {
 							display: true,
 							text: "Résultats"
@@ -159,12 +153,14 @@
 							}]
 						}
 					}
-				}
+				},
 			};
 
 			let average = [];
 			let player = 0;
 			let chartjs = {};
+			let clubList = [];
+			let clubs = {};
 		</script>
 		<script type="text/javascript"> // sockets
 			socket.on ( 'scores', function ( data )
@@ -192,6 +188,25 @@
 			});
 		</script>
 		<script type="text/javascript"> // utils
+			function clone ( obj )
+			{
+				if ( ( null == obj ) ||
+					( "object" != typeof obj ) )
+				{
+					return ( obj );
+				}
+
+				let copy = obj.constructor ( );
+				for ( var attr in obj )
+				{
+					if ( obj.hasOwnProperty ( attr ) )
+					{
+						copy[attr] = obj[attr];
+					}
+				}
+				return ( copy );
+			}
+
 			function setScore ( name, id, value )
 			{
 				if ( !name ||
@@ -248,74 +263,278 @@
 		<script type="text/javascript"> // graph
 			function drawCurves ( )
 			{
-				let ctx = document.getElementById ( "graph_average" ).getContext ( "2d" );
-
-				let pourcent = document.getElementById ( "avreage_percent" ).checked;
-
-				console.log( average );
-
-				config[ 'average' ].data.labels = [];
-				config[ 'average' ].data.datasets[ 0 ].data = [];
-				config[ 'average' ].data.datasets[ 1 ].data = [];
-				config[ 'average' ].data.datasets[ 2 ].data = [];
-
-				// draw evolution of points for selected way
-				for ( let i = 0; i < average.length; i++ )
+				function graph_average ( )
 				{
-					if ( pourcent )
+					let ctx = document.getElementById ( "graph_average" ).getContext ( "2d" );
+	
+					let pourcent = document.getElementById ( "avreage_percent" ).checked;
+	
+					config[ 'average' ].data.labels = [];
+					config[ 'average' ].data.datasets[ 0 ].data = [];
+					config[ 'average' ].data.datasets[ 1 ].data = [];
+					config[ 'average' ].data.datasets[ 2 ].data = [];
+	
+					// draw evolution of points for selected way
+					for ( let i = 0; i < average.length; i++ )
 					{
-						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "% max de points";
-						config[ 'average' ].data.labels.push ( average[ i ].name + ' %' );
-						config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player / average[ i ].max * 100 ) | 0 );
-						config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt / average[ i ].max * 100 ) | 0 );
+						if ( pourcent )
+						{
+								config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "% max de points";
+							config[ 'average' ].data.labels.push ( average[ i ].name + ' %' );
+								config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player / average[ i ].max * 100 ) | 0 );
+								config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt / average[ i ].max * 100 ) | 0 );
+						}
+						else
+						{
+							config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "points";
+							config[ 'average' ].data.labels.push ( average[ i ].name );
+								config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player ) | 0 );
+							config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt ) | 0 );
+							config[ 'average' ].data.datasets[ 2 ].data.push ( ( average[ i ].max ) | 0 );
+						}
+					}
+	
+					if  ( chartjs[ 'average' ] )
+					{
+						chartjs[ 'average' ].update ( );
 					}
 					else
 					{
-						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "points";
-						config[ 'average' ].data.labels.push ( average[ i ].name );
-						config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player ) | 0 );
-						config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt ) | 0 );
-						config[ 'average' ].data.datasets[ 2 ].data.push ( ( average[ i ].max ) | 0 );
+						chartjs[ 'average' ] = new Chart ( ctx, config[ 'average' ] );
 					}
 				}
-				console.log( config[ 'average' ].data.datasets );
 
-				if  ( chartjs[ 'average' ] )
+				function graph_try ( )
 				{
-					chartjs[ 'average' ].update ( );
-				}
-				else
-				{
-					chartjs[ 'average' ] = new Chart ( ctx, config[ 'average' ] );
+					let ctx = document.getElementById ( "graph_nbTry" ).getContext ( "2d" );
+	
+					config[ 'try' ].data.labels = [];
+					config[ 'try' ].data.datasets[ 0 ].data = [];
+					config[ 'try' ].data.datasets[ 1 ].data = [];
+					config[ 'try' ].data.datasets[ 2 ].data = [];
+					config[ 'try' ].data.datasets[ 3 ].data = [];
+	
+					// draw evolution of points for selected way
+					for ( let i = 0; i < average.length; i++ )
+					{
+						config[ 'try' ].data.labels.push ( average[ i ].name );
+						config[ 'try' ].data.datasets[ 0 ].data.push ( average[ i ].success );
+						config[ 'try' ].data.datasets[ 1 ].data.push ( average[ i ].nbPlayerTestIt );
+						config[ 'try' ].data.datasets[ 2 ].data.push ( average[ i ].nbTry );
+						config[ 'try' ].data.datasets[ 3 ].data.push ( player );
+					}
+	
+					if ( chartjs[ 'try' ] )
+					{
+						chartjs[ 'try' ].update ( );
+					}
+					else
+					{
+						chartjs[ 'try' ] = new Chart ( ctx, config[ 'try' ] );
+					}
 				}
 
-				ctx = document.getElementById ( "graph_nbTry" ).getContext ( "2d" );
-
-				config[ 'try' ].data.labels = [];
-				config[ 'try' ].data.datasets[ 0 ].data = [];
-				config[ 'try' ].data.datasets[ 1 ].data = [];
-				config[ 'try' ].data.datasets[ 2 ].data = [];
-				config[ 'try' ].data.datasets[ 3 ].data = [];
-
-				// draw evolution of points for selected way
-				for ( let i = 0; i < average.length; i++ )
+				function graph_club ( )
 				{
-					config[ 'try' ].data.labels.push ( average[ i ].name );
-					config[ 'try' ].data.datasets[ 0 ].data.push ( average[ i ].success );
-					config[ 'try' ].data.datasets[ 1 ].data.push ( average[ i ].nbPlayerTestIt );
-					config[ 'try' ].data.datasets[ 2 ].data.push ( average[ i ].nbTry );
-					config[ 'try' ].data.datasets[ 3 ].data.push ( player );
-				}
-				console.log ( config[ 'try' ].data.datasets[ 1 ].data );
+					getClubsStats ( );
 
-				if  ( chartjs[ 'try' ] )
-				{
-					chartjs[ 'try' ].update ( );
+					let div = document.getElementById ( 'clubsGrpahs' );
+					div.innerHTML = "";
+
+					for ( let i = 0; i < clubList.length; i++ )
+					{
+						div.innerHTML += '<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_club_'+clubList[ i ]+'"></canvas>';
+					}
+
+					for ( let i = 0; i < clubList.length; i++ )
+					{
+						let ctx = document.getElementById ( 'graph_club_' + clubList[ i ] ).getContext ( "2d" );
+
+						if ( !chartjs[ 'club_' + clubList[ i ] ] )
+						{
+							config[ 'club_' + clubList[ i ] ] = {
+								type: 'bar',
+								data: {
+									labels: [ ],
+									datasets: [	]
+								},
+								options: {
+									animation: false,
+									responsive: true,
+									title: {
+										display: false,
+									},
+									tooltips: {
+										mode: 'index',
+										intersect: false,
+									},
+									hover: {
+										mode: 'nearest',
+										intersect: true
+									},
+									scales: {
+										xAxes: [{
+											display: true,
+											scaleLabel: {
+												display: false,
+											}
+										}],
+										yAxes: [{
+											display: true,
+											scaleLabel: {
+												display: true,
+												labelString: 'nb participants',
+											},
+											ticks: {
+												suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
+											}
+										}]
+									}
+								}
+							}
+						}
+
+						config[ 'club_' + clubList[ i ] ].data.labels = [ clubList[ i ] ];
+
+						if ( clubs[ clubList[ i ] ].microbe )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,0,0,0.7)", borderColor: "rgba(255,0,0,0.7)", data: [ clubs[ clubList[ i ] ].microbe ], label: "microbe" });
+						}
+						if ( clubs[ clubList[ i ] ].poussin )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,30,0,0.7)", borderColor: "rgba(255,30,0,0.7)", data: [ clubs[ clubList[ i ] ].poussin ], label: "poussin" });
+						}
+						if ( clubs[ clubList[ i ] ].bejamin )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,60,0,0.7)", borderColor: "rgba(255,60,0,0.7)", data: [ clubs[ clubList[ i ] ].bejamin ], label: "bejamin" });
+						}
+						if ( clubs[ clubList[ i ] ].minime )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,90,0,0.7)", borderColor: "rgba(255,90,0,0.7)", data: [ clubs[ clubList[ i ] ].minime ], label: "minime" });
+						}
+						if ( clubs[ clubList[ i ] ].cadet )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,120,0,0.7)", borderColor: "rgba(255,120,0,0.7)", data: [ clubs[ clubList[ i ] ].cadet ], label: "cadet" });
+						}
+						if ( clubs[ clubList[ i ] ].senior )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,150,0,0.7)", borderColor: "rgba(255,150,0,0.7)", data: [ clubs[ clubList[ i ] ].senior ], label: "senior" });
+						}
+						if ( clubs[ clubList[ i ] ].veterant )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,180,0,0.7)", borderColor: "rgba(255,180,0,0.7)", data: [ clubs[ clubList[ i ] ].veterant ], label: "veterant" });
+						}
+
+
+						if ( clubs[ clubList[ i ] ].homme )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,0,255,0.7)", borderColor: "rgba(255,0,255,0.7)", data: [ clubs[ clubList[ i ] ].homme ], label: "homme" });
+						}
+						if ( clubs[ clubList[ i ] ].femme )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,0,150,0.7)", borderColor: "rgba(255,0,150,0.7)", data: [ clubs[ clubList[ i ] ].femme ], label: "femme" });
+						}
+
+
+						if ( clubs[ clubList[ i ] ].nbTry )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(0,255,0,0.7)", borderColor: "rgba(0,255,0,0.7)", data: [ clubs[ clubList[ i ] ].nbTry ], label: "nombre d'essais" });
+						}
+						if ( clubs[ clubList[ i ] ].win )
+						{
+							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(150,250,0,0.7)", borderColor: "rgba(150,250,0,0.7)", data: [ clubs[ clubList[ i ] ].win ], label: "voies finies" });
+						}
+						
+
+						if ( chartjs[ 'club_' + clubList[ i ] ] )
+						{
+							chartjs[ 'club_' + clubList[ i ] ].update ( );
+						}
+						else
+						{
+							chartjs[ 'club_' + clubList[ i ] ] = new Chart ( ctx, config[ 'club_' + clubList[ i ] ] );
+						}
+					}
 				}
-				else
+
+				graph_average ( );
+				graph_try ( );
+				graph_club ( );
+			}
+
+			function getClubsStats ( )
+			{
+				clubList = [];
+				clubList.push ( 'tous' );
+
+				for ( let i = 0; i < users.length; i++ )
 				{
-					chartjs[ 'try' ] = new Chart ( ctx, config[ 'try' ] );
+					console.log( score[ users[ i ].name ] );
+					if ( !score[ users[ i ].name ])
+					{
+						continue;
+					}
+
+					if ( !clubList.includes ( users[ i ].club ) )
+					{
+						clubList.push ( users[ i ].club );
+						clubs[ users[ i ].club ] = {};
+						clubs[ users[ i ].club ].microbe = 0;
+						clubs[ users[ i ].club ].poussin = 0;
+						clubs[ users[ i ].club ].bejamin = 0;
+						clubs[ users[ i ].club ].minime = 0;
+						clubs[ users[ i ].club ].cadet = 0;
+						clubs[ users[ i ].club ].senior = 0;
+						clubs[ users[ i ].club ].veterant = 0;
+						clubs[ users[ i ].club ].homme = 0;
+						clubs[ users[ i ].club ].femme = 0;
+						clubs[ users[ i ].club ].nbTry = 0;
+						clubs[ users[ i ].club ].win = 0;
+					}
+
+					clubs[ users[ i ].club ][ users[ i ].categorie ]++;
+					clubs[ users[ i ].club ][ users[ i ].genre ]++;
+
+					for ( let j = 0; j < voie.length; j++ )
+					{
+						clubs[ users[ i ].club ].nbTry += getNbTests ( users[ i ].name, j ) | 0;
+
+						if ( average[ i ].max == getScore ( users[ i ].name, j ) | 0 )
+						{
+							clubs[ users[ i ].club ].win++;;
+						}
+					}
+					console.log( clubs[ users[ i ].club ] );
 				}
+
+				clubs[ 'tous' ] = {};
+				clubs[ 'tous' ].microbe = 0;
+				clubs[ 'tous' ].poussin = 0;
+				clubs[ 'tous' ].bejamin = 0;
+				clubs[ 'tous' ].minime = 0;
+				clubs[ 'tous' ].cadet = 0;
+				clubs[ 'tous' ].senior = 0;
+				clubs[ 'tous' ].veterant = 0;
+				clubs[ 'tous' ].homme = 0;
+				clubs[ 'tous' ].femme = 0;
+				clubs[ 'tous' ].nbTry = 0;
+				clubs[ 'tous' ].win = 0;
+
+				for ( let i = 0; i < clubList.length; i++ )
+				{
+					clubs[ 'tous' ].microbe += clubs[ clubList[ i ] ].microbe;
+					clubs[ 'tous' ].poussin += clubs[ clubList[ i ] ].poussin;
+					clubs[ 'tous' ].bejamin += clubs[ clubList[ i ] ].bejamin;
+					clubs[ 'tous' ].minime += clubs[ clubList[ i ] ].minime;
+					clubs[ 'tous' ].cadet += clubs[ clubList[ i ] ].cadet;
+					clubs[ 'tous' ].senior += clubs[ clubList[ i ] ].senior;
+					clubs[ 'tous' ].veterant += clubs[ clubList[ i ] ].veterant;
+					clubs[ 'tous' ].homme += clubs[ clubList[ i ] ].homme;
+					clubs[ 'tous' ].femme += clubs[ clubList[ i ] ].femme;
+					clubs[ 'tous' ].nbTry += clubs[ clubList[ i ] ].nbTry;
+					clubs[ 'tous' ].win += clubs[ clubList[ i ] ].win;
+				}
+				console.log( clubs );
 			}
 
 			function calcAverage ( )
