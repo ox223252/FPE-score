@@ -15,6 +15,19 @@ const crypto = require ( 'crypto' );
 const favicon = require ( 'serve-favicon' );
 const cryptico = require ( 'cryptico' );
 
+const RSA = require ( './RSA_gen' );
+RSA.status.on ( 'ready', () => 
+{
+	io.emit( 'waitKey', 'ok' );
+});
+RSA.status.on ( 'failed', () =>
+{
+	io.emit( 'waitKey', 'error' );
+	console.log( 'can\'t set key' );
+});
+
+setTimeout ( RSA.init, 500 );
+
 // get user data base
 let score = {};
 let voie = [];
@@ -34,64 +47,6 @@ if ( fs.existsSync ( userDataBase ) )
 {
 	users = require ( userDataBase );
 }
-
-let RSA = {
-	private:null,
-	public:null
-};
-
-async function initRSA ( )
-{
-	let PassPhrase = crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" );
-
-	try
-	{
-		RSA.private = await initPrivate ( PassPhrase, 8192 );
-		RSA.public = initPublic ( RSA.private );
-		console.log ( "new key available" );
-	}
-	catch ( e )
-	{
-		console.log ( "the key can't be set" );
-	}
-
-	function initPrivate ( str, size )
-	{
-		return ( new Promise ( (resolve, reject) =>
-			{
-				let key = cryptico.generateRSAKey ( str, size );
-				if ( key )
-				{
-					resolve ( key );
-				}
-				else
-				{
-					reject ( null );
-				}
-			})
-		);
-	}
-
-	function initPublic ( private )
-	{
-		return ( new Promise ( (resolve, reject) =>
-			{
-				let key = cryptico.publicKeyString ( private );
-				if ( key )
-				{
-					resolve ( key );
-				}
-				else
-				{
-					reject ( null );
-				}
-			})
-		);
-	}
-}
-
-setTimeout ( initRSA, 500 );
-
 
 var app = express ( );
 var server = require ( 'http' ).createServer ( app ).listen ( port, function ( )
@@ -143,9 +98,18 @@ app.all ( '/login', function ( req, res )
 	if ( req.body.data )
 	{
 		req.body.data = cryptico.decrypt ( req.body.data, RSA.private );
-		let tmp = JSON.parse ( req.body.data.plaintext );
-		pass = tmp.password;
-		user = tmp.user;
+
+		if ( req.body.data.status &&
+			( req.body.data.status == "failure" ) )
+		{
+			console.log( "failed to decrypt data" );
+		}
+		else
+		{
+			let tmp = JSON.parse ( req.body.data.plaintext );
+			pass = tmp.password;
+			user = tmp.user;
+		}
 	}
 
 	if ( RSA.public )
@@ -168,7 +132,6 @@ app.all ( '/login', function ( req, res )
 	{
 		res.render ( 'wait.html', { msg:"RSA key not available, you should wait a momment plz" } );
 	}
-
 });
 
 app.all ( '/set/:id', function ( req, res )
