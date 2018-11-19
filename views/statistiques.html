@@ -188,25 +188,6 @@
 			});
 		</script>
 		<script type="text/javascript"> // utils
-			function clone ( obj )
-			{
-				if ( ( null == obj ) ||
-					( "object" != typeof obj ) )
-				{
-					return ( obj );
-				}
-
-				let copy = obj.constructor ( );
-				for ( var attr in obj )
-				{
-					if ( obj.hasOwnProperty ( attr ) )
-					{
-						copy[attr] = obj[attr];
-					}
-				}
-				return ( copy );
-			}
-
 			function setScore ( name, id, value )
 			{
 				if ( !name ||
@@ -263,6 +244,8 @@
 		<script type="text/javascript"> // graph
 			function drawCurves ( )
 			{
+				
+
 				function graph_average ( )
 				{
 					let ctx = document.getElementById ( "graph_average" ).getContext ( "2d" );
@@ -334,18 +317,26 @@
 					}
 				}
 
-				function graph_club ( )
+				function prepare ( )
 				{
-					getClubsStats ( );
-
 					let div = document.getElementById ( 'clubsGrpahs' );
 					div.innerHTML = "";
+			
+					getClubsStats ( );
 
 					for ( let i = 0; i < clubList.length; i++ )
 					{
 						div.innerHTML += '<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_club_'+clubList[ i ]+'"></canvas>';
 					}
+					
+					div.innerHTML += '<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_gender"></canvas>';
 
+					graph_club ( );
+					graph_participants ( );
+				}
+
+				function graph_club ( )
+				{
 					for ( let i = 0; i < clubList.length; i++ )
 					{
 						let ctx = document.getElementById ( 'graph_club_' + clubList[ i ] ).getContext ( "2d" );
@@ -396,55 +387,13 @@
 
 						config[ 'club_' + clubList[ i ] ].data.labels = [ clubList[ i ] ];
 
-						if ( clubs[ clubList[ i ] ].microbe )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,0,0,0.7)", borderColor: "rgba(255,0,0,0.7)", data: [ clubs[ clubList[ i ] ].microbe ], label: "microbe" });
-						}
-						if ( clubs[ clubList[ i ] ].poussin )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,30,0,0.7)", borderColor: "rgba(255,30,0,0.7)", data: [ clubs[ clubList[ i ] ].poussin ], label: "poussin" });
-						}
-						if ( clubs[ clubList[ i ] ].bejamin )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,60,0,0.7)", borderColor: "rgba(255,60,0,0.7)", data: [ clubs[ clubList[ i ] ].bejamin ], label: "bejamin" });
-						}
-						if ( clubs[ clubList[ i ] ].minime )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,90,0,0.7)", borderColor: "rgba(255,90,0,0.7)", data: [ clubs[ clubList[ i ] ].minime ], label: "minime" });
-						}
-						if ( clubs[ clubList[ i ] ].cadet )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,120,0,0.7)", borderColor: "rgba(255,120,0,0.7)", data: [ clubs[ clubList[ i ] ].cadet ], label: "cadet" });
-						}
-						if ( clubs[ clubList[ i ] ].senior )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,150,0,0.7)", borderColor: "rgba(255,150,0,0.7)", data: [ clubs[ clubList[ i ] ].senior ], label: "senior" });
-						}
-						if ( clubs[ clubList[ i ] ].veterant )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,180,0,0.7)", borderColor: "rgba(255,180,0,0.7)", data: [ clubs[ clubList[ i ] ].veterant ], label: "veterant" });
-						}
-
-
-						if ( clubs[ clubList[ i ] ].homme )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,0,255,0.7)", borderColor: "rgba(255,0,255,0.7)", data: [ clubs[ clubList[ i ] ].homme ], label: "homme" });
-						}
-						if ( clubs[ clubList[ i ] ].femme )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,0,150,0.7)", borderColor: "rgba(255,0,150,0.7)", data: [ clubs[ clubList[ i ] ].femme ], label: "femme" });
-						}
-
-
-						if ( clubs[ clubList[ i ] ].nbTry )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(0,255,0,0.7)", borderColor: "rgba(0,255,0,0.7)", data: [ clubs[ clubList[ i ] ].nbTry ], label: "nombre d'essais" });
-						}
-						if ( clubs[ clubList[ i ] ].win )
-						{
-							config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(150,250,0,0.7)", borderColor: "rgba(150,250,0,0.7)", data: [ clubs[ clubList[ i ] ].win ], label: "voies finies" });
-						}
-						
+						config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,0,0,0.7)", borderColor: "rgba(255,0,0,0.7)", data: [ clubs[ clubList[ i ] ].microbe ], label: "microbe" });
+						config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,30,0,0.7)", borderColor: "rgba(255,30,0,0.7)", data: [ clubs[ clubList[ i ] ].poussin ], label: "poussin" });
+						config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,60,0,0.7)", borderColor: "rgba(255,60,0,0.7)", data: [ clubs[ clubList[ i ] ].bejamin ], label: "bejamin" });
+						config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,90,0,0.7)", borderColor: "rgba(255,90,0,0.7)", data: [ clubs[ clubList[ i ] ].minime ], label: "minime" });
+						config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,120,0,0.7)", borderColor: "rgba(255,120,0,0.7)", data: [ clubs[ clubList[ i ] ].cadet ], label: "cadet" });
+						config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,150,0,0.7)", borderColor: "rgba(255,150,0,0.7)", data: [ clubs[ clubList[ i ] ].senior ], label: "senior" });
+						config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,180,0,0.7)", borderColor: "rgba(255,180,0,0.7)", data: [ clubs[ clubList[ i ] ].veterant ], label: "veterant" });
 
 						if ( chartjs[ 'club_' + clubList[ i ] ] )
 						{
@@ -457,9 +406,80 @@
 					}
 				}
 
+				function graph_participants ( )
+				{
+
+					if ( !chartjs[ 'gender' ] )
+					{
+						config[ 'gender' ] = {
+							type: 'bar',
+							data: {
+								labels: [ ],
+								datasets: [	]
+							},
+							options: {
+								animation: false,
+								responsive: true,
+								title: {
+									display: false,
+								},
+								tooltips: {
+									mode: 'index',
+									intersect: false,
+								},
+								hover: {
+									mode: 'nearest',
+									intersect: true
+								},
+								scales: {
+									xAxes: [{
+										display: true,
+										scaleLabel: {
+											display: false,
+										}
+									}],
+									yAxes: [{
+										display: true,
+										scaleLabel: {
+											display: true,
+											labelString: 'nb participants',
+										},
+										ticks: {
+											suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
+										}
+									}]
+								}
+							}
+						}
+					}
+
+					config[ 'gender' ].data.datasets.push ({ backgroundColor: "rgba(255,85,0,0.7)", borderColor: "rgba(255,85,0,0.7)", data: [ ], label: "homme" });
+					config[ 'gender' ].data.datasets.push ({ backgroundColor: "rgba(255,170,0,0.7)", borderColor: "rgba(255,170,0,0.7)", data: [ ], label: "femme" });
+
+					console.log( "A" );
+					console.log( config[ 'gender' ].data );
+
+					for ( let i = 0; i < clubList.length; i++ )
+					{
+						config[ 'gender' ].data.labels.push ( clubList[ i ] );
+						config[ 'gender' ].data.datasets[ 0 ].data.push ( clubs[ clubList[ i ] ].homme );
+						config[ 'gender' ].data.datasets[ 1 ].data.push ( clubs[ clubList[ i ] ].femme );
+					}
+
+					if ( chartjs[ 'gender' ] )
+					{
+						chartjs[ 'gender' ].update ( );
+					}
+					else
+					{
+						chartjs[ 'gender' ] = new Chart ( document.getElementById ( 'graph_gender' ).getContext ( "2d" ), config[ 'gender' ] );
+					}
+				}
+				
 				graph_average ( );
 				graph_try ( );
-				graph_club ( );
+
+				prepare ( );
 			}
 
 			function getClubsStats ( )
@@ -469,7 +489,6 @@
 
 				for ( let i = 0; i < users.length; i++ )
 				{
-					console.log( score[ users[ i ].name ] );
 					if ( !score[ users[ i ].name ])
 					{
 						continue;
@@ -504,7 +523,6 @@
 							clubs[ users[ i ].club ].win++;;
 						}
 					}
-					console.log( clubs[ users[ i ].club ] );
 				}
 
 				clubs[ 'tous' ] = {};
