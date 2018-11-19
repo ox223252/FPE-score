@@ -326,7 +326,7 @@ RSA.status.on ( 'failed', () =>
 	io.emit( 'waitKey', 'error' );
 });
 
-setTimeout ( RSA.init, 500 );
+RSA.init ( )
 
 // utils functions
 function userExist ( name )

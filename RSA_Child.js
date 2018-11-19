@@ -17,10 +17,10 @@ function serializeRSAKey ( key )
 
 if ( process.send )
 {
-	process.send ( serializeRSAKey ( cryptico.generateRSAKey ( crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" ), 8192 ) ) );
+	process.send ( serializeRSAKey ( cryptico.generateRSAKey ( crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" ), 4092 ) ) );
 	process.exit ( 0 );
 }
 else
 {
-	console.log ( serializeRSAKey ( cryptico.generateRSAKey ( crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" ), 8192 ) ) );
+	console.log ( serializeRSAKey ( cryptico.generateRSAKey ( crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" ), 4092 ) ) );
 }
