@@ -1,4 +1,12 @@
 <nav>
+	<link  id="lightCss" rel="stylesheet" href="/css/colorDark.css">
+	<% // here to display the dark/loght slider selector
+	if ( ( page == "acceuil" ) ||
+		( page == "statistiques" ) )
+	{ %>
+		<% include slider %>
+	<% } %>
+	
 	<% if ( loged ) { %>
 		<a href="/">Scores</a>
 		<a href="/login">Logout</a>
@@ -26,13 +34,5 @@
 		<% if ( page != "statistiques" ) { %>
 			<a href="/statistiques">Stat.</a>
 		<% } %>
-	<% } %>
-
-	<link  id="lightCss" rel="stylesheet" href="/css/color.css">
-	<% // here to display the dark/loght slider selector
-	if ( ( page == "acceuil" ) ||
-		( page == "statistiques" ) )
-	{ %>
-		<% include slider %>
 	<% } %>
 </nav>
