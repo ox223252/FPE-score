@@ -1,11 +1,14 @@
 // https://coolaj86.com/articles/asymmetric-public--private-key-encryption-in-node-js/
 // http://wwwtyro.github.io/cryptico/
 
+// const declaration
 const scoreDataBase = './private/score.json';
 const voieDataBase = './private/voie.json';
 const userDataBase = './private/users.json';
+const loginDataBase = './private/login.json';
 const port = 6683;
 
+// modules declaration
 const program = require ( 'commander' );
 const express = require ( 'express' );
 const session = require ( 'express-session' );
@@ -15,23 +18,14 @@ const crypto = require ( 'crypto' );
 const favicon = require ( 'serve-favicon' );
 const cryptico = require ( 'cryptico' );
 
+// own module declaration
 const RSA = require ( './RSA_gen' );
-RSA.status.on ( 'ready', () => 
-{
-	io.emit( 'waitKey', 'ok' );
-});
-RSA.status.on ( 'failed', () =>
-{
-	io.emit( 'waitKey', 'error' );
-	console.log( 'can\'t set key' );
-});
-
-setTimeout ( RSA.init, 500 );
 
 // get user data base
 let score = {};
 let voie = [];
 let users = [];
+let login = {};
 
 if ( fs.existsSync ( scoreDataBase ) )
 {
@@ -48,6 +42,12 @@ if ( fs.existsSync ( userDataBase ) )
 	users = require ( userDataBase );
 }
 
+if ( fs.existsSync ( loginDataBase ) )
+{
+	login = require ( loginDataBase );
+}
+
+// engine part
 var app = express ( );
 var server = require ( 'http' ).createServer ( app ).listen ( port, function ( )
 {
@@ -59,7 +59,6 @@ var server = require ( 'http' ).createServer ( app ).listen ( port, function ( )
 // 	cert: fs.readFileSync('ssl/public.crt', 'utf8')
 // };
 // server = require ( 'https' ).createServer ( options, app ).listen ( port );
-var io = require ( 'socket.io' ).listen ( server );
 
 app.use ( bodyParser.json( ) );
 app.use ( bodyParser.urlencoded( {extended: true} ) );
@@ -68,6 +67,7 @@ app.use ( express.static ( __dirname + '/public' ) );
 app.use ( session ( { secret: Math.random()+'', proxy: true,  resave: true, saveUninitialized: true } ) );
 app.engine ( 'html', require ( 'ejs' ).renderFile );
 
+// route part
 app.all ( '/', function ( req, res )
 {
 	res.render ( 'acceuil.html', {
@@ -114,16 +114,38 @@ app.all ( '/login', function ( req, res )
 
 	if ( RSA.public )
 	{
-		if ( ( user == 'fpe' ) &&
-			( pass == 'test' ) )
+		if ( login[ user ] )
 		{
-			req.session.loged = true;
+			if ( login[ user ].error > 4 )
+			{ // too many errors
+				req.session.loged = false;
+				res.writeHead ( 401 );
+				res.end ( "too many errors, contact server admin" );
+			}
+			else if ( login[ user ].pass == pass )
+			{ // login valid
+				req.session.loged = true;
+				login[ user ].error = 0;
 
-			res.writeHead ( 200 );
-			res.end ( "valid" );
+				res.writeHead ( 200 );
+				res.end ( "valid" );
+			}
+			else
+			{ // pass error
+				req.session.loged = false;
+				res.writeHead ( 403 );
+
+				if( !login[ user ].error )
+				{
+					login[ user ].error = 0;
+				}
+				login[ user ].error++;
+
+				res.end ( login[ user ].error+'' );
+			}
 		}
 		else
-		{
+		{ // login not valid
 			req.session.loged = false;
 			res.render ( 'login.html', { pubKey:RSA.public } );
 		}
@@ -275,6 +297,9 @@ app.use ( function ( req, res, next)
 	res.status(404);
 });
 
+// socket part
+var io = require ( 'socket.io' ).listen ( server );
+
 io.on('connection', function( socket )
 {
 	// socket.emit ( 'id', id );
@@ -291,6 +316,19 @@ io.on('connection', function( socket )
 	});
 });
 
+// RSA keygen part
+RSA.status.on ( 'ready', () => 
+{
+	io.emit( 'waitKey', 'ok' );
+});
+RSA.status.on ( 'failed', () =>
+{
+	io.emit( 'waitKey', 'error' );
+});
+
+setTimeout ( RSA.init, 500 );
+
+// utils functions
 function userExist ( name )
 {
 	for ( let i = 0; i < users.length; i++ )

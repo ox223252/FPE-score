@@ -7,13 +7,22 @@
 		</nav>
 		<section>
 			<div>
-				<input id="user" type="text" placeholder="user" onchange="login();"/>
-				<input id="password" type="password" placeholder="password" onchange="login();"/>
-				<a href="/">back</a>
-				<p id="serverMsg"></p>
+				<div>
+					<input id="user" type="text" placeholder="user" onchange="login();"/>
+				</div>
+				<div>
+					<input id="password" type="password" placeholder="password" onchange="login();"/>
+				</div>
+				<div>
+					<a href="/">back</a>
+				</div>
+				<div>
+					<p id="serverMsg"></p>
+				</div>
 			</div>
 		</section>
 		<script type="text/javascript" src="/js/cryptico.min.js"></script>
+		<script type="text/javascript" src="/js/sha512.min.js"></script>
 		<script type="text/javascript"> // password
 			let pubKey = "<%- pubKey %>";
 			function login ( )
@@ -43,6 +52,21 @@
 							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:green;\">Ok</span>";
 							window.location.href = "/";
 						}
+						else if ( xhr.status === 401 )
+						{
+							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:red;\">"+xhr.responseText+"</span>";
+						}
+						else if ( xhr.status === 403 )
+						{
+							if ( 5 - parseInt ( xhr.responseText ) )
+							{
+								document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:orange;\">pass invalid, it remain only <span style='color:red'>"+( 5 - parseInt ( xhr.responseText ) )+"</span> try</span>";
+							}
+							else
+							{
+								document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:red;\">no more try available</span>";
+							}
+						}
 						else
 						{
 							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:#f55;\">" + xhr.responseText + "</span>";
@@ -50,9 +74,11 @@
 					}
 				});
 
+				// encrypt password to prevent clear storage on server
+				// you prevent the admin read it in clear mode
 				let tmp = {
 					"user":user,
-					"password":password
+					"password":sha512(password)
 				};
 
 				let enc = cryptico.encrypt ( JSON.stringify ( tmp ), pubKey );

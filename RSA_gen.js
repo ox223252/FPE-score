@@ -33,7 +33,6 @@ let RSA_Module = {
 
 				child.on ( 'message', ( data ) =>
 				{
-					console.log ( typeof data );
 					result = cryptico.RSAKey.parse ( data );
 				});
 
