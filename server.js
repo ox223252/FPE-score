@@ -1,6 +1,3 @@
-// https://coolaj86.com/articles/asymmetric-public--private-key-encryption-in-node-js/
-// http://wwwtyro.github.io/cryptico/
-
 // const declaration
 const scoreDataBase = './private/score.json';
 const voieDataBase = './private/voie.json';
@@ -11,12 +8,13 @@ const port = 6683;
 // modules declaration
 const program = require ( 'commander' );
 const express = require ( 'express' );
-const session = require ( 'express-session' );
+const session = require ( "client-sessions" ); // create session encypted https://github.com/mozilla/node-client-sessions
+
 const bodyParser = require ( 'body-parser' );
 const fs = require ( 'fs' );
 const crypto = require ( 'crypto' );
 const favicon = require ( 'serve-favicon' );
-const cryptico = require ( 'cryptico' );
+const cryptico = require ( 'cryptico' ); // generated RSA key for password encryption http://wwwtyro.github.io/cryptico/
 
 // own module declaration
 const RSA = require ( './RSA_gen' );
@@ -60,18 +58,45 @@ var server = require ( 'http' ).createServer ( app ).listen ( port, function ( )
 // };
 // server = require ( 'https' ).createServer ( options, app ).listen ( port );
 
+app.use ( session ( {
+	cookieName: 'authenticated', // cookie name dictates the key name added to the request object
+	secret: crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" ),
+	duration: 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
+	cookie:
+	{
+		path: '/', // cookie will only be sent to requests under '/api'
+		ephemeral: true, // when true, cookie expires when the browser closes
+		httpOnly: true, // when true, cookie is not accessible from javascript
+		secure: false // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
+	}
+}));
+
+app.use ( function ( req, res, next )
+{
+	if ( req.authenticated.seenyou )
+	{
+		res.setHeader('X-Seen-You', 'true');
+	}
+	else
+	{
+		// setting a property will automatically cause a Set-Cookie response
+		// to be sent
+		req.authenticated.seenyou = true;
+		res.setHeader('X-Seen-You', 'false');
+	}
+	next ( );
+});
 app.use ( bodyParser.json( ) );
 app.use ( bodyParser.urlencoded( {extended: true} ) );
 app.use ( favicon ( __dirname + '/public/imgs/climbing.png' ) ) // Active la favicon indiquée
 app.use ( express.static ( __dirname + '/public' ) );
-app.use ( session ( { secret: Math.random()+'', proxy: true,  resave: true, saveUninitialized: true } ) );
 app.engine ( 'html', require ( 'ejs' ).renderFile );
 
 // route part
 app.all ( '/', function ( req, res )
 {
 	res.render ( 'acceuil.html', {
-		loged:req.session.loged,
+		loged:req.authenticated.loged || false,
 		users:users,
 		voie:voie,
 		score:score,
@@ -82,7 +107,7 @@ app.all ( '/', function ( req, res )
 app.all ( '/statistiques', function ( req, res )
 {
 	res.render ( 'statistiques.html', {
-		loged:req.session.loged,
+		loged:req.authenticated.loged || false,
 		users:users,
 		voie:voie,
 		score:score,
@@ -118,13 +143,13 @@ app.all ( '/login', function ( req, res )
 		{
 			if ( login[ user ].error > 4 )
 			{ // too many errors
-				req.session.loged = false;
+				req.authenticated.loged = false;
 				res.writeHead ( 401 );
 				res.end ( "too many errors, contact server admin" );
 			}
 			else if ( login[ user ].pass == pass )
 			{ // login valid
-				req.session.loged = true;
+				req.authenticated.loged = true;
 				login[ user ].error = 0;
 
 				res.writeHead ( 200 );
@@ -132,7 +157,7 @@ app.all ( '/login', function ( req, res )
 			}
 			else
 			{ // pass error
-				req.session.loged = false;
+				req.authenticated.loged = false;
 				res.writeHead ( 403 );
 
 				if( !login[ user ].error )
@@ -146,7 +171,8 @@ app.all ( '/login', function ( req, res )
 		}
 		else
 		{ // login not valid
-			req.session.loged = false;
+			req.authenticated.reset();
+			req.authenticated.loged = false;
 			res.render ( 'login.html', { pubKey:RSA.public } );
 		}
 	}
@@ -158,10 +184,10 @@ app.all ( '/login', function ( req, res )
 
 app.all ( '/set/:id', function ( req, res )
 {
-	if ( req.session.loged )
+	if ( req.authenticated.loged )
 	{
 		res.render ( 'set.html', {
-			loged:req.session.loged,
+			loged:req.authenticated.loged,
 			users:users,
 			voie:voie,
 			page:req.params.id
@@ -170,7 +196,7 @@ app.all ( '/set/:id', function ( req, res )
 	else
 	{
 		res.render ( 'acceuil.html', {
-			loged:req.session.loged,
+			loged:req.authenticated.loged,
 			users:users,
 			voie:voie,
 			score:score,
@@ -181,7 +207,7 @@ app.all ( '/set/:id', function ( req, res )
 
 app.all ( '/validate', function ( req, res )
 {
-	if ( req.session.loged )
+	if ( req.authenticated.loged )
 	{
 		if ( !userExist ( req.body.usr ) )
 		{
@@ -213,7 +239,7 @@ app.all ( '/validate', function ( req, res )
 
 app.all ( '/addUser', function ( req, res )
 {
-	if ( req.session.loged )
+	if ( req.authenticated.loged )
 	{
 		if ( req.body.name )
 		{
@@ -241,7 +267,7 @@ app.all ( '/addUser', function ( req, res )
 		else
 		{	
 			res.render ( 'addUser.html', {
-				loged:req.session.loged,
+				loged:req.authenticated.loged,
 				users:users,
 				voie:voie,
 				page:req.params.id
@@ -251,7 +277,7 @@ app.all ( '/addUser', function ( req, res )
 	else
 	{
 		res.render ( 'acceuil.html', {
-			loged:req.session.loged,
+			loged:req.authenticated.loged,
 			users:users,
 			voie:voie,
 			score:score,
@@ -326,7 +352,7 @@ RSA.status.on ( 'failed', () =>
 	io.emit( 'waitKey', 'error' );
 });
 
-RSA.init ( )
+RSA.init ( {length:1024} );
 
 // utils functions
 function userExist ( name )
