@@ -9,6 +9,7 @@ const port = 6683;
 const program = require ( 'commander' );
 const express = require ( 'express' );
 const session = require ( "client-sessions" ); // create session encypted https://github.com/mozilla/node-client-sessions
+const helmet = require ( 'helmet' );
 
 const bodyParser = require ( 'body-parser' );
 const fs = require ( 'fs' );
@@ -58,6 +59,8 @@ var server = require ( 'http' ).createServer ( app ).listen ( port, function ( )
 // };
 // server = require ( 'https' ).createServer ( options, app ).listen ( port );
 
+app.use ( helmet ( ) );
+
 app.use ( session ( {
 	cookieName: 'authenticated', // cookie name dictates the key name added to the request object
 	secret: crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" ),
@@ -69,23 +72,22 @@ app.use ( session ( {
 		httpOnly: true, // when true, cookie is not accessible from javascript
 		secure: false // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
 	}
-}));
-
+} ) );
 app.use ( function ( req, res, next )
 {
+	console.log( req );
 	if ( req.authenticated.seenyou )
 	{
 		res.setHeader('X-Seen-You', 'true');
 	}
 	else
 	{
-		// setting a property will automatically cause a Set-Cookie response
-		// to be sent
+		// setting a property will automatically cause a Set-Cookie response to be sent
 		req.authenticated.seenyou = true;
 		res.setHeader('X-Seen-You', 'false');
 	}
 	next ( );
-});
+} );
 app.use ( bodyParser.json( ) );
 app.use ( bodyParser.urlencoded( {extended: true} ) );
 app.use ( favicon ( __dirname + '/public/imgs/climbing.png' ) ) // Active la favicon indiquée
@@ -195,16 +197,11 @@ app.all ( '/set/:id', function ( req, res )
 	}
 	else
 	{
-		res.render ( 'acceuil.html', {
-			loged:req.authenticated.loged,
-			users:users,
-			voie:voie,
-			score:score,
-			page:"acceuil"
-		} );
+		res.redirect ( '/' );
 	}
 });
 
+// ajax part
 app.all ( '/validate', function ( req, res )
 {
 	if ( req.authenticated.loged )
@@ -317,7 +314,8 @@ app.all ( '/getClub', function ( req, res )
 	res.end ( JSON.stringify ( clubs ) );
 });
 
-app.use ( function ( req, res, next)
+// error management
+app.use ( function ( req, res, next )
 {
 	res.render ( 'error.html' );
 	res.status(404);
@@ -326,7 +324,7 @@ app.use ( function ( req, res, next)
 // socket part
 var io = require ( 'socket.io' ).listen ( server );
 
-io.on('connection', function( socket )
+io.on ( 'connection', function( socket )
 {
 	// socket.emit ( 'id', id );
 
@@ -346,13 +344,15 @@ io.on('connection', function( socket )
 RSA.status.on ( 'ready', () => 
 {
 	io.emit( 'waitKey', 'ok' );
+	console.log ( 'ok' );
 });
 RSA.status.on ( 'failed', () =>
 {
 	io.emit( 'waitKey', 'error' );
+	console.log ( 'error' );
 });
 
-RSA.init ( {length:1024} );
+RSA.init ( {length:4096} );
 
 // utils functions
 function userExist ( name )

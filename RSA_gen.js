@@ -3,6 +3,8 @@ const EventEmitter = require('events');
 const { fork } = require ( 'child_process' );
 const crypto = require ( 'crypto' );
 
+
+
 if ( process.argv[ 2 ] &&
 	JSON.parse ( process.argv[ 2 ] ).async )
 {
@@ -34,6 +36,8 @@ if ( process.argv[ 2 ] &&
 		})
 	}
 	
+
+
 	process.send ( serializeRSAKey ( cryptico.generateRSAKey ( passPhrase, bitSize ) ) );
 	process.exit ( 0 );
 }
