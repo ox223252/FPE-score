@@ -75,7 +75,6 @@ app.use ( session ( {
 } ) );
 app.use ( function ( req, res, next )
 {
-	console.log( req );
 	if ( req.authenticated.seenyou )
 	{
 		res.setHeader('X-Seen-You', 'true');

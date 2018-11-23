@@ -6,9 +6,9 @@
 		<section>
 			<div>
 				<form>
-					<select id="genre" onchange="drawTable();"></select>
-					<select id="categorie" onchange="drawTable();"></select>
-					<select id="club" onchange="drawTable();"></select>
+					<select id="genre" onchange="setRank();drawTable();"></select>
+					<select id="categorie" onchange="setRank();drawTable();"></select>
+					<select id="club" onchange="setRank();drawTable();"></select>
 				</form>
 				<div id="dataContent">
 				</div>
@@ -179,8 +179,26 @@
 						continue;
 					}
 
+					if ( ( g_categorie.value != "all" ) &&
+						( users[ i ].categorie != g_categorie.value ) )
+					{
+						continue;
+					}
+
+					if ( ( g_genre.value != "all" ) &&
+						( users[ i ].genre != g_genre.value ) )
+					{
+						continue;
+					}
+
+					if ( ( g_club.value != "all" ) &&
+						( users[ i ].club != g_club.value ) )
+					{
+						continue;
+					}
+
 					pointConfig.data.datasets[ 0 ].data.push ( getScore( users[ i ].name, id ) );
-					pointConfig.data.labels.push ( i + 1 );
+					pointConfig.data.labels.push ( getScore( users[ i ].name ) );
 				}
 
 				if  ( chartjs[ 'point' ] )
@@ -270,7 +288,9 @@
 			{
 				setScore ( data.usr, data.voie, data.points );
 
+				getAverage ( );
 				updateTable ( );
+				setRank ( );
 				drawTable ( );
 			});
 
@@ -291,11 +311,10 @@
 				}
 
 				updateTable ( );
-				drawTable ( );
 			});
 		</script>
 		<script type="text/javascript"> // utils
-			function setScore ( name, id, value )
+			function setScore ( name, id, value, num )
 			{
 				if ( !name ||
 					( id == undefined ) )
@@ -313,9 +332,17 @@
 					score[ name ][ id ] = [];
 				}
 				
-				score[ name ][ id ].push ( value );
+				if ( num == undefined )
+				{
+					score[ name ][ id ].push ( value );
+				}
+				else
+				{
+					score[ name ][ id ][ num ] = value;
+				}
 			}
-			function getScore ( name, id )
+
+			function getScore ( name, id = voie.length + 1 )
 			{
 				if ( !name ||
 					( id == undefined ) ||
@@ -335,6 +362,7 @@
 				}
 				return ( max );
 			}
+
 			function getnbTests ( name, id )
 			{
 				if ( !name ||
@@ -349,11 +377,11 @@
 			}
 		</script>
 		<script type="text/javascript">
-			function updateTable ( id = voie.length )
-			{
-				// voie.length : total
-				// voie.length + 1 : rank
+			// voie.length : total
+			// voie.length + 1 : rank
 
+			function getAverage ( )
+			{ // get data to calculate average and globals metrics
 				// init average struct
 				for ( let i = 0; i < voie.length; i++ )
 				{
@@ -394,7 +422,6 @@
 								average.tryed[ j ]++;
 							}
 						}
-
 					}
 
 					if ( score[ users[ i ].name ] )
@@ -404,27 +431,28 @@
 
 					setScore( users[ i ].name, voie.length, somme );
 				}
+			}
 
+			function updateTable ( id = voie.length )
+			{
 				// put user without score at the end
-				for ( let i = 0; i < users.length - 1; i++ )
+				let somethingChange = false;
+				do
 				{
-					if ( !score[ users[ i ].name ] )
+					somethingChange = false;
+					for ( let i = 0; i < users.length - 1; i++ )
 					{
-						for ( let j = i+1; j < users.length; j++ )
+						if ( !getScore( users[ i ].name, id ) && 
+							getScore( users[ i + 1 ].name, id ) )
 						{
-							if ( !score[ users[ j ].name ] )
-							{
-								continue;
-							}
-							
 							let tmp = users[ i ];
-							users[ i ] = users[ j ];
-							users[ j ] = tmp;
-							break;
+							users[ i ] = users[ i + 1 ];
+							users[ i + 1 ] = tmp;
+							somethingChange = true;
 						}
-						continue;
 					}
 				}
+				while ( somethingChange );
 
 				// order users
 				for ( let i = 0; i < users.length - 1; i++ )
@@ -461,10 +489,14 @@
 						}
 					}
 				}
+			}
 
+			function setRank ( id = voie.length )
+			{
+				console.log( "set rank" );
 				// set ranks
-				let lastPoint = getScore( users[ 0 ].name, id );
-				let lastRank = 1;
+				let lastPoint = 0;
+				let lastRank = 0;
 
 				for ( let i = 0; i < users.length - 1; i++ )
 				{
@@ -473,18 +505,40 @@
 						break;
 					}
 
+					if ( ( g_categorie.value != "all" ) &&
+						( users[ i ].categorie != g_categorie.value ) )
+					{
+						continue;
+					}
+
+					if ( ( g_genre.value != "all" ) &&
+						( users[ i ].genre != g_genre.value ) )
+					{
+						continue;
+					}
+
+					if ( ( g_club.value != "all" ) &&
+						( users[ i ].club != g_club.value ) )
+					{
+						continue;
+					}
+
+					console.log( users[ i ].name );
 					if ( lastPoint != getScore( users[ i ].name, id ) )
 					{
 						lastPoint = getScore( users[ i ].name, id );
-						lastRank = i + 1;
+						lastRank++;
 					}
-					setScore( users[ i ].name, voie.length + 1, lastRank );
+					console.log( lastRank );
+
+					setScore( users[ i ].name, voie.length + 1, lastRank, 0 );
 				}
+				console.log( score );
 			}
 
 			function drawTable ( id = voie.length )
 			{
-				let str = "<table id=\"results\"><tr><td onclick=\"updateUser();\"></td><td>h/f</td><td>cat.</td>";
+				let str = "<div  id=\"results\"><table><tr><td onclick=\"updateUser();\"></td><td>h/f</td><td>cat.</td>";
 				// header
 				for ( let j = 0; j < voie.length; j++ )
 				{
@@ -553,7 +607,7 @@
 					}
 					str += '</tr>';
 				}
-				document.getElementById ( "dataContent" ).innerHTML = str+'</table>';
+				document.getElementById ( "dataContent" ).innerHTML = str+'</table></div>';
 				drawCurves ( id );
 			}
 
@@ -628,7 +682,9 @@
 			}
 
 			updateSelector ( );
+			getAverage ( );
 			updateTable ( );
+			setRank ( );
 			drawTable ( );
 		</script>
 	</body>

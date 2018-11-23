@@ -33,7 +33,7 @@ section > div
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
+	/*justify-content: center;*/
 	height:100%;
 	max-width: 100%;
 }
@@ -82,10 +82,7 @@ section input[type='text'], section input[type='number'], section select
 {
 	margin: 20px;
 	padding: 5px;
-	max-height: calc( 100% - 100px );
-	max-width: calc( 100% - 100px );
 	overflow-x: auto;
-	overflow-y: auto;
 }
 
 .graphPaper
