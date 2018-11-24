@@ -40,9 +40,14 @@
 					<select id="mode" onchange="updatePoints();"></select>
 				</div>
 				<div id="score" style="display:inline-block"></div>
-				<button id="validate" onclick="validate(this);"">Valider</button>
+				<div id="startStop" style="text-align: center">
+					<button id="chronoStart" onclick="chronoStart();">Start</button>
+					<button id="chronoStop" onclick="chronoStop();">Stop</button>
+				</div>
+				<div style="text-align: center;">
+					<button id="validate" onclick="validate(this);"">Valider</button>
+				</div>
 			</div>
-
 			<div id="comments">
 			</div>
 			<p id="serverMsg">
@@ -227,6 +232,7 @@
 
 			function updatePoints ( )
 			{
+				document.getElementById ( 'startStop' ).style.display = "none";
 				let id = document.getElementById ( "voie" ).value;
 				if ( !voie[ id ] )
 				{
@@ -268,15 +274,44 @@
 					}
 					case 'vitesse':
 					{
-						el.innerHTML = '<input id="points" type="number" min="0.0" step="0.01">'
+						el.innerHTML = '<input id="points" type="number" min="0.0" step="0.01">';
+						document.getElementById ( 'startStop' ).style.display = "";
 						break;
 					}
 					case 'slack':
 					{
-						el.innerHTML = '<input id="points" type="number" min="0.0" step="0.01">'
+						el.innerHTML = '<input id="points" type="number" min="0.0" step="0.01">';
 						break;
 					}
 				}
+			}
+
+			let interval = null;
+			let beginChrono = null;
+
+			function chronoStart ( )
+			{
+				beginChrono = new Date ( );
+				interval = setInterval ( function ( begin, display )
+				{
+					let current = new Date ( );
+					
+					if ( display )
+					{
+						display.value =  ( current.getTime()  - begin.getTime() ) / 1000;
+					}
+				}, 30, beginChrono, document.getElementById ( "points" ) );
+			}
+
+			function chronoStop ( )
+			{
+				clearInterval ( interval );
+				let current = new Date ( );
+					
+				document.getElementById ( "points" ).value =  ( current.getTime()  - beginChrono.getTime() ) / 1000;
+
+				interval = null;
+				beginChrono = null;
 			}
 		</script>
 		<script type="text/javascript">
@@ -326,9 +361,10 @@
 		<script type="text/javascript">
 			window.onload = function ( )
 			{
-				updateUsers ( );
 				updateVoix ( "<%-page%>" );
 			}
+
+			window.onready = updateUsers ( );
 		</script>
 	</body>
 </html>

@@ -137,3 +137,9 @@ section input[type='text'], section input[type='number'], section select
 	height: auto;
 	min-width: 300px;
 }
+
+#setSection, #comments 
+{
+	display:block;
+	height: auto;
+}
