@@ -3,31 +3,29 @@
 	<% include head %>
 	<body>
 		<% include nav %>
-		<section>
+		<section id="addUser">
 			<div>
-				<div>
-					<input id="user" type="text" placeholder="new user" onkeyup="exist(this);"/>
-					<select id="categorie">
-						<option disabled selected></option>
-						<option value="microbe">microbe</option>
-						<option value="poussin">poussin</option>
-						<option value="bejamin">bejamin</option>
-						<option value="minime">minime</option>
-						<option value="cadet">cadet</option>
-						<option value="senior">senior</option>
-						<option value="veterant">veterant</option>
-					</select>
-					<select id="genre">
-						<option disabled selected></option>
-						<option value="homme">homme</option>
-						<option value="femme">femme</option>
-					</select>
-					<input id="club" onkeyup="getClub(this.value,'clubSugest', this.id);" type="text" >
-					<div id="clubSugest" style="display:none">
-						
-					</div>
-					<button onclick="addUser()">Ok</button>
+				<input id="user" type="text" placeholder="new user" onkeyup="exist(this);"/>
+				<select id="categorie">
+					<option disabled selected></option>
+					<option value="microbe">microbe</option>
+					<option value="poussin">poussin</option>
+					<option value="bejamin">bejamin</option>
+					<option value="minime">minime</option>
+					<option value="cadet">cadet</option>
+					<option value="senior">senior</option>
+					<option value="veterant">veterant</option>
+				</select>
+				<select id="genre">
+					<option disabled selected></option>
+					<option value="homme">homme</option>
+					<option value="femme">femme</option>
+				</select>
+				<input id="club" placeholder="club" onkeyup="getClub(this.value,'clubSugest', this.id);" type="text" >
+				<div id="clubSugest" style="display:none">
+					
 				</div>
+				<button onclick="addUser()">Ok</button>
 			</div>
 		</section>
 		<script type="text/javascript"> // password
@@ -142,8 +140,6 @@
 					div.innerHTML += "<div onclick=\"setValue('"+sugestId+"','"+masterId+"',this.innerHTML);\">"+choices[ i ]+"</div>";
 				}
 			}
-
-
 		</script>
 	</body>
 </html>

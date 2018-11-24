@@ -3,16 +3,17 @@
 	<% include head %>
 	<body>
 		<% include nav %>
-		<section>
+		<section id="stats">
 			<div class="graphPaper">
 				<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_average"></canvas>
-				<span class="smothText"><label for="avreage_percent"> affichage en %</label><input type="checkbox" id="avreage_percent" onchange="drawCurves ( );"></span>
+				<span class="smothText"><label for="avreage_percent"> affichage en %</label><input type="checkbox" id="avreage_percent" onchange="graph_average ( );"></span>
 			</div>
 			<div class="graphPaper">
 				<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_nbTry"></canvas>
 			</div>
 			<div class="graphPaper" id="clubsGrpahs">
-			</div><div class="graphPaper" id="peoplesGrpahs">
+			</div>
+			<div class="graphPaper" id="peoplesGrpahs">
 			</div>
 		</section>
 		<div id="popupMenu">
@@ -251,7 +252,6 @@
 			}
 		</script>
 		<script type="text/javascript"> // graph
-			
 			function graph_average ( )
 			{
 				if ( !document.getElementById ( 'check_average' ).checked )
@@ -273,16 +273,16 @@
 				{
 					if ( pourcent )
 					{
-							config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "% max de points";
+						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "% max de points";
 						config[ 'average' ].data.labels.push ( average[ i ].name + ' %' );
-							config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player / average[ i ].max * 100 ) | 0 );
-							config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt / average[ i ].max * 100 ) | 0 );
+						config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player / average[ i ].max * 100 ) | 0 );
+						config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt / average[ i ].max * 100 ) | 0 );
 					}
 					else
 					{
 						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "points";
 						config[ 'average' ].data.labels.push ( average[ i ].name );
-							config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player ) | 0 );
+						config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player ) | 0 );
 						config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt ) | 0 );
 						config[ 'average' ].data.datasets[ 2 ].data.push ( ( average[ i ].max ) | 0 );
 					}
@@ -663,7 +663,7 @@
 			{
 				ev.preventDefault();
 				ev.stopPropagation();
-				ev.target.style.display = "none";
+				document.getElementById ( 'popupMenu' ).style.display = "none";
 			});
 
 			document.addEventListener ( "contextmenu", function ( ev )

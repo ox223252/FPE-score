@@ -245,7 +245,7 @@ app.all ( '/addUser', function ( req, res )
 				tmp.name = req.body.name;
 				tmp.categorie = req.body.categorie;
 				tmp.genre = req.body.genre;
-				tmp.club = req.body.club;
+				tmp.club = req.body.club.toUpperCase ( );
 
 				users.push ( tmp );
 				fs.writeFileSync ( userDataBase, JSON.stringify ( users ), 'utf8' );
@@ -303,7 +303,7 @@ app.all ( '/getClub', function ( req, res )
 	for ( let i = 0; i < users.length; i++ )
 	{
 		if ( users[ i ].club && 
-			( users[ i ].club.indexOf ( req.body.partName ) >= 0 ) &&
+			( users[ i ].club.indexOf ( req.body.partName.toUpperCase ( ) ) >= 0 ) &&
 			!clubs.includes ( users[ i ].club ) )
 		{
 			clubs.push ( users[ i ].club );
