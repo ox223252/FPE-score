@@ -1,7 +1,7 @@
 # FPE score
 [NodeJs]small software designed to count store and manage point on climbing contest.
 
-[!flag](res/fr.jpg)
+![flag](res/fr.jpg)
 ## TODO  :
  - [x] ajout dynamique des participants
  - [x] ajout des résultats pour une voie
