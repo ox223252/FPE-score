@@ -76,6 +76,7 @@
 				}
 
 				select.options.add ( new Option ( "", 0 ) );
+				select.options[ 0 ].value = '';
 				select.options[ 0 ].selected = true;
 				select.options[ 0 ].disabled = true;
 
@@ -249,11 +250,11 @@
 						el.innerHTML = '<select id="points"></select>'
 						select = document.getElementById ( 'points' );
 						select.options.add ( new Option ( 'echec', 0 ) );
-						select.options[0].value = 0;
+						select.options[0].value = 'echec';
 						select.options.add ( new Option ( 'zone', 1 ) );
-						select.options[1].value = voie[ id ].score.zone;
+						select.options[1].value = 'zone';
 						select.options.add ( new Option ( 'fin', 2 ) );
-						select.options[2].value = voie[ id ].score.fin;
+						select.options[2].value = 'top';
 						break;
 					}
 					case 'diff':
@@ -327,6 +328,10 @@
 				{
 					return;
 				}
+
+				console.log( user );
+				console.log( voie );
+				console.log( points );
 
 				let xhr = new XMLHttpRequest();
 

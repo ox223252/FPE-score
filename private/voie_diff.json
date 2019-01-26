@@ -1,0 +1,28 @@
+[
+	{
+		"name":"R4_jaune",
+		"type":"diff",
+		"score":
+		{
+			"moul":[6,10,15,20]
+		}
+	},
+	{
+		"name":"R4_rouge",
+		"type":"diff",
+		"score":
+		{
+			"moul":[6,10,15,20],
+			"tete":[12,20,27,35]
+		}
+	},
+	{
+		"name":"R6_orange",
+		"type":"diff",
+		"score":
+		{
+			"moul":[10,15,20,25,30,40],
+			"tete":[12,20,27,35,42,50]
+		}
+	}
+]

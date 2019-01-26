@@ -12,6 +12,8 @@
    - [x] pour la slack
    - [x] essais multiples
    - [ ] implémenter les règles de calculs officiels FFME
+      - [x] bloc : classement top/nbTest/zone/nbTest
+      - [x] diff : sqrt ( (rank[i]²) + (rank[j]²) ... ) 
  - [x] login sécurisé pour le staff
    - [x] génération automatique d'une clé RSA (différente à chaque démarrage du serveur)
  - [x] affichage du tableau des résultats

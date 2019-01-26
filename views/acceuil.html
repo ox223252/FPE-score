@@ -35,6 +35,16 @@
 			let g_categorie = document.getElementById ( "categorie" );
 			let g_genre = document.getElementById ( "genre" );
 			let g_club = document.getElementById ( "club" );
+
+			// voie.length : total
+			// voie.length + 1 : rank
+			const rankId = voie.length + 1;
+			const totalId = voie.length;
+
+			const topId = voie.length + 2;
+			const testTopId = voie.length + 3;
+			const zoneId = voie.length + 4;
+			const testZoneId = voie.length + 5;
 			
 			var pointConfig = {
 				// type: 'bar',
@@ -164,7 +174,7 @@
 			let chartjs = {};
 		</script>
 		<script type="text/javascript"> // graph
-			function drawCurves ( id = voie.length )
+			function drawCurves ( id = totalId )
 			{
 				let userEl = document.getElementById ( "userGraph" );
 
@@ -288,8 +298,11 @@
 			{
 				setScore ( data.usr, data.voie, data.points );
 
-				getAverage ( );
-				updateTable ( );
+				uni_calcTotal ( );
+				<% if ( ( mode == 'b' ) ||
+					( mode == 'a' ) ){ %>
+					uni_orderTable ( );
+				<% } %>
 				setRank ( );
 				drawTable ( );
 			});
@@ -310,7 +323,7 @@
 					users.push ( usr );
 				}
 
-				updateTable ( );
+				uni_orderTable ( );
 			});
 		</script>
 		<script type="text/javascript"> // utils
@@ -342,7 +355,7 @@
 				}
 			}
 
-			function getScore ( name, id = voie.length + 1 )
+			function getScore ( name, id = rankId )
 			{
 				if ( !name ||
 					( id == undefined ) ||
@@ -355,12 +368,130 @@
 				let max = score[ name ][ id ][ 0 ];
 				for ( let i = 1; i < score[ name ][ id ].length; i++ )
 				{
-					if ( parseFloat( score[ name ][ id ][ i ] ) > parseFloat( max ) )
+					if ( score[ name ][ id ][ i ] == 'top' )
 					{
-						max = score[ name ][ id ][ i ];
+						max = 'top';
+						break;
 					}
 				}
 				return ( max );
+			}
+
+			function getNbTop ( name )
+			{
+				if ( !name ||
+					!score[ name ] )
+				{
+					return ( 0 );
+				}
+
+				let top = 0;
+				for ( let i = 0; i < voie.length; i++ )
+				{
+					if ( !score[ name ][ i ] )
+					{
+						continue;
+					}
+
+					for ( let j = 0; j < score[ name ][ i ].length; j++ )
+					{
+						if ( score[ name ][ i ][ j ] == 'top' )
+						{
+							top++;
+							break; // si un top à été compté dans une voie on passe à la suivante
+						}
+					}
+				}
+				return ( top );
+			}
+
+			function getNbEssaisTop ( name )
+			{
+				if ( !name ||
+					!score[ name ] )
+				{
+					return ( 0 );
+				}
+
+				let essai = 0;
+				for ( let i = 0; i < voie.length; i++ )
+				{
+					if ( !score[ name ][ i ] )
+					{
+						continue;
+					}
+
+					let tmp = 0;
+					for ( let j = 0; j < score[ name ][ i ].length; j++ )
+					{
+						tmp++;
+						if ( score[ name ][ i ][ j ] == 'top' )
+						{
+							essai += tmp;
+							break; // si un top à été compté dans une voie on passe à la suivante
+						}
+					}
+				}
+				return ( essai );
+			}
+
+			function getNbZone ( name )
+			{
+				if ( !name ||
+					!score[ name ] )
+				{
+					return ( 0 );
+				}
+
+				let zone = 0;
+				for ( let i = 0; i < voie.length; i++ )
+				{
+					if ( !score[ name ][ i ] )
+					{
+						continue;
+					}
+					for ( let j = 0; j < score[ name ][ i ].length; j++ )
+					{
+						if ( ( score[ name ][ i ][ j ] == 'top' ) ||
+							( score[ name ][ i ][ j ] == 'zone' ) )
+						{
+							zone++;
+							break;
+						}
+					}
+				}
+				return ( zone );
+			}
+
+			function getNbEssaisZone ( name )
+			{
+				if ( !name ||
+					!score[ name ] )
+				{
+					return ( 0 );
+				}
+
+				let essai = 0;
+				for ( let i = 0; i < voie.length; i++ )
+				{
+					if ( !score[ name ][ i ] )
+					{
+						continue;
+					}
+					
+					let tmp = 0;
+					for ( let j = 0; j < score[ name ][ i ].length; j++ )
+					{
+						tmp++;
+						if ( ( score[ name ][ i ][ j ] == 'top' ) ||
+							( score[ name ][ i ][ j ] == 'zone' ) )
+						{
+							essai += tmp;
+							break;
+						}
+					}
+				}
+				return ( essai );
 			}
 
 			function getnbTests ( name, id )
@@ -377,10 +508,8 @@
 			}
 		</script>
 		<script type="text/javascript">
-			// voie.length : total
-			// voie.length + 1 : rank
 
-			function getAverage ( )
+			function uni_calcTotal ( id = totalId )
 			{ // get data to calculate average and globals metrics
 				// init average struct
 				for ( let i = 0; i < voie.length; i++ )
@@ -390,52 +519,159 @@
 					average.player = 0;
 				}
 
-				for ( let i = 0; i < users.length; i++ )
-				{
-					if ( !score[ users[ i ].name ] )
-					{
-						continue;
-					}
-					let somme = 0;
-
-					for ( let j = 0; j < voie.length; j++ )
-					{
-						if ( ( voie[ j ].type == 'vitesse' ) &&
-							getScore( users[ i ].name, j ) )
-						{
-							let tmp = ( voie[ j ].score.time - getScore( users[ i ].name, j ) );
-							somme += ( tmp < 0 )? 0: tmp;
-							
-							average.all[ j ] += tmp; // totalise points for all users
-							if ( getScore( users[ i ].name, j ) )
-							{
-								average.tryed[ j ]++;
-							}
-						}
-						else
-						{
-							somme += getScore( users[ i ].name, j ) | 0;
-							average.all[ j ] += getScore( users[ i ].name, j ) | 0;
-
-							if ( getScore( users[ i ].name, j ) )
-							{
-								average.tryed[ j ]++;
-							}
-						}
-					}
-
-					if ( score[ users[ i ].name ] )
-					{
-						average.player++;
-					}
-
-					setScore( users[ i ].name, voie.length, somme );
-				}
+				<% if ( mode == 'a' ) { %>
+					autre_calcTotal ( id );
+				<% } else if ( mode == 'b' ) { %>
+					bloc_calcTotal ( id );
+				<% } else if ( mode == 'd' ) { %>
+					diff_calcTotal ( id );
+				<% } %>
 			}
 
-			function updateTable ( id = voie.length )
-			{
-				// put user without score at the end
+			<% if ( mode == 'a' ) { /* autre calc total */%>
+				function autre_calcTotal ( )
+				{
+					for ( let i = 0; i < users.length; i++ )
+					{
+						if ( !score[ users[ i ].name ] )
+						{
+							continue;
+						}
+						let somme = 0;
+
+						for ( let j = 0; j < voie.length; j++ )
+						{
+							if ( ( voie[ j ].type == 'vitesse' ) &&
+								getScore( users[ i ].name, j ) )
+							{
+								let tmp = ( voie[ j ].score.time - getScore( users[ i ].name, j ) );
+								somme += ( tmp < 0 )? 0: tmp;
+								
+								average.all[ j ] += tmp; // totalise points for all users
+								if ( getScore( users[ i ].name, j ) )
+								{
+									average.tryed[ j ]++;
+								}
+							}
+							else
+							{
+								somme += getScore( users[ i ].name, j ) | 0;
+								average.all[ j ] += getScore( users[ i ].name, j ) | 0;
+
+								if ( getScore( users[ i ].name, j ) )
+								{
+									average.tryed[ j ]++;
+								}
+							}
+						}
+
+						if ( score[ users[ i ].name ] )
+						{
+							average.player++;
+						}
+
+						setScore( users[ i ].name, totalId, somme );
+					}
+				}
+			<% } %>
+			<% if ( mode == 'b' ) { /* bloc calc total */%>
+				function bloc_calcTotal ( )
+				{
+					let l = voie.length.toString( ).length;
+					divider = 1;
+
+					while ( l-- )
+					{
+						divider *= 10;
+					}
+
+					for ( let i = 0; i < users.length; i++ )
+					{
+						if ( !score[ users[ i ].name ] )
+						{
+							continue;
+						}
+
+						let top = getNbTop ( users[ i ].name );
+						let nbTestTop = getNbEssaisTop ( users[ i ].name );
+						let zone = getNbZone ( users[ i ].name );
+						let nbTestZone = getNbEssaisZone ( users[ i ].name );
+
+						setScore( users[ i ].name, topId, top );
+						setScore( users[ i ].name, testTopId, nbTestTop );
+
+						setScore( users[ i ].name, zoneId, zone );
+						setScore( users[ i ].name, testZoneId, nbTestZone );
+
+						for ( let j = 0; j < voie.length; j++ )
+						{
+							average.tryed[ j ] += getnbTests ( users[ i ].name, j );
+							average.all[ j ] += top;
+						}
+
+						if ( score[ users[ i ].name ] )
+						{
+							average.player++;
+						}
+
+						let str = top+'.'+nbTestTop+'.'+zone+'.'+nbTestZone;
+
+						setScore( users[ i ].name, totalId, str, 0 );
+					}
+				}
+			<% } %>
+			<% if ( mode == 'd' ) { /* diff calc total */%>
+				function diff_calcTotal ( )
+				{
+
+					let qRank = {};
+
+					for ( track = 0; track < voie.length; track++ )
+					{
+						uni_orderTable ( track );
+						setRank ( track );
+
+						for ( i = 0; i < users.length; i++ )
+						{
+							let tmp = 0;
+							if ( !score[ users[ i ].name ] )
+							{
+								continue;
+							}
+							else if ( !score[ users[ i ].name ][ track ] )
+							{
+								tmp = users.length;
+							}
+							else
+							{
+								tmp = score[ users[ i ].name ][ rankId ][ 0 ];
+							}
+
+							if ( !qRank[ users[ i ].name ] )
+							{
+								qRank[ users[ i ].name ] = tmp * tmp;
+							}
+							else
+							{
+								qRank[ users[ i ].name ] += tmp * tmp;
+							}
+						}
+					}
+
+					for ( i = 0; i < users.length; i++ )
+					{
+						if ( !score[ users[ i ].name ] )
+						{
+							continue;
+						}
+
+						setScore( users[ i ].name, totalId, Math.sqrt ( qRank[ users[ i ].name ] ), 0 );
+					}
+				}
+			<% } %>
+
+			function dopDownUser ( id = totalId )
+			{ // put user without score at the end
 				let somethingChange = false;
 				do
 				{
@@ -453,47 +689,166 @@
 					}
 				}
 				while ( somethingChange );
+			}
 
-				// order users
-				for ( let i = 0; i < users.length - 1; i++ )
+			function uni_orderTable ( id = totalId )
+			{
+				dopDownUser ( id );
+
+				<% if ( mode == 'a' ) { %>
+					autre_orderTable ( id );
+				<% } else if ( mode == 'b' ) { %>
+					bloc_orderTable ( id );
+				<% } else if ( mode == 'd' ) { %>
+					diff_orderTable ( id );
+				<% } %>
+			}
+			
+			<% if ( mode == 'a' ) { /* autre order table */%>
+				function autre_orderTable ( id = totalId )
 				{
-					if ( !score[ users[ i ].name ] )
-					{
-						break;
-					}
+					dopDownUser ( id );
 
-					for ( let j = i+1; j < users.length; j++ )
+					// order users
+					for ( let i = 0; i < users.length - 1; i++ )
 					{
-						if ( !getScore( users[ j ].name, id ) )
+						if ( !score[ users[ i ].name ] )
 						{
 							break;
 						}
 
-						if ( ( id < voie.length ) &&
-							( voie[ id ].type == 'vitesse' ) )
-						{ // order speed test (less is better)
-							if ( parseFloat( getScore( users[ i ].name, id ) ) > parseFloat( getScore( users[ j ].name, id ) ) )
+						for ( let j = i+1; j < users.length; j++ )
+						{
+							if ( !getScore( users[ j ].name, id ) )
+							{
+								break;
+							}
+
+							if ( ( id < voie.length ) &&
+								( voie[ id ].type == 'vitesse' ) )
+							{ // order speed test (less is better)
+								if ( parseFloat( getScore( users[ i ].name, id ) ) > parseFloat( getScore( users[ j ].name, id ) ) )
+								{
+									let tmp = users[ i ];
+									users[ i ] = users[ j ];
+									users[ j ] = tmp;
+								}
+							}
+							else if ( !getScore( users[ i ].name, id ) || 
+								getScore( users[ j ].name, id ) &&
+								( getScore( users[ i ].name, id ) < getScore( users[ j ].name, id ) ) )
 							{
 								let tmp = users[ i ];
 								users[ i ] = users[ j ];
 								users[ j ] = tmp;
 							}
 						}
-						else if ( !getScore( users[ i ].name, id ) || 
-							getScore( users[ j ].name, id ) &&
-							( getScore( users[ i ].name, id ) < getScore( users[ j ].name, id ) ) )
-						{
-							let tmp = users[ i ];
-							users[ i ] = users[ j ];
-							users[ j ] = tmp;
-						}
 					}
 				}
-			}
+			<% } %>
+			<% if ( mode == 'b' ) { /* bloc order table */%>
+				function bloc_orderTable ( id = totalId )
+				{
 
-			function setRank ( id = voie.length )
+					// order users
+					let change = false;
+					do
+					{
+						change = false;
+						for ( let i = 0; i < users.length - 1; i++ )
+						{
+							if ( !score[ users[ i ].name ] )
+							{
+								break;
+							}
+
+							if ( ( getNbTop ( users[ i ].name ) < getNbTop ( users[ i + 1 ].name ) ) ||
+								( 
+									( getNbTop ( users[ i ].name ) == getNbTop ( users[ i + 1 ].name ) ) &&
+									( getNbEssaisTop ( users[ i ].name ) > getNbEssaisTop ( users[ i + 1 ].name ) ) 
+								) ||
+								(
+									( getNbTop ( users[ i ].name ) == getNbTop ( users[ i + 1 ].name ) ) &&
+									( getNbEssaisTop ( users[ i ].name ) == getNbEssaisTop ( users[ i + 1 ].name ) ) &&
+									( getNbZone ( users[ i ].name ) < getNbZone ( users[ i + 1 ].name ) )
+								) ||
+								(
+									( getNbTop ( users[ i ].name ) == getNbTop ( users[ i + 1 ].name ) ) &&
+									( getNbEssaisTop ( users[ i ].name ) == getNbEssaisTop ( users[ i + 1 ].name ) ) &&
+									( getNbZone ( users[ i ].name ) == getNbZone ( users[ i + 1 ].name ) ) &&
+									( getNbEssaisZone ( users[ i ].name ) < getNbEssaisZone ( users[ i + 1 ].name ) )
+								) )
+							{
+								change = true;
+
+								let tmp = users[ i ];
+								users[ i ] = users[ i + 1 ];
+								users[ i + 1 ] = tmp;
+							}
+						}
+					}
+					while ( change );
+				}
+			<% } %>
+			<% if ( mode == 'd' ) { /* diff order table */%>
+				function diff_orderTable ( id = totalId, signe = 1 )
+				{
+					// order users
+					let change = false;
+					do
+					{
+						change = false;
+						for ( let i = 0; i < users.length - 1; i++ )
+						{
+							if ( !score[ users[ i ].name ] )
+							{
+								break;
+							}
+
+							for ( let j = i+1; j < users.length; j++ )
+							{
+								console.log( id + " | " + getScore( users[ i ].name, id ) + " : " + signe + " : " + getScore( users[ j ].name, id ) )
+								if ( !getScore( users[ j ].name, id ) )
+								{
+									break;
+								}
+
+								if ( ( id < voie.length ) &&
+									( voie[ id ].type == 'vitesse' ) )
+								{ // order speed test (less is better)
+									if ( parseFloat( getScore( users[ i ].name, id ) ) > parseFloat( getScore( users[ j ].name, id ) ) )
+									{
+										let tmp = users[ i ];
+										users[ i ] = users[ j ];
+										users[ j ] = tmp;
+									
+										change = true;
+									}
+								}
+								else if ( !getScore( users[ i ].name, id ) || 
+									( signe < 0 ) &&
+									getScore( users[ j ].name, id ) &&
+									( getScore( users[ i ].name, id ) < getScore( users[ j ].name, id ) ) ||
+									( signe > 0 ) &&
+									getScore( users[ j ].name, id ) &&
+									( getScore( users[ i ].name, id ) > getScore( users[ j ].name, id ) ) )
+								{
+									let tmp = users[ i ];
+									users[ i ] = users[ j ];
+									users[ j ] = tmp;
+								
+									change = true;
+								}
+							}
+						}
+					}
+					while ( change );
+				}
+			<% } %>
+
+
+			function setRank ( id = totalId )
 			{
-				console.log( "set rank" );
 				// set ranks
 				let lastPoint = 0;
 				let lastRank = 0;
@@ -523,28 +878,26 @@
 						continue;
 					}
 
-					console.log( users[ i ].name );
 					if ( lastPoint != getScore( users[ i ].name, id ) )
 					{
 						lastPoint = getScore( users[ i ].name, id );
 						lastRank++;
 					}
-					console.log( lastRank );
 
-					setScore( users[ i ].name, voie.length + 1, lastRank, 0 );
+					setScore( users[ i ].name, rankId, lastRank, 0 );
 				}
-				console.log( score );
 			}
 
-			function drawTable ( id = voie.length )
+			function drawTable ( id = totalId )
 			{
 				let str = "<div  id=\"results\"><table><tr><td onclick=\"updateUser();\"></td><td>h/f</td><td>cat.</td>";
+
 				// header
 				for ( let j = 0; j < voie.length; j++ )
 				{
-					str += '<td onclick="updateTable('+j+');drawTable('+j+');">'+voie[ j ].name+'</td>';
+					str += '<td onclick="uni_orderTable('+j+');drawTable('+j+');">'+voie[ j ].name+'</td>';
 				}
-				str += '<td onclick="updateTable();drawTable();">Total</td><td>rank</td>';
+				str += '<td onclick="uni_orderTable('+rankId+');drawTable();">Total</td><td onclick="uni_orderTable('+rankId+');drawTable();">rank</td>';
 
 				for ( let i = 0; i < users.length; i++ )
 				{
@@ -682,8 +1035,11 @@
 			}
 
 			updateSelector ( );
-			getAverage ( );
-			updateTable ( );
+			uni_calcTotal ( );
+			<% if ( ( mode == 'b' ) ||
+				( mode == 'a' ) ){ %>
+				uni_orderTable ( );
+			<% } %>
 			setRank ( );
 			drawTable ( );
 		</script>

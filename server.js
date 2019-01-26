@@ -1,9 +1,12 @@
+let port = 6683;
+let keySize = 4096;
+let mode = "a";
+
 // const declaration
-const scoreDataBase = './private/score.json';
-const voieDataBase = './private/voie.json';
-const userDataBase = './private/users.json';
+let scoreDataBase = './private/score.json';
+let voieDataBase = './private/voie.json';
+let userDataBase = './private/users.json';
 const loginDataBase = './private/login.json';
-const port = 6683;
 
 // modules declaration
 const program = require ( 'commander' );
@@ -17,7 +20,67 @@ const crypto = require ( 'crypto' );
 const favicon = require ( 'serve-favicon' );
 const cryptico = require ( 'cryptico' ); // generated RSA key for password encryption http://wwwtyro.github.io/cryptico/
 
+const args = require('yargs').argv;
+
+console.log ( "FPE score marker:" );
+console.log ( "  [--port=<uint>]" );
+console.log ( "  [--keySize=<uint>]" );
+console.log ( "  [--mode=<a/b/d/m>]" );
+console.log ( "  [--voie=./path/file.json]" );
+console.log ( "  [--score=./path/file.json]" );
+console.log ( "  [--user=./path/file.json]" );
+console.log ( "" );
+
+if ( args.port &&
+	!isNaN ( args.port ) )
+{
+	port = args.port
+}
+
+if ( args.keySize &&
+	!isNaN ( args.keySize ) )
+{
+	keySize = args.keySize
+}
+
+if ( args.mode )
+{
+	switch ( args.mode )
+	{
+		case 'a': // autre
+		case 'd': // difficulté
+		case 'b': // bloc
+		case 'v': // vitesse
+		case 'm': // mixe
+		{
+			mode = args.mode;
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	mode = args.mode
+}
+
+if ( args.voie )
+{
+	voieDataBase = args.voie;
+}
+
+if ( args.score )
+{
+	scoreDataBase = args.score;
+}
+
+if ( args.user )
+{
+	userDataBase = args.user;
+}
+
 // own module declaration
+process.argv = [ ];
 const RSA = require ( './RSA_gen' );
 
 // get user data base
@@ -101,7 +164,8 @@ app.all ( '/', function ( req, res )
 		users:users,
 		voie:voie,
 		score:score,
-		page:"acceuil"
+		page:"acceuil",
+		mode:mode
 	} );
 });
 
@@ -191,7 +255,8 @@ app.all ( '/set/:id', function ( req, res )
 			loged:req.authenticated.loged,
 			users:users,
 			voie:voie,
-			page:req.params.id
+			page:req.params.id,
+			mode:mode
 		} );
 	}
 	else
@@ -351,7 +416,7 @@ RSA.status.on ( 'failed', () =>
 	console.log ( 'error' );
 });
 
-RSA.init ( {length:4096} );
+RSA.init ( {length:keySize} );
 
 // utils functions
 function userExist ( name )
