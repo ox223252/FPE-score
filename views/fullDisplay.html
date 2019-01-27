@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<% include head %>
+	<body>
+		<% include nav %>
+		<section id="results">
+
+		</section>
+		<script type="text/javascript">
+			// let socket = io ( );
+
+			let users = <%- JSON.stringify(users) %>;
+			let voie = <%- JSON.stringify(voie) %>;
+			let score = <%- JSON.stringify(score) %>;
+
+			let resultDisplay = document.getElementById ( "results" );
+
+			function dispalyTable ( )
+			{
+				let str = "<div><table>";
+				let nbVoie = 0;
+
+				for ( let i = 0; i < voie.length; i++ )
+				{
+					if ( voie[ i ].type == "diff" )
+					{
+						nbVoie++;
+					}
+				}
+
+				if ( nbVoie > 0 )
+				{
+					for ( let i = 0; i < users.length; i++ )
+					{
+						str += "<tr><td rowspan=" + (nbVoie + 1) + ">" + users[ i ].name + "</td></tr>";
+
+						for ( j = 0; j < voie.length; j++ )
+						{
+							if ( voie[ j ].type != "diff" )
+							{
+								continue;
+							}
+
+
+							str += "<tr>";
+
+							str +=  "<td>" + voie[ j ].name + "</td>"
+
+							if ( score[ users[ i ].name ] && 
+								score[ users[ i ].name ][ j ] )
+							{
+								for ( k = 0; k  < score[ users[ i ].name ][ j ].length; k++ )
+								{
+									str += "<td>" + score[ users[ i ].name ][ j ][ k ] + "</td>";
+								}
+							}
+
+							str +="</tr>";
+						}
+					}
+				}
+
+				str += "</table></div>";
+
+				resultDisplay.innerHTML = str;
+			}
+
+			dispalyTable ( );
+		</script>
+	</body>
+</html>

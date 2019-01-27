@@ -159,12 +159,12 @@ app.engine ( 'html', require ( 'ejs' ).renderFile );
 // route part
 app.all ( '/', function ( req, res )
 {
-	res.render ( 'acceuil.html', {
+	res.render ( 'accueil.html', {
 		loged:req.authenticated.loged || false,
 		users:users,
 		voie:voie,
 		score:score,
-		page:"acceuil",
+		page:"accueil",
 		mode:mode
 	} );
 });
@@ -265,6 +265,24 @@ app.all ( '/set/:id', function ( req, res )
 	}
 });
 
+app.all ( '/getResults', function ( req, res )
+{
+	if ( req.authenticated.loged )
+	{
+		res.render ( 'fullDisplay.html', {
+			loged:req.authenticated.loged,
+			users:users,
+			voie:voie,
+			score:score,
+			page:"accueil",
+		} );
+	}
+	else
+	{
+		res.redirect ( '/' );
+	}
+});
+
 // ajax part
 app.all ( '/validate', function ( req, res )
 {
@@ -337,12 +355,12 @@ app.all ( '/addUser', function ( req, res )
 	}
 	else
 	{
-		res.render ( 'acceuil.html', {
+		res.render ( 'accueil.html', {
 			loged:req.authenticated.loged,
 			users:users,
 			voie:voie,
 			score:score,
-			page:"acceuil"
+			page:"accueil"
 		} );
 	}
 });

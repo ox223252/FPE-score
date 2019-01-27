@@ -368,10 +368,10 @@
 				let max = score[ name ][ id ][ 0 ];
 				for ( let i = 1; i < score[ name ][ id ].length; i++ )
 				{
-					if ( score[ name ][ id ][ i ] == 'top' )
+					
+					if ( score[ name ][ id ][ i ] > max )
 					{
-						max = 'top';
-						break;
+						max = score[ name ][ id ][ i ];
 					}
 				}
 				return ( max );
@@ -813,19 +813,7 @@
 									break;
 								}
 
-								if ( ( id < voie.length ) &&
-									( voie[ id ].type == 'vitesse' ) )
-								{ // order speed test (less is better)
-									if ( parseFloat( getScore( users[ i ].name, id ) ) > parseFloat( getScore( users[ j ].name, id ) ) )
-									{
-										let tmp = users[ i ];
-										users[ i ] = users[ j ];
-										users[ j ] = tmp;
-									
-										change = true;
-									}
-								}
-								else if ( !getScore( users[ i ].name, id ) || 
+								if ( !getScore( users[ i ].name, id ) || 
 									( signe < 0 ) &&
 									getScore( users[ j ].name, id ) &&
 									( getScore( users[ i ].name, id ) < getScore( users[ j ].name, id ) ) ||

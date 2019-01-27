@@ -159,51 +159,56 @@
 					return ( false );
 				}
 
-				if ( voie[ id ].type == 'diff' )
-				{
-					document.getElementById ( 'score' ).innerHTML = '';
-
-					while ( select.options.length )
-					{
-						select.options.remove ( 0 );
-					}
-					select.style.display = "";
-
-					let i = 0;
-					if ( voie[ id ].score[ 'moul' ] &&
-						voie[ id ].score[ 'tete' ] )
-					{
-						select.options.add  ( new Option ( 'mode', i ) );
-						select.options[ i ].disabled = true;
-						select.options[ i ].selected = true;
-						i++;
-					}
-
-					if ( voie[ id ].score[ 'moul' ] )
-					{
-						select.options.add  ( new Option ( 'moul', i ) );
-						select.options[ i ].value = 'moul';
-						i++;
-					}
-
-					if ( voie[ id ].score[ 'tete' ] )
-					{
-						select.options.add  ( new Option ( 'tete', i ) );
-						select.options[ i ].value = 'tete';
-						i++;
-					}
-
-					if ( !voie[ id ].score[ 'moul' ] ||
-						!voie[ id ].score[ 'tete' ] )
-					{
-						updatePoints ( );
-					}
-				}
-				else
-				{
+				<% if ( mode == 'd' ) { %>
 					select.style.display = "none";
 					updatePoints ( );
-				}
+				<% } else { %>
+					if ( voie[ id ].type == 'diff' )
+					{
+						document.getElementById ( 'score' ).innerHTML = '';
+
+						while ( select.options.length )
+						{
+							select.options.remove ( 0 );
+						}
+						select.style.display = "";
+
+						let i = 0;
+						if ( voie[ id ].score[ 'moul' ] &&
+							voie[ id ].score[ 'tete' ] )
+						{
+							select.options.add  ( new Option ( 'mode', i ) );
+							select.options[ i ].disabled = true;
+							select.options[ i ].selected = true;
+							i++;
+						}
+
+						if ( voie[ id ].score[ 'moul' ] )
+						{
+							select.options.add  ( new Option ( 'moul', i ) );
+							select.options[ i ].value = 'moul';
+							i++;
+						}
+
+						if ( voie[ id ].score[ 'tete' ] )
+						{
+							select.options.add  ( new Option ( 'tete', i ) );
+							select.options[ i ].value = 'tete';
+							i++;
+						}
+
+						if ( !voie[ id ].score[ 'moul' ] ||
+							!voie[ id ].score[ 'tete' ] )
+						{
+							updatePoints ( );
+						}
+					}
+					else
+					{
+						select.style.display = "none";
+						updatePoints ( );
+					}
+				<% } %>
 			}
 
 			function updateComments ( )
@@ -249,28 +254,43 @@
 					{
 						el.innerHTML = '<select id="points"></select>'
 						select = document.getElementById ( 'points' );
-						select.options.add ( new Option ( 'echec', 0 ) );
-						select.options[0].value = 'echec';
-						select.options.add ( new Option ( 'zone', 1 ) );
-						select.options[1].value = 'zone';
-						select.options.add ( new Option ( 'fin', 2 ) );
-						select.options[2].value = 'top';
+						<% if ( mode == 'b' ) { %>
+							select.options.add ( new Option ( 'echec', 0 ) );
+							select.options[0].value = 'echec';
+							select.options.add ( new Option ( 'zone', 1 ) );
+							select.options[1].value = 'zone';
+							select.options.add ( new Option ( 'fin', 2 ) );
+							select.options[2].value = 'top';
+						<% } else { %>
+							select.options.add ( new Option ( 'echec', 0 ) );
+							select.options[0].value = 0;
+							select.options.add ( new Option ( 'zone', 1 ) );
+							select.options[1].value = voie[ id ].score.zone;
+							select.options.add ( new Option ( 'fin', 2 ) );
+							select.options[2].value = voie[ id ].score.fin;
+						<% } %>
 						break;
 					}
 					case 'diff':
 					{
-						let mode = document.getElementById ( 'mode' ).value;
-						el.innerHTML = '<select id="points"></select>'
-						select = document.getElementById ( 'points' );
 
-						select.options.add ( new Option ( 'echec', 0 ) );
-						select.options[ 0 ].value = 0;
+						<% if ( mode == 'd' ) { %>
+							el.innerHTML = '<input id="points" type="number" min="0.0" step="0.5"><div style="text-align:center" title="deplacement significatif de la main et du centre de gravitée ?"><input type="checkbox" id="bonus"><span style="position:relative;top:-0.2em"> +<span><div>';
+							document.getElementById ( 'startStop' ).style.display = "";
+						<% } else { %>
+							let mode = document.getElementById ( 'mode' ).value;
+							el.innerHTML = '<select id="points"></select>'
+							select = document.getElementById ( 'points' );
 
-						for ( let i = 0; i < voie[ id ].score[ mode ].length; i++ )
-						{
-							select.options.add ( new Option ( 'p_' + ( i + 1 ), i + 1 ) );
-							select.options[ i + 1 ].value = voie[ id ].score[ mode ][ i ];
-						}
+							select.options.add ( new Option ( 'echec', 0 ) );
+							select.options[ 0 ].value = 0;
+
+							for ( let i = 0; i < voie[ id ].score[ mode ].length; i++ )
+							{
+								select.options.add ( new Option ( 'p_' + ( i + 1 ), i + 1 ) );
+								select.options[ i + 1 ].value = voie[ id ].score[ mode ][ i ];
+							}
+						<% } %>
 						break;
 					}
 					case 'vitesse':
@@ -321,6 +341,10 @@
 				let user = document.getElementById( 'usr' ).value;
 				let voie = document.getElementById( 'voie' ).value;
 				let points = document.getElementById( 'points' ).value;
+
+				<% if ( mode == 'd' ) { %> 
+					points = parseFloat ( points ) + parseFloat ( document.getElementById( 'bonus' ).checked ? 0.25 : 0 );
+				<% } %>
 
 				if ( ( user == "" ) ||
 					( voie == "" ) ||
