@@ -3,69 +3,262 @@
 	<% include head %>
 	<body>
 		<% include nav %>
-		<section id="results">
-
+		<style type="text/css" media="print">
+			nav
+			{
+				display: none;
+			}
+			body
+			{
+				color: black;
+			}
+			html, body, section
+			{
+				height: auto;
+			}
+		</style>
+		<section>
+			<form id="selectors">
+				<select id="genre" onchange="drawTable();"></select>
+				<select id="categorie" onchange="drawTable();"></select>
+				<select id="club" onchange="drawTable();"></select>
+			</form>
+			<div id="results"></div>
 		</section>
-		<script type="text/javascript">
-			// let socket = io ( );
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript"> // globals vars
+			let socket = io ( );
 
 			let users = <%- JSON.stringify(users) %>;
 			let voie = <%- JSON.stringify(voie) %>;
 			let score = <%- JSON.stringify(score) %>;
 
-			let resultDisplay = document.getElementById ( "results" );
+			let g_genre = document.getElementById ( "genre" );
+			let g_categorie = document.getElementById ( "categorie" );
+			let g_club = document.getElementById ( "club" );
 
-			function dispalyTable ( )
+			let resultDisplay = document.getElementById ( "results" );
+		</script>
+		<script type="text/javascript"> // sockets
+			socket.on ( 'scores', function ( data )
 			{
-				let str = "<div><table>";
+				setScore ( data.usr, data.voie, data.points );
+				drawTable ( );
+			});
+
+			socket.on ( 'users', function ( usr )
+			{
+				let i;
+				for ( i = 0; i < users.length; i++ )
+				{
+					if ( users[ i ].name == usr.name )
+					{
+						break;
+					}
+				}
+
+				if ( i == users.length )
+				{
+					users.push ( usr );
+				}
+
+				updateSelector ( );
+				drawTable ( );
+			});
+		</script>
+		<script type="text/javascript"> // utils
+			function setScore ( name, id, value, num )
+			{
+				if ( !name ||
+					( id == undefined ) )
+				{
+					return ( false );
+				}
+
+				if ( !score[ name ] )
+				{
+					score[ name ] = [];
+				}
+
+				if ( !score[ name ][ id ] )
+				{
+					score[ name ][ id ] = [];
+				}
+				
+				if ( num == undefined )
+				{
+					score[ name ][ id ].push ( value );
+				}
+				else
+				{
+					score[ name ][ id ][ num ] = value;
+				}
+			}
+		</script>
+		<script type="text/javascript">
+
+			function drawTable ( )
+			{
+				resultDisplay.innerHTML = "";
+
+				[ "bloc", "diff", "vitesse", "slack" ].forEach ( ( item ) => drawPart ( item ) );
+			}
+
+			function drawPart ( mode )
+			{
 				let nbVoie = 0;
 
 				for ( let i = 0; i < voie.length; i++ )
 				{
-					if ( voie[ i ].type == "diff" )
+					if ( voie[ i ].type == mode )
 					{
 						nbVoie++;
 					}
 				}
 
-				if ( nbVoie > 0 )
+				if ( nbVoie <= 0 )
 				{
-					for ( let i = 0; i < users.length; i++ )
+					return ( false );
+				}
+			
+				let str = "<div><table>";
+			
+				for ( let i = 0; i < users.length; i++ )
+				{
+					if ( ( g_categorie.value != "all" ) &&
+						( users[ i ].categorie != g_categorie.value ) )
 					{
-						str += "<tr><td rowspan=" + (nbVoie + 1) + ">" + users[ i ].name + "</td></tr>";
+						continue;
+					}
 
-						for ( j = 0; j < voie.length; j++ )
+					if ( ( g_genre.value != "all" ) &&
+						( users[ i ].genre != g_genre.value ) )
+					{
+						continue;
+					}
+
+					if ( ( g_club.value != "all" ) &&
+						( users[ i ].club != g_club.value ) )
+					{
+						continue;
+					}
+
+					str += "<tr><td rowspan=" + (nbVoie + 1) + ">" + users[ i ].name + "</td></tr>";
+
+					for ( j = 0; j < voie.length; j++ )
+					{
+						if ( voie[ j ].type != mode )
 						{
-							if ( voie[ j ].type != "diff" )
-							{
-								continue;
-							}
-
-
-							str += "<tr>";
-
-							str +=  "<td>" + voie[ j ].name + "</td>"
-
-							if ( score[ users[ i ].name ] && 
-								score[ users[ i ].name ][ j ] )
-							{
-								for ( k = 0; k  < score[ users[ i ].name ][ j ].length; k++ )
-								{
-									str += "<td>" + score[ users[ i ].name ][ j ][ k ] + "</td>";
-								}
-							}
-
-							str +="</tr>";
+							continue;
 						}
+
+
+						str += "<tr>";
+
+						str +=  "<td>" + voie[ j ].name + "</td>"
+
+						if ( score[ users[ i ].name ] && 
+							score[ users[ i ].name ][ j ] )
+						{
+							for ( k = 0; k  < score[ users[ i ].name ][ j ].length; k++ )
+							{
+								str += "<td>" + score[ users[ i ].name ][ j ][ k ] + "</td>";
+							}
+						}
+
+						str +="</tr>";
 					}
 				}
 
 				str += "</table></div>";
 
-				resultDisplay.innerHTML = str;
+				resultDisplay.innerHTML += str;
 			}
 
-			dispalyTable ( );
+			function updateSelector ( )
+			{
+				let genre = [];
+				let categorie = [];
+				let club = [];
+
+
+				let s_genre = g_genre.value;
+				let s_categorie = g_categorie.value;
+				let s_club = g_club.value;
+
+				for ( let i = 0; i < users.length; i++ )
+				{
+					if ( !categorie.includes( users[ i ].categorie ) )
+					{
+						categorie.push ( users[ i ].categorie );
+					}
+
+					if ( !genre.includes( users[ i ].genre ) )
+					{
+						genre.push ( users[ i ].genre );
+					}
+
+					if ( !club.includes( users[ i ].club ) )
+					{
+						club.push ( users[ i ].club );
+					}
+				}
+
+				
+				while ( g_genre.options.length )
+				{
+					g_genre.options.remove ( 0 );
+				}
+				g_genre.options.add ( new Option ( "genre : tous", 0 ) );
+				g_genre.options[ 0 ].value = "all";
+				for ( let i = 0; i < genre.length; i++ )
+				{
+					g_genre.options.add ( new Option ( genre[ i ], i + 1 ) );
+					g_genre.options[ i + 1 ].value = genre[ i ];
+				}
+
+				while ( g_categorie.options.length )
+				{
+					g_categorie.options.remove ( 0 );
+				}
+				g_categorie.options.add ( new Option ( "age : tous", 0 ) );
+				g_categorie.options[ 0 ].value = "all";
+				for ( let i = 0; i < categorie.length; i++ )
+				{
+					g_categorie.options.add ( new Option ( categorie[ i ], i + 1 ) );
+					g_categorie.options[ i + 1 ].value = categorie[ i ];
+				}
+
+				while ( g_club.options.length )
+				{
+					g_club.options.remove ( 0 );
+				}
+				g_club.options.add ( new Option ( "Club : tous", 0 ) );
+				g_club.options[ 0 ].value = "all";
+				for ( let i = 0; i < club.length; i++ )
+				{
+					g_club.options.add ( new Option ( club[ i ], i + 1 ) );
+					g_club.options[ i + 1 ].value = club[ i ];
+				}
+				
+				if ( s_genre != "" )
+				{
+					g_genre.value = s_genre;
+				}
+				
+				if ( s_club != "" )
+				{
+					g_club.value = s_club;
+				}
+
+				if ( s_categorie != "" )
+				{
+					g_categorie.value = s_categorie;
+				}
+			}
+
+			updateSelector ( );
+			drawTable ( );
 		</script>
 	</body>
 </html>
