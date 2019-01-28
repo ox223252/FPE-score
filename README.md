@@ -11,9 +11,10 @@
    - [x] pour la vitesse
    - [x] pour la slack
    - [x] essais multiples
-   - [ ] implémenter les règles de calculs officiels FFME
+   - [x] implémenter les règles de calculs officiels FFME
       - [x] bloc : classement top/nbTest/zone/nbTest
-      - [x] diff : sqrt ( (rank[i]²) + (rank[j]²) ... ) 
+      - [x] diff : sqrt ( (rank[i]²) + (rank[j]²) ... )
+      - [x] vitesse : par temps
  - [x] login sécurisé pour le staff
    - [x] génération automatique d'une clé RSA (différente à chaque démarrage du serveur)
  - [x] affichage du tableau des résultats
@@ -25,5 +26,5 @@
  - [x] ajout de statistique de participation
  - [x] ajout d'un mode sombre/lumineux
  - [ ] modifier le CSS, pour le rendre cohérent
+ - [ ] retravailler le *HTML* pour le rendre cohérent
  - [ ] ajouter un mode pour avoir le start/stop des voies de vitesse automatique
-
