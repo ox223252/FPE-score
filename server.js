@@ -46,23 +46,7 @@ if ( args.keySize &&
 
 if ( args.mode )
 {
-	switch ( args.mode )
-	{
-		case 'a': // autre
-		case 'd': // difficulté
-		case 'b': // bloc
-		case 'v': // vitesse
-		case 'c': // combiné
-		{
-			mode = args.mode[ 0 ];
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
-	mode = args.mode
+	mode = args.mode[ 0 ];
 }
 
 if ( args.voie )
