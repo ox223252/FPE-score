@@ -22,14 +22,15 @@ const cryptico = require ( 'cryptico' ); // generated RSA key for password encry
 
 const args = require('yargs').argv;
 
-console.log ( "FPE score marker:" );
-console.log ( "  [--port=<uint>]" );
-console.log ( "  [--keySize=<uint>]" );
-console.log ( "  [--mode=<a/b/c/d/v>]" );
-console.log ( "  [--voie=./path/file.json]" );
-console.log ( "  [--score=./path/file.json]" );
-console.log ( "  [--user=./path/file.json]" );
-console.log ( "" );
+eval ( fs.readFileSync ( 'param.js' ) + '' );
+
+// FPE score marker:
+//   [--port=<uint>]
+//   [--keySize=<uint>]
+//   [--mode=<a/b/c/d/v>]
+//   [--voie=./path/file.json]
+//   [--score=./path/file.json]
+//   [--user=./path/file.json]
 
 if ( args.port &&
 	!isNaN ( args.port ) )
@@ -53,7 +54,7 @@ if ( args.mode )
 		case 'v': // vitesse
 		case 'c': // combiné
 		{
-			mode = args.mode;
+			mode = args.mode[ 0 ];
 			break;
 		}
 		default:
