@@ -36,6 +36,8 @@
 			let g_genre = document.getElementById ( "genre" );
 			let g_club = document.getElementById ( "club" );
 
+			const blocOrder = [ "echec", "zone", "top" ];
+
 			// voie.length : total
 			// voie.length + 1 : rank
 			const rankId = voie.length + 1;
@@ -176,121 +178,127 @@
 		<script type="text/javascript"> // graph
 			function drawCurves ( id = totalId )
 			{
-				let userEl = document.getElementById ( "userGraph" );
+				<% if ( mode == 'a' ) { %>
+					let userEl = document.getElementById ( "userGraph" );
 
-				pointConfig.data.datasets[ 0 ].data = [];
-				pointConfig.data.labels = [];
+					pointConfig.data.datasets[ 0 ].data = [];
+					pointConfig.data.labels = [];
 
-				// draw evolution of points for selected way
-				for ( let i = 0; i < users.length; i++ )
-				{
-					if ( !score[ users[ i ].name ] )
+					// draw evolution of points for selected way
+					for ( let i = 0; i < users.length; i++ )
 					{
-						continue;
-					}
-
-					if ( ( g_categorie.value != "all" ) &&
-						( users[ i ].categorie != g_categorie.value ) )
-					{
-						continue;
-					}
-
-					if ( ( g_genre.value != "all" ) &&
-						( users[ i ].genre != g_genre.value ) )
-					{
-						continue;
-					}
-
-					if ( ( g_club.value != "all" ) &&
-						( users[ i ].club != g_club.value ) )
-					{
-						continue;
-					}
-
-					pointConfig.data.datasets[ 0 ].data.push ( getScore( users[ i ].name, id ) );
-					pointConfig.data.labels.push ( getScore( users[ i ].name ) );
-				}
-
-				if  ( chartjs[ 'point' ] )
-				{
-					chartjs[ 'point' ].update ( );
-				}
-				else
-				{
-					chartjs[ 'point' ] = new Chart ( document.getElementById ( "pointGraph" ).getContext ( "2d" ), pointConfig );
-				}
-				
-				// draw user slelected graph
-				if  ( thisUser &&
-					score[ thisUser ] )
-				{
-					userConfig.data.datasets[ 0 ].label = thisUser;
-					for ( let i = 0; i < voie.length; i++ )
-					{
-						userConfig.data.labels[ i ] = voie[ i ].name;
-						if ( voie[ i ].type == 'vitesse' )
+						if ( !score[ users[ i ].name ] )
 						{
-							userConfig.data.datasets[ 0 ].data[ i ] =  ( getScore( thisUser, i ) )? voie[ i ].score.time - getScore( thisUser, i ) : 0;
+							continue;
 						}
-						else
-						{
-							userConfig.data.datasets[ 0 ].data[ i ] = getScore( thisUser, i ) | 0;
-						}
-						userConfig.data.datasets[ 1 ].data[ i ] = average.all[ i ] / average.tryed[ i ];
-						userConfig.data.datasets[ 2 ].data[ i ] = average.all[ i ] / average.player;
 
-						switch ( voie[ i ].type )
+						if ( ( g_categorie.value != "all" ) &&
+							( users[ i ].categorie != g_categorie.value ) )
 						{
-							case 'bloc':
-							{
-								userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.fin;
-								break;
-							}
-							case 'diff':
-							{
-								if ( voie[ i ].score.tete )
-								{
-									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.tete[ voie[ i ].score.tete.length - 1 ];
-								}
-								else
-								{
-									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.moul[ voie[ i ].score.moul.length - 1 ];
-								}
-								break;
-							}
-							case 'vitesse':
-							{
-								userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.time;
-								break;
-							}
-							case 'slack':
-							{
-								userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.distance;
-								break;
-							}
-							default:
-							{
-								break;
-							}
+							continue;
 						}
+
+						if ( ( g_genre.value != "all" ) &&
+							( users[ i ].genre != g_genre.value ) )
+						{
+							continue;
+						}
+
+						if ( ( g_club.value != "all" ) &&
+							( users[ i ].club != g_club.value ) )
+						{
+							continue;
+						}
+
+						pointConfig.data.datasets[ 0 ].data.push ( getScore( users[ i ].name, id ) );
+						pointConfig.data.labels.push ( getScore( users[ i ].name ) );
 					}
-					userEl.style.display = "";
-					document.getElementById ( "legendGraph" ).style.display = "";
 
-					if  ( chartjs[ 'user' ] )
+					if  ( chartjs[ 'point' ] )
 					{
-						chartjs[ 'user' ].update ( );
+						chartjs[ 'point' ].update ( );
 					}
 					else
 					{
-						chartjs[ 'user' ] = new Chart (  userEl.getContext ( "2d" ), userConfig );
+						chartjs[ 'point' ] = new Chart ( document.getElementById ( "pointGraph" ).getContext ( "2d" ), pointConfig );
 					}
-				}
-				else
-				{
-					userEl.style.display = "none";
+				
+					// draw user slelected graph
+					if  ( thisUser &&
+						score[ thisUser ] )
+					{
+						userConfig.data.datasets[ 0 ].label = thisUser;
+						for ( let i = 0; i < voie.length; i++ )
+						{
+							userConfig.data.labels[ i ] = voie[ i ].name;
+							if ( voie[ i ].type == 'vitesse' )
+							{
+								userConfig.data.datasets[ 0 ].data[ i ] =  ( getScore( thisUser, i ) )? voie[ i ].score.time - getScore( thisUser, i ) : 0;
+							}
+							else
+							{
+								userConfig.data.datasets[ 0 ].data[ i ] = getScore( thisUser, i ) | 0;
+							}
+							userConfig.data.datasets[ 1 ].data[ i ] = average.all[ i ] / average.tryed[ i ];
+							userConfig.data.datasets[ 2 ].data[ i ] = average.all[ i ] / average.player;
+
+							switch ( voie[ i ].type )
+							{
+								case 'bloc':
+								{
+									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.fin || 0;
+									break;
+								}
+								case 'diff':
+								{
+									if ( voie[ i ].score.tete )
+									{
+										userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.tete[ voie[ i ].score.tete.length - 1 ] || 0;
+									}
+									else
+									{
+										userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.moul[ voie[ i ].score.moul.length - 1 ] || 0;
+									}
+									break;
+								}
+								case 'vitesse':
+								{
+									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.time || 0;
+									break;
+								}
+								case 'slack':
+								{
+									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.distance || 0;
+									break;
+								}
+								default:
+								{
+									break;
+								}
+							}
+						}
+						userEl.style.display = "";
+						document.getElementById ( "legendGraph" ).style.display = "";
+
+						if  ( chartjs[ 'user' ] )
+						{
+							chartjs[ 'user' ].update ( );
+						}
+						else
+						{
+							chartjs[ 'user' ] = new Chart (  userEl.getContext ( "2d" ), userConfig );
+						}
+					}
+					else
+					{
+						userEl.style.display = "none";
+						document.getElementById ( "legendGraph" ).style.display = "none";
+					}
+				<% } else { %>
+					document.getElementById ( "userGraph" ).style.display = "none";
+					document.getElementById ( "userGraph" ).style.display = "none";
 					document.getElementById ( "legendGraph" ).style.display = "none";
-				}
+				<% } %>
 			}
 		</script>
 		<script type="text/javascript"> // sockets
@@ -368,8 +376,19 @@
 				let max = score[ name ][ id ][ 0 ];
 				for ( let i = 1; i < score[ name ][ id ].length; i++ )
 				{
-					
-					if ( score[ name ][ id ][ i ] > max )
+					if ( isNaN ( max ) )
+					{
+						if ( blocOrder.indexOf ( score[ name ][ id ][ i ] ) > blocOrder.indexOf ( max ) )
+						{
+							max = score[ name ][ id ][ i ];
+						}
+
+						if ( max == "top" )
+						{
+							break;
+						}
+					}
+					else if ( score[ name ][ id ][ i ] > max )
 					{
 						max = score[ name ][ id ][ i ];
 					}
@@ -525,6 +544,8 @@
 					bloc_calcTotal ( id );
 				<% } else if ( mode == 'd' ) { %>
 					diff_calcTotal ( id );
+				<% } else if ( mode == 'v' ) { %>
+					vitesse_calcTotal ( id );
 				<% } %>
 			}
 
@@ -573,8 +594,7 @@
 						setScore( users[ i ].name, totalId, somme );
 					}
 				}
-			<% } %>
-			<% if ( mode == 'b' ) { /* bloc calc total */%>
+			<% } else if ( mode == 'b' ) { /* bloc calc total */%>
 				function bloc_calcTotal ( )
 				{
 					let l = voie.length.toString( ).length;
@@ -619,8 +639,7 @@
 						setScore( users[ i ].name, totalId, str, 0 );
 					}
 				}
-			<% } %>
-			<% if ( mode == 'd' ) { /* diff calc total */%>
+			<% } else if ( mode == 'd' ) { /* diff calc total */%>
 				function diff_calcTotal ( )
 				{
 
@@ -668,11 +687,56 @@
 						setScore( users[ i ].name, totalId, Math.sqrt ( qRank[ users[ i ].name ] ), 0 );
 					}
 				}
+			<% } else if ( mode == 'v' ) { /* vitesse calc total*/%>
+				function vitesse_calcTotal ( )
+				{
+					
+					for ( let i = 0; i < users.length; i++ )
+					{
+						if ( !score[ users[ i ].name ] )
+						{
+							continue;
+						}
+
+						let somme = 0;
+
+						for ( let j = 0; j < voie.length; j++ )
+						{
+							let time = getScore( users[ i ].name, j );
+							if ( !time )
+							{
+								setScore( users[ i ].name, totalId, undefined, 0 );
+								break;
+							}
+							somme += parseFloat ( time );
+
+							setScore( users[ i ].name, totalId, somme, 0 );
+						}
+					}
+				}
 			<% } %>
 
-			function dopDownUser ( id = totalId )
+			function dropDownUser ( id = totalId )
 			{ // put user without score at the end
 				let somethingChange = false;
+				do
+				{
+					somethingChange = false;
+					for ( let i = 0; i < users.length - 1; i++ )
+					{
+						if ( !score[ users[ i ].name ] &&
+							score[ users[ i + 1 ].name ] )
+						{
+							let tmp = users[ i ];
+							users[ i ] = users[ i + 1 ];
+							users[ i + 1 ] = tmp;
+							somethingChange = true;
+						}
+					}
+				}
+				while ( somethingChange );
+
+
 				do
 				{
 					somethingChange = false;
@@ -693,7 +757,7 @@
 
 			function uni_orderTable ( id = totalId )
 			{
-				dopDownUser ( id );
+				dropDownUser ( id );
 
 				<% if ( mode == 'a' ) { %>
 					autre_orderTable ( id );
@@ -701,13 +765,15 @@
 					bloc_orderTable ( id );
 				<% } else if ( mode == 'd' ) { %>
 					diff_orderTable ( id );
+				<% } else if ( mode == 'v' ) { %>
+					vitesse_orderTable ( id );
 				<% } %>
 			}
 			
 			<% if ( mode == 'a' ) { /* autre order table */%>
 				function autre_orderTable ( id = totalId )
 				{
-					dopDownUser ( id );
+					dropDownUser ( id );
 
 					// order users
 					for ( let i = 0; i < users.length - 1; i++ )
@@ -745,11 +811,9 @@
 						}
 					}
 				}
-			<% } %>
-			<% if ( mode == 'b' ) { /* bloc order table */%>
+			<% } else if ( mode == 'b' ) { /* bloc order table */%>
 				function bloc_orderTable ( id = totalId )
 				{
-
 					// order users
 					let change = false;
 					do
@@ -788,9 +852,14 @@
 						}
 					}
 					while ( change );
+
+					if ( id < voie.length )
+					{
+						dropDownUser ( id );
+					}
+					setRank ( id );
 				}
-			<% } %>
-			<% if ( mode == 'd' ) { /* diff order table */%>
+			<% } else if ( mode == 'd' ) { /* diff order table */%>
 				function diff_orderTable ( id = totalId, signe = 1 )
 				{
 					// order users
@@ -807,7 +876,6 @@
 
 							for ( let j = i+1; j < users.length; j++ )
 							{
-								console.log( id + " | " + getScore( users[ i ].name, id ) + " : " + signe + " : " + getScore( users[ j ].name, id ) )
 								if ( !getScore( users[ j ].name, id ) )
 								{
 									break;
@@ -831,6 +899,47 @@
 						}
 					}
 					while ( change );
+
+					if ( id < voie.length )
+					{
+						dropDownUser ( id );
+					}
+					setRank ( id );
+				}
+			<% } else if ( mode == 'v' ) { /* vitesse order table */%>
+				function vitesse_orderTable ( id = totalId )
+				{
+					let change = false;
+					do
+					{
+						change = false;
+						for ( let i = 0; i < users.length - 1; i++ )
+						{
+							if ( !score[ users[ i ].name ] )
+							{
+								break;
+							}
+
+							for ( let j = i+1; j < users.length; j++ )
+							{
+								if ( !getScore( users[ j ].name, id ) )
+								{
+									break;
+								}
+
+								if ( !getScore( users[ i ].name, id ) || 
+									( getScore( users[ i ].name, id ) > getScore( users[ j ].name, id ) ) )
+								{
+									let tmp = users[ i ];
+									users[ i ] = users[ j ];
+									users[ j ] = tmp;
+								
+									change = true;
+								}
+							}
+						}
+					}
+					while ( change );
 				}
 			<% } %>
 
@@ -838,7 +947,7 @@
 			function setRank ( id = totalId )
 			{
 				// set ranks
-				let lastPoint = 0;
+				let lastEntry = 0;
 				let lastRank = 0;
 
 				for ( let i = 0; i < users.length - 1; i++ )
@@ -866,9 +975,9 @@
 						continue;
 					}
 
-					if ( lastPoint != getScore( users[ i ].name, id ) )
+					if ( lastEntry != getScore( users[ i ].name, id ) )
 					{
-						lastPoint = getScore( users[ i ].name, id );
+						lastEntry = getScore( users[ i ].name, id );
 						lastRank++;
 					}
 
@@ -885,7 +994,7 @@
 				{
 					str += '<td onclick="uni_orderTable('+j+');drawTable('+j+');">'+voie[ j ].name+'</td>';
 				}
-				str += '<td onclick="uni_orderTable('+rankId+');drawTable();">Total</td><td onclick="uni_orderTable('+rankId+');drawTable();">rank</td>';
+				str += '<td onclick="uni_orderTable('+totalId+');drawTable();">Total</td><td onclick="uni_orderTable('+totalId+');drawTable();">rank</td>';
 
 				for ( let i = 0; i < users.length; i++ )
 				{
@@ -1025,7 +1134,8 @@
 			updateSelector ( );
 			uni_calcTotal ( );
 			<% if ( ( mode == 'b' ) ||
-				( mode == 'a' ) ){ %>
+				( mode == 'a' ) ||
+				( mode == 'v' ) ){ %>
 				uni_orderTable ( );
 			<% } %>
 			setRank ( );

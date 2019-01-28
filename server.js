@@ -25,7 +25,7 @@ const args = require('yargs').argv;
 console.log ( "FPE score marker:" );
 console.log ( "  [--port=<uint>]" );
 console.log ( "  [--keySize=<uint>]" );
-console.log ( "  [--mode=<a/b/d/m>]" );
+console.log ( "  [--mode=<a/b/c/d/v>]" );
 console.log ( "  [--voie=./path/file.json]" );
 console.log ( "  [--score=./path/file.json]" );
 console.log ( "  [--user=./path/file.json]" );
@@ -51,7 +51,7 @@ if ( args.mode )
 		case 'd': // difficulté
 		case 'b': // bloc
 		case 'v': // vitesse
-		case 'm': // mixe
+		case 'c': // combiné
 		{
 			mode = args.mode;
 			break;
@@ -176,6 +176,7 @@ app.all ( '/statistiques', function ( req, res )
 		users:users,
 		voie:voie,
 		score:score,
+		mode:mode,
 		page:"statistiques"
 	} );
 });
@@ -274,45 +275,13 @@ app.all ( '/getResults', function ( req, res )
 			users:users,
 			voie:voie,
 			score:score,
+			mode:mode,
 			page:"accueil",
 		} );
 	}
 	else
 	{
 		res.redirect ( '/' );
-	}
-});
-
-// ajax part
-app.all ( '/validate', function ( req, res )
-{
-	if ( req.authenticated.loged )
-	{
-		if ( !userExist ( req.body.usr ) )
-		{
-			res.writeHead ( 500 );
-			res.end ( "ko" );
-		}
-		else
-		{
-			if ( !score[ req.body.usr ] )
-			{
-				score[ req.body.usr ] = [];
-			}
-
-			if ( !score[ req.body.usr ][ req.body.voie ] )
-			{
-				score[ req.body.usr ][ req.body.voie ] = [];
-			} 
-			score[ req.body.usr ][ req.body.voie ].push ( req.body.points );
-
-			fs.writeFileSync ( scoreDataBase, JSON.stringify ( score ), 'utf8' );
-
-			io.emit ( 'scores', req.body );
-
-			res.writeHead ( 200 );
-			res.end ( "ok" );
-		}
 	}
 });
 
@@ -360,8 +329,42 @@ app.all ( '/addUser', function ( req, res )
 			users:users,
 			voie:voie,
 			score:score,
+			mode:mode,
 			page:"accueil"
 		} );
+	}
+});
+
+// ajax part
+app.all ( '/validate', function ( req, res )
+{
+	if ( req.authenticated.loged )
+	{
+		if ( !userExist ( req.body.usr ) )
+		{
+			res.writeHead ( 500 );
+			res.end ( "ko" );
+		}
+		else
+		{
+			if ( !score[ req.body.usr ] )
+			{
+				score[ req.body.usr ] = [];
+			}
+
+			if ( !score[ req.body.usr ][ req.body.voie ] )
+			{
+				score[ req.body.usr ][ req.body.voie ] = [];
+			} 
+			score[ req.body.usr ][ req.body.voie ].push ( req.body.points );
+
+			fs.writeFileSync ( scoreDataBase, JSON.stringify ( score ), 'utf8' );
+
+			io.emit ( 'scores', req.body );
+
+			res.writeHead ( 200 );
+			res.end ( "ok" );
+		}
 	}
 });
 

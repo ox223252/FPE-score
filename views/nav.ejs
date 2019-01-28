@@ -9,7 +9,9 @@
 	<% if ( loged ) { %>
 		<a href="/">Scores</a>
 		<a href="/login">Logout</a>
-		<a href="/statistiques">Stat.</a>
+		<% if ( mode == "a" ) { %>
+			<a href="/statistiques">Stat.</a>
+		<% } %>
 		<a href="/getResults">Results</a>
 		<a href="/addUser">New user</a>
 		<select onchange="window.location.href = '/set/'+this.value;">
@@ -31,7 +33,7 @@
 			<a href="/">Scores</a>
 		<% } %>
 		<a href="/login">Login</a>
-		<% if ( page != "statistiques" ) { %>
+		<% if ( ( page != "statistiques" ) && ( mode == "a" ) ) { %>
 			<a href="/statistiques">Stat.</a>
 		<% } %>
 	<% } %>
