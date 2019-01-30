@@ -46,6 +46,8 @@ table
 {
 	border-collapse: collapse;
 	border: solid 1px;
+	min-width: 300px;
+	margin:5px;
 }
 table tr
 {

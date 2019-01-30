@@ -4,24 +4,28 @@
 	<body>
 		<% include nav %>
 		<section id="stats">
-			<div class="graphPaper">
+			<div class="graphPaper" id="resultGraphs">
 				<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_average"></canvas>
 				<span class="smothText"><label for="avreage_percent"> affichage en %</label><input type="checkbox" id="avreage_percent" onchange="graph_average ( );"></span>
 			</div>
-			<div class="graphPaper">
+			<div class="graphPaper" id="tryGraphs">
 				<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_nbTry"></canvas>
 			</div>
-			<div class="graphPaper" id="clubsGrpahs">
+			<div class="graphPaper" id="clubsGraphs">
 			</div>
-			<div class="graphPaper" id="peoplesGrpahs">
+			<div class="graphPaper" id="peoplesGraphs">
 			</div>
 		</section>
 		<div id="popupMenu">
 			<div>
-				<div><label for="check_average">Moyenne : </label><input id="check_average" type="checkbox" checked disabled onchange="graph_average ( );"></div>
-				<div><label for="check_nbTry">Essais : </label><input id="check_nbTry" type="checkbox" checked disabled onchange="graph_try ( );"></div>
-				<div><label for="check_club">Categories : </label><input id="check_club" type="checkbox" onchange="graph_club ( );"></div>
-				<div><label for="check_genre">Genre : </label><input id="check_genre" type="checkbox" onchange="graph_participants ( );"></div>
+				<div style="margin-bottom: 5px;min-width: 100px;">
+					<img src="data:image/png;base64,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" onclick="window.print();" width="32px" height="32px" alt="Print" style="float:left">
+					<img src="data:image/png;base64,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" onclick="(function(item){item.style.display='none'})(document.getElementById ( 'popupMenu' ))" width="32px" height="32px" alt="close" style="float:right">
+				</div>
+				<div class="graphsSelectors"><label for="check_average">Moyenne</label> : <input id="check_average" type="checkbox" checked onchange="graph_average ( );"></div>
+				<div class="graphsSelectors"><label for="check_nbTry">Essais</label> : <input id="check_nbTry" type="checkbox" onchange="graph_try ( );"></div>
+				<div class="graphsSelectors"><label for="check_club">Categories</label> : <input id="check_club" type="checkbox" onchange="graph_club ( );"></div>
+				<div class="graphsSelectors"><label for="check_genre">Genre</label> : <input id="check_genre" type="checkbox" onchange="graph_participants ( );"></div>
 			</div>
 		</div>
 		<script type="text/javascript" src="/js/chartjs.js"></script>
@@ -197,67 +201,17 @@
 				}
 			});
 		</script>
-		<script type="text/javascript"> // utils
-			function setScore ( name, id, value )
-			{
-				if ( !name ||
-					( id == undefined ) )
-				{
-					return ( false );
-				}
-
-				if ( !score[ name ] )
-				{
-					score[ name ] = [];
-				}
-
-				if ( !score[ name ][ id ] )
-				{
-					score[ name ][ id ] = [];
-				}
-				
-				score[ name ][ id ].push ( value );
-			}
-			function getScore ( name, id )
-			{
-				if ( !name ||
-					( id == undefined ) ||
-					!score[ name ] ||
-					!score[ name ][ id ] )
-				{
-					return ( false );
-				}
-				
-				let max = score[ name ][ id ][ 0 ];
-				for ( let i = 1; i < score[ name ][ id ].length; i++ )
-				{
-					if ( parseFloat( score[ name ][ id ][ i ] ) > parseFloat( max ) )
-					{
-						max = score[ name ][ id ][ i ];
-					}
-				}
-				return ( max );
-			}
-			function getNbTests ( name, id )
-			{
-				if ( !name ||
-					( id == undefined ) ||
-					!score[ name ] ||
-					!score[ name ][ id ] )
-				{
-					return ( false );
-				}
-
-				return ( score[ name ][ id ].length );
-			}
-		</script>
+		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript"> // graph
 			function graph_average ( )
 			{
+				let div = document.getElementById ( 'resultGraphs' );
 				if ( !document.getElementById ( 'check_average' ).checked )
 				{
+					div.style.display = "none";
 					return;
 				}
+				div.style.display = "";
 
 				let ctx = document.getElementById ( "graph_average" ).getContext ( "2d" );
 
@@ -269,22 +223,53 @@
 				config[ 'average' ].data.datasets[ 2 ].data = [];
 
 				// draw evolution of points for selected way
+				console.log( average );
 				for ( let i = 0; i < average.length; i++ )
 				{
-					if ( pourcent )
-					{
-						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "% max de points";
-						config[ 'average' ].data.labels.push ( average[ i ].name + ' %' );
-						config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player / average[ i ].max * 100 ) | 0 );
-						config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt / average[ i ].max * 100 ) | 0 );
+					if ( average[ i ].min )
+					{ // voie de vitesse
+						config[ 'average' ].data.labels.push ( average[ i ].name );
+						config[ 'average' ].data.datasets[ 0 ].label = "temps min";
+						config[ 'average' ].data.datasets[ 1 ].label = "temps moyen";
+						config[ 'average' ].data.datasets[ 2 ].label = "temps max";
+						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "temps en secondes";
+						config[ 'average' ].data.datasets[ 0 ].data.push ( average[ i ].min || 0 );
+						config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt )  || 0 );
+						config[ 'average' ].data.datasets[ 2 ].data.push ( average[ i ].max || 0 );
+
+						document.getElementById ( "avreage_percent" ).style.display = "none";
+					}
+					else if ( average[ i ].total != undefined )
+					{ // voie de diff ou mode autre
+						if ( pourcent )
+						{
+							config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "% max de points";
+							config[ 'average' ].data.labels.push ( average[ i ].name + ' %' );
+							config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player / average[ i ].max * 100 ) || 0 );
+							config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt / average[ i ].max * 100 ) || 0 );
+						}
+						else
+						{
+							config[ 'average' ].data.labels.push ( average[ i ].name );
+							config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "points";
+							config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player ) || 0 );
+							config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt ) || 0 );
+							config[ 'average' ].data.datasets[ 2 ].data.push ( ( average[ i ].max ) || 0 );
+						}
 					}
 					else
-					{
-						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "points";
+					{ // voie de bloc
+						console.log( average );
 						config[ 'average' ].data.labels.push ( average[ i ].name );
-						config[ 'average' ].data.datasets[ 0 ].data.push ( ( average[ i ].total / player ) | 0 );
-						config[ 'average' ].data.datasets[ 1 ].data.push ( ( average[ i ].total / average[ i ].nbPlayerTestIt ) | 0 );
-						config[ 'average' ].data.datasets[ 2 ].data.push ( ( average[ i ].max ) | 0 );
+						config[ 'average' ].data.datasets[ 0 ].label = "echec";
+						config[ 'average' ].data.datasets[ 1 ].label = "zone";
+						config[ 'average' ].data.datasets[ 2 ].label = "top";
+						config[ 'average' ].options.scales.yAxes[0].scaleLabel.labelString = "zone/top";
+						config[ 'average' ].data.datasets[ 0 ].data.push ( average[ i ].echec || 0 )
+						config[ 'average' ].data.datasets[ 1 ].data.push ( average[ i ].zone || 0 );
+						config[ 'average' ].data.datasets[ 2 ].data.push ( average[ i ].success || 0 );
+
+						document.getElementById ( "avreage_percent" ).style.display = "none";
 					}
 				}
 
@@ -300,10 +285,13 @@
 
 			function graph_try ( )
 			{
+				let div = document.getElementById ( 'tryGraphs' );
 				if ( !document.getElementById ( 'check_nbTry' ).checked )
 				{
+					div.style.display = "none";
 					return;
 				}
+				div.style.display = "";
 
 				let ctx = document.getElementById ( "graph_nbTry" ).getContext ( "2d" );
 
@@ -335,7 +323,7 @@
 
 			function graph_club ( )
 			{
-				let div = document.getElementById ( 'clubsGrpahs' );
+				let div = document.getElementById ( 'clubsGraphs' );
 				if ( !document.getElementById ( 'check_club' ).checked )
 				{
 					div.style.display = "none";
@@ -427,7 +415,7 @@
 
 			function graph_participants ( )
 			{
-				let div = document.getElementById ( 'peoplesGrpahs' );
+				let div = document.getElementById ( 'peoplesGraphs' );
 				if ( !document.getElementById ( 'check_genre' ).checked )
 				{
 					div.style.display = "none";
@@ -547,7 +535,7 @@
 					{
 						clubs[ users[ i ].club ].nbTry += getNbTests ( users[ i ].name, j ) | 0;
 
-						if ( average[ i ].max == getScore ( users[ i ].name, j ) | 0 )
+						if ( average[ j ].max == getScore ( users[ i ].name, j ) | 0 )
 						{
 							clubs[ users[ i ].club ].win++;;
 						}
@@ -583,79 +571,249 @@
 				}
 			}
 
-			function calcAverage ( )
+			function calcAverage ( TYPE = "a" )
 			{
 				average = [];
-				for ( let i = 0; i < voie.length; i++ )
+
+				switch ( TYPE )
 				{
-					average[ i ] = {};
-					average[ i ].name = voie[ i ].name;
-					average[ i ].nbTry = 0;
-					average[ i ].nbPlayerTestIt = 0;
-					average[ i ].total = 0;
-					average[ i ].success = 0;
-					player = 0;
-					switch ( voie[ i ].type )
+					case "a":
+					case "autre":
 					{
-						case 'bloc':
+						for ( let i = 0; i < voie.length; i++ )
 						{
-							average[ i ].max = voie[ i ].score.fin;
-							break;
+							average[ i ] = {};
+							average[ i ].name = voie[ i ].name;
+							average[ i ].nbTry = 0;
+							average[ i ].nbPlayerTestIt = 0;
+							average[ i ].total = 0;
+							average[ i ].success = 0;
+							average[ i ].min = undefined;
+							player = 0;
+							switch ( voie[ i ].type )
+							{
+								case 'bloc':
+								{
+									average[ i ].max = voie[ i ].score.fin;
+									break;
+								}
+								case 'diff':
+								{
+									if ( voie[ i ].score.tete )
+									{
+										average[ i ].max = voie[ i ].score.tete[ voie[ i ].score.tete.length - 1 ];
+									}
+									else
+									{
+										average[ i ].max = voie[ i ].score.moul[ voie[ i ].score.moul.length - 1 ];
+									}
+									break;
+								}
+								case 'vitesse':
+								{
+									average[ i ].max = voie[ i ].score.time;
+									break;
+								}
+								case 'slack':
+								{
+									average[ i ].max = voie[ i ].score.distance;
+									break;
+								}
+							}
 						}
-						case 'diff':
+
+						for ( let i = 0; i < users.length; i++ )
 						{
-							if ( voie[ i ].score.tete )
+							if ( !score[ users[ i ].name ])
+							{
+								continue;
+							}
+							player++;
+
+							for ( let j = 0; j < voie.length; j++ )
+							{
+								average[ j ].nbTry += getNbTests ( users[ i ].name, j ) | 0;
+								average[ j ].total += getScore ( users[ i ].name, j ) | 0;
+								average[ j ].nbPlayerTestIt += ( getNbTests ( users[ i ].name, j ) )? 1 : 0;;
+
+								if ( ( voie[ j ].type != 'vitesse' ) &&
+									( getScore ( users[ i ].name, j ) == parseFloat ( average[ j ].max ) ) )
+								{
+									average[ j ].success++;
+								}
+							}
+						}
+						break;
+					}
+					case "b":
+					case "bloc":
+					{
+						for ( let i = 0; i < voie.length; i++ )
+						{
+							average[ i ] = {};
+							average[ i ].name = voie[ i ].name;
+							average[ i ].nbTry = 0;
+							average[ i ].nbPlayerTestIt = 0;
+							average[ i ].zone = 0;
+							average[ i ].success = 0;
+							average[ i ].max = "top";
+							average[ i ].total = undefined;
+							player = 0;
+						}
+
+						for ( let i = 0; i < users.length; i++ )
+						{
+							if ( !score[ users[ i ].name ])
+							{
+								continue;
+							}
+
+							for ( let j = 0; j < voie.length; j++ )
+							{
+								let result = getScore ( users[ i ].name, j );
+								if ( !result )
+								{
+									continue;
+								}
+
+								average[ j ].nbPlayerTestIt++;
+								average[ j ].nbTry += getNbTests ( users[ i ].name, j );
+
+								switch ( result )
+								{
+									case "top":
+									{
+										average[ j ].success++;
+										break;
+									}
+									case "echec":
+									case "zone":
+									default:
+									{
+										average[ j ][ result ]++;
+										break;
+									}
+								}
+							}
+							player++;
+						}
+						break;
+					}
+					case "d":
+					case "diff":
+					case "difficulte":
+					{
+						for ( let i = 0; i < voie.length; i++ )
+						{
+							average[ i ] = {};
+							average[ i ].name = voie[ i ].name;
+							average[ i ].nbTry = 0;
+							average[ i ].nbPlayerTestIt = 0;
+							average[ i ].total = 0;
+							average[ i ].success = 0;
+							average[ i ].min = undefined;
+							player = 0;
+
+							if ( voie[ i ].score &&
+								voie[ i ].score.tete )
 							{
 								average[ i ].max = voie[ i ].score.tete[ voie[ i ].score.tete.length - 1 ];
 							}
 							else
 							{
-								average[ i ].max = voie[ i ].score.moul[ voie[ i ].score.moul.length - 1 ];
+								average[ i ].max = voie[ i ].score || 0;
 							}
-							break;
 						}
-						case 'vitesse':
+
+						for ( let i = 0; i < users.length; i++ )
 						{
-							average[ i ].max = voie[ i ].score.time;
-							break;
+							if ( !score[ users[ i ].name ])
+							{
+								continue;
+							}
+
+							for ( let j = 0; j < voie.length; j++ )
+							{
+								let result = getScore ( users[ i ].name, j );
+								if ( !result )
+								{
+									continue;
+								}
+
+								average[ j ].nbPlayerTestIt++;
+								average[ j ].nbTry += getNbTests ( users[ i ].name, j );
+								average[ j ].total += result;
+
+								if ( result == average[ j ].max )
+								{
+									average[ j ].success++;
+								}
+							}
+							player++;
 						}
-						case 'slack':
-						{
-							average[ i ].max = voie[ i ].score.distance;
-							break;
-						}
+						break;
 					}
-				}
-
-				for ( let i = 0; i < users.length; i++ )
-				{
-					if ( !score[ users[ i ].name ])
+					case "v":
+					case "vitesse":
 					{
-						continue;
-					}
-					player++;
-
-					for ( let j = 0; j < voie.length; j++ )
-					{
-						average[ j ].nbTry += getNbTests ( users[ i ].name, j ) | 0;
-						average[ j ].total += getScore ( users[ i ].name, j ) | 0;
-						average[ j ].nbPlayerTestIt += ( getNbTests ( users[ i ].name, j ) )? 1 : 0;;
-
-						if ( ( voie[ j ].type != 'vitesse' ) &&
-							( getScore ( users[ i ].name, j ) == parseFloat ( average[ j ].max ) ) )
+						for ( let i = 0; i < voie.length; i++ )
 						{
-							average[ j ].success++;
+							average[ i ] = {};
+							average[ i ].name = voie[ i ].name;
+							average[ i ].nbTry = 0;
+							average[ i ].nbPlayerTestIt = 0;
+							average[ i ].total = 0;
+							average[ i ].success = 0;
+							player = 0;
+
+							average[ i ].min = undefined;
+							average[ i ].max = 0;
 						}
+
+						for ( let i = 0; i < users.length; i++ )
+						{
+							if ( !score[ users[ i ].name ])
+							{
+								continue;
+							}
+
+							for ( let j = 0; j < voie.length; j++ )
+							{
+								let result = getScore ( users[ i ].name, j );
+								if ( !result )
+								{
+									continue;
+								}
+
+								result = parseFloat ( result );
+
+								average[ j ].nbPlayerTestIt++;
+								average[ j ].nbTry += getNbTests ( users[ i ].name, j );
+								average[ j ].total += result;
+
+								if ( average[ j ].max < result )
+								{
+									average[ j ].max = result;
+								}
+
+								if ( ( average[ j ].min == undefined ) ||
+									( average[ j ].min > result ) )
+								{
+									average[ j ].min = result;
+								}
+							}
+							player++;
+						}
+						break;
 					}
 				}
 			}
 			
-			calcAverage ( );
+			calcAverage ( "<%- mode %>" );
 			getClubsStats ( );
 			
 			graph_average ( );
 			graph_try ( );
-
 			graph_club ( );
 			graph_participants ( );
 

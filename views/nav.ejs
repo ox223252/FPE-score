@@ -1,23 +1,43 @@
 <nav>
-	<% // here to display the dark/loght slider selector
-	if ( ( page == "accueil" ) ||
-		( page == "statistiques" ) )
-	{ %>
-		<% include slider %>
+	<% // here to display the dark/loght slider selector %>
+	<% include slider %>
+
+	<% if ( page != "accueil" ) { %>
+		<a href="/">Scores</a>
 	<% } %>
 	
 	<% if ( loged ) { %>
-		<a href="/">Scores</a>
 		<a href="/login">Logout</a>
-		<% if ( mode == "a" ) { %>
-			<a href="/statistiques">Stat.</a>
-		<% } %>
+	<% } else { %>
+		<a href="/login">Login</a>
+	<% } %>
+
+	<% if ( page != "statistiques" ) { %>
+		<a href="/statistiques">Stat.</a>
+	<% } %>
+		
+	<% if ( page != "getResults" ) { %>
 		<a href="/getResults">Results</a>
+	<% } %>
+
+	<% if ( loged ) { %>
 		<a href="/addUser">New user</a>
 		<select onchange="window.location.href = '/set/'+this.value;">
 			<option disabled selected style="color:grey;">voie</option>
-			<option value="bloc" <% if(page == 'bloc'){%>selected<%}%>>bloc</option>
-			<option value="diff" <% if(page == 'diff'){%>selected<%}%>>diff</option>
+			<% if ( ( mode == "b" ) ||
+				( mode == "bloc" ) ||
+				( mode == "a" ) ||
+				( mode == "autre" ) ) { %>
+				<option value="bloc" <% if(page == 'bloc'){%>selected<%}%>>bloc</option>
+			<% } %>
+
+			<% if ( ( mode == "d" ) ||
+				( mode == "diff" ) ||
+				( mode == "difficulte" ) ||
+				( mode == "a" ) ||
+				( mode == "autre" ) ) { %>
+				<option value="diff" <% if(page == 'diff'){%>selected<%}%>>diff</option>
+			<% } %>
 			
 			<%
 			for ( var i = 0; i < voie.length; i++ )
@@ -26,15 +46,5 @@
 			}
 			%>
 		</select>
-	<% }
-	else
-	{ %>
-		<% if ( page != "accueil" ) { %>
-			<a href="/">Scores</a>
-		<% } %>
-		<a href="/login">Login</a>
-		<% if ( ( page != "statistiques" ) && ( mode == "a" ) ) { %>
-			<a href="/statistiques">Stat.</a>
-		<% } %>
 	<% } %>
 </nav>

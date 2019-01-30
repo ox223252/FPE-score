@@ -166,6 +166,18 @@ app.all ( '/statistiques', function ( req, res )
 	} );
 });
 
+app.all ( '/getResults', function ( req, res )
+{
+	res.render ( 'fullDisplay.html', {
+		loged:req.authenticated.loged,
+		users:users,
+		voie:voie,
+		score:score,
+		mode:mode,
+		page:"getResults",
+	} );
+});
+
 app.all ( '/login', function ( req, res )
 {
 	let pass = null;
@@ -251,25 +263,6 @@ app.all ( '/set/:id', function ( req, res )
 	}
 });
 
-app.all ( '/getResults', function ( req, res )
-{
-	if ( req.authenticated.loged )
-	{
-		res.render ( 'fullDisplay.html', {
-			loged:req.authenticated.loged,
-			users:users,
-			voie:voie,
-			score:score,
-			mode:mode,
-			page:"accueil",
-		} );
-	}
-	else
-	{
-		res.redirect ( '/' );
-	}
-});
-
 app.all ( '/addUser', function ( req, res )
 {
 	if ( req.authenticated.loged )
@@ -303,20 +296,14 @@ app.all ( '/addUser', function ( req, res )
 				loged:req.authenticated.loged,
 				users:users,
 				voie:voie,
+				mode:mode,
 				page:req.params.id
 			} );
 		}
 	}
 	else
 	{
-		res.render ( 'accueil.html', {
-			loged:req.authenticated.loged,
-			users:users,
-			voie:voie,
-			score:score,
-			mode:mode,
-			page:"accueil"
-		} );
+		res.redirect ( '/' );
 	}
 });
 
