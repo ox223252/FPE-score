@@ -1,3 +1,8 @@
+<script type="text/javascript" async
+src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js? 
+config=TeX-MML-AM_CHTML"
+</script>
+
 # FPE score
 [NodeJs]small software designed to count store and manage point on climbing contest.
 
@@ -13,7 +18,7 @@
    - [x] essais multiples
    - [x] implémenter les règles de calculs officiels FFME
       - [x] bloc : classement top/nbTest/zone/nbTest
-      - [x] diff : sqrt ( (rank[i]²) + (rank[j]²) ... )
+      - [x] diff : ![equation](https://latex.codecogs.com/svg.latex?\Large&space;rank=\sqrt{rank_{1}^2%20+%20rank_{2}^2%20+%20\dots%20+%20rank_{n}^2})
       - [x] vitesse : par temps
  - [x] login sécurisé pour le staff
    - [x] génération automatique d'une clé RSA (différente à chaque démarrage du serveur)
