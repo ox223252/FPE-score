@@ -1,50 +1,60 @@
 <nav>
 	<% // here to display the dark/loght slider selector %>
-	<% include slider %>
+	<div class="mainLinks">
+		<a href="/"	<% if ( page == "accueil" ) { %> class="selected" <% } %>>Scores</a>
+		<a href="/login" <% if ( page == "login" ) { %> class="selected" <% } %>><% if ( loged ) { %> logout <% } else { %> login <% } %></a>
+		<a href="/statistiques" <% if ( page == "statistiques" ) { %> class="selected" <% } %>>Stat.</a>
+		<a href="/getResults" <% if ( page == "getResults" ) { %> class="selected" <% } %>>Results</a>
 
-	<% if ( page != "accueil" ) { %>
-		<a href="/">Scores</a>
-	<% } %>
-	
-	<% if ( loged ) { %>
-		<a href="/login">Logout</a>
-	<% } else { %>
-		<a href="/login">Login</a>
-	<% } %>
+		<% if ( loged ) { %>
+			<% console.log( page ) %>
+			<a href="/addUser" <% if ( page == "addUser" ) { %> class="selected" <% } %>>New user</a>
+			<% let options = '<option disabled selected style="color:grey;" >voie</option>';
+				let flagSelect = false;
+				if ( ( mode == "b" ) ||
+					( mode == "bloc" ) ||
+					( mode == "a" ) ||
+					( mode == "autre" ) )
+				{
+					options += '<option value="bloc"'; 
+					if ( page == 'bloc' )
+					{
+						flagSelect = true;
+						options +=' selected';
+					}
+					options += '>bloc</option>';
+				}
 
-	<% if ( page != "statistiques" ) { %>
-		<a href="/statistiques">Stat.</a>
-	<% } %>
-		
-	<% if ( page != "getResults" ) { %>
-		<a href="/getResults">Results</a>
-	<% } %>
-
-	<% if ( loged ) { %>
-		<a href="/addUser">New user</a>
-		<select onchange="window.location.href = '/set/'+this.value;">
-			<option disabled selected style="color:grey;">voie</option>
-			<% if ( ( mode == "b" ) ||
-				( mode == "bloc" ) ||
-				( mode == "a" ) ||
-				( mode == "autre" ) ) { %>
-				<option value="bloc" <% if(page == 'bloc'){%>selected<%}%>>bloc</option>
-			<% } %>
-
-			<% if ( ( mode == "d" ) ||
-				( mode == "diff" ) ||
-				( mode == "difficulte" ) ||
-				( mode == "a" ) ||
-				( mode == "autre" ) ) { %>
-				<option value="diff" <% if(page == 'diff'){%>selected<%}%>>diff</option>
-			<% } %>
-			
-			<%
-			for ( var i = 0; i < voie.length; i++ )
-			{
-			%><option value="<%-voie[i].name%>" <% if(page == voie[i].name){%>selected<%}%>><%- voie[i].type + ' : ' + voie[i].name %></option><%
-			}
+				if ( ( mode == "d" ) ||
+					( mode == "diff" ) ||
+					( mode == "difficulte" ) ||
+					( mode == "a" ) ||
+					( mode == "autre" ) )
+				{
+					options += '<option value="diff"';
+					if ( page == 'diff' )
+					{
+						flagSelect = true;
+						options += ' selected';
+					}
+					options += '>diff</option>';
+				}
+				
+				for ( var i = 0; i < voie.length; i++ )
+				{
+					options += '<option value="'+voie[i].name+'"';
+					if ( page == voie[i].name )
+					{
+						flagSelect = true;
+						options += ' selected';
+					}
+					options += '>' + voie[i].type + ' : ' + voie[i].name + '</option>';
+				}
 			%>
-		</select>
-	<% } %>
+			<div <% if ( flagSelect ) { %> class="selected" <% } %>><select onchange="window.location.href = '/set/'+this.value;"; >
+				<%- options %>
+			</select></div>
+		<% } %>
+	</div>
+	<% include slider %>
 </nav>

@@ -12,6 +12,11 @@ a:disabled
 	color:grey;
 }
 
+nav > div.mainLinks > *.selected
+{
+	border-bottom: 3px solid #fff;
+}
+
 .hightlight
 {
 	background: rgba(128,128,128,0.5);

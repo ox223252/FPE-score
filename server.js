@@ -300,7 +300,7 @@ app.all ( '/addUser', function ( req, res )
 				users:users,
 				voie:voie,
 				mode:mode,
-				page:req.params.id
+				page:"addUser"
 			} );
 		}
 	}

@@ -34,6 +34,11 @@ button:active
 	color: #fdf6e3;
 }
 
+nav > div.mainLinks > *.selected
+{
+	border-bottom: 3px solid #333;
+}
+
 .onlyLight
 {
 	display:none;
