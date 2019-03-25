@@ -235,7 +235,11 @@ app.all ( '/login', function ( req, res )
 		{ // login not valid
 			req.authenticated.reset();
 			req.authenticated.loged = false;
-			res.render ( 'login.html', { pubKey:RSA.public } );
+			res.render ( 'login.html', { 
+				pubKey:RSA.public,
+				loged:false,
+				page:"login",
+			} );
 		}
 	}
 	else
