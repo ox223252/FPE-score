@@ -9,7 +9,6 @@ let userDataBase = './private/users.json';
 const loginDataBase = './private/login.json';
 
 // modules declaration
-const program = require ( 'commander' );
 const express = require ( 'express' );
 const session = require ( "client-sessions" ); // create session encypted https://github.com/mozilla/node-client-sessions
 const helmet = require ( 'helmet' );
@@ -401,12 +400,12 @@ io.on ( 'connection', function( socket )
 RSA.status.on ( 'ready', () => 
 {
 	io.emit( 'waitKey', 'ok' );
-	console.log ( 'ok' );
+	console.log ( 'key generated' );
 });
 RSA.status.on ( 'failed', () =>
 {
 	io.emit( 'waitKey', 'error' );
-	console.log ( 'error' );
+	console.log ( 'key generation failed' );
 });
 
 RSA.init ( {length:keySize} );

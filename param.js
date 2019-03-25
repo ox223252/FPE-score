@@ -9,7 +9,7 @@ port = 6683;
 // 2048
 // 4096
 // 8192
-keySize = 1024;
+keySize = 4096;
 
 // autre
 // bloc
