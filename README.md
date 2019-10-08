@@ -15,6 +15,7 @@
       - [x] bloc : classement top/nbTest/zone/nbTest
       - [x] diff : ![equation](https://latex.codecogs.com/svg.latex?\Large&space;rank=\sqrt{rank_{1}^2%20+%20rank_{2}^2%20+%20\dots%20+%20rank_{n}^2})
       - [x] vitesse : par temps
+        - [ ] ajouter un module automatisaé pour la prise des temps
  - [x] login sécurisé pour le staff
    - [x] génération automatique d'une clé RSA (différente à chaque démarrage du serveur)
  - [x] affichage du tableau des résultats
