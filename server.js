@@ -294,7 +294,7 @@ app.all ( '/addUser', function ( req, res )
 			}
 		}
 		else
-		{	
+		{
 			res.render ( 'addUser.html', {
 				loged:req.authenticated.loged,
 				users:users,
@@ -316,21 +316,21 @@ app.all ( '/validate', function ( req, res )
 	if ( req.authenticated.loged )
 	{
 		if ( !userExist ( req.body.usr ) )
-		{
+		{ // if user doesn't exist
 			res.writeHead ( 500 );
 			res.end ( "ko" );
 		}
 		else
 		{
 			if ( !score[ req.body.usr ] )
-			{
+			{ // if no score table is created for this user
 				score[ req.body.usr ] = [];
 			}
 
 			if ( !score[ req.body.usr ][ req.body.voie ] )
 			{
 				score[ req.body.usr ][ req.body.voie ] = [];
-			} 
+			}
 			score[ req.body.usr ][ req.body.voie ].push ( req.body.points );
 
 			fs.writeFileSync ( scoreDataBase, JSON.stringify ( score ), 'utf8' );

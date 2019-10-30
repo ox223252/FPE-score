@@ -59,7 +59,7 @@
 			const testTopId = voie.length + 3;
 			const zoneId = voie.length + 4;
 			const testZoneId = voie.length + 5;
-			
+
 			var pointConfig = {
 				// type: 'bar',
 				type: 'line',
@@ -234,7 +234,7 @@
 					{
 						chartjs[ 'point' ] = new Chart ( document.getElementById ( "pointGraph" ).getContext ( "2d" ), pointConfig );
 					}
-				
+
 					// draw user slelected graph
 					if  ( thisUser &&
 						score[ thisUser ] )
@@ -375,11 +375,23 @@
 								{
 									let tmp = ( voie[ j ].score.time - getScore( users[ i ].name, j ) );
 									somme += ( tmp < 0 )? 0: tmp;
-									
+
 									average.all[ j ] += tmp; // totalise points for all users
 									if ( getScore( users[ i ].name, j ) )
 									{
 										average.tryed[ j ]++;
+									}
+								}
+								else if ( ( voie[ j ].type == 'endurance' ) &&
+									getScore( users[ i ].name, j ) )
+								{
+									if ( voie[ j ].score.time )
+									{
+										somme += Math.min ( voie[ j ].score.time, getScore( users[ i ].name, j ) );
+									}
+									else
+									{
+										somme += getScore( users[ i ].name, j );
 									}
 								}
 								else
@@ -523,6 +535,7 @@
 								setScore( users[ i ].name, totalId, somme, 0 );
 							}
 						}
+						break;
 					}
 				}
 			}
