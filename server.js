@@ -21,7 +21,7 @@ const cryptico = require ( 'cryptico' ); // generated RSA key for password encry
 
 const args = require('yargs').argv;
 
-eval ( fs.readFileSync ( 'param.js' ) + '' );
+eval ( fs.readFileSync ( './private/param.js' ) + '' );
 
 // FPE score marker:
 //   [--port=<uint>]
