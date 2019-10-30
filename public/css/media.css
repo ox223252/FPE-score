@@ -1,0 +1,89 @@
+nav > input, nav > label
+{
+	display:none;
+}
+
+
+@media (max-width: 480px)
+{ /* change size for smallest mobiles devices */
+	a, select, input[type=text], input[type=password], input[type=number], button
+	{
+		font-size: 1.5em;
+	}
+	#chronoStart, #chronoStop, #validate
+	{
+		margin: 5px;
+		font-size: 2em;
+	}
+}
+
+@media (min-width: 481px) and (max-width: 1280px)
+{ /* change size for other mobiles devices */
+	a, select, input[type=text], input[type=password], input[type=number], button
+	{
+		font-size: 1.2em;
+	}
+	#chronoStart, #chronoStop, #validate
+	{
+		margin: 5px;
+		font-size: 2em;
+	}
+}
+
+@media (max-width: 480px)
+{ /* change display for smallest mobiles devices */
+	nav > label
+	{
+		display: block;
+		font-size: 2em;
+		padding: 5px;
+		margin: 5px;
+		border: solid 1px black;
+		border-radius: 5px;
+		background: rgba( 128, 128, 128, 0.4 );
+		box-shadow: 2px 2px 4px;
+	}
+	nav > input + div.mainLinks
+	{
+		display: none;
+	}
+	nav > input:checked + div.mainLinks
+	{
+		display: flex;
+		display: -webkit-flex; /* Safari */
+		flex-wrap: wrap;
+		-webkit-flex-wrap: wrap; /* Safari 6.1+ */
+
+		position: fixed;
+		width: 100%;
+		margin: 0px;
+		top: 5em;
+		left: 0;
+		padding-top: 1em;
+		padding-bottom: 1em;
+		background: rgba( 128, 128, 128, 0.9 );
+		border: none;
+		font-size: 1.2em;
+	}
+	nav > input:checked + div.mainLinks > *.selected
+	{
+		border: none;
+		border-radius: 5px;
+	}
+}
+
+@media (min-width: 481px) and (max-width: 767px)
+{
+}
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape)
+{
+}
+
+@media (min-width: 768px) and (max-width: 1024px)
+{
+}
+
+@media (min-width: 1025px) and (max-width: 1280px)
+{
+}

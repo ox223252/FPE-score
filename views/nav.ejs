@@ -1,5 +1,7 @@
 <nav>
 	<% // here to display the dark/loght slider selector %>
+	<label for="menuColapser">&#9776;</label>
+	<input type="checkbox" id="menuColapser"/>
 	<div class="mainLinks">
 		<a href="/"	<% if ( page == "accueil" ) { %> class="selected" <% } %>>Scores</a>
 		<a href="/login" <% if ( page == "login" ) { %> class="selected" <% } %>><% if ( loged ) { %> logout <% } else { %> login <% } %></a>
@@ -7,7 +9,6 @@
 		<a href="/getResults" <% if ( page == "getResults" ) { %> class="selected" <% } %>>Results</a>
 
 		<% if ( loged ) { %>
-			<% console.log( page ) %>
 			<a href="/addUser" <% if ( page == "addUser" ) { %> class="selected" <% } %>>New user</a>
 			<% let options = '<option disabled selected style="color:grey;" >voie</option>';
 				let flagSelect = false;

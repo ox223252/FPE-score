@@ -34,19 +34,16 @@ nav > div.mainLinks > *
 	height: calc( 100% - 12px );
 	padding:5px;
 }
-
 nav > div.mainLinks > *.selected
 {
 	border-left: 1px solid;
 	border-top: 1px solid;
 	border-right: 1px solid;
 }
-
 nav > .lightSlider
 {
 	float: right;
 }
-
 
 section
 {
