@@ -34,11 +34,16 @@
 				</div>
 			</div>
 		</section>
-		<% include socket %>
 		<script src="/socket.io/socket.io.js"></script>
+		<% include default_include_js %>
+		<script src="/js/socket.js"></script>
 		<script type="text/javascript" src="/js/chartjs.js"></script>
 		<script type="text/javascript"> // globals vars
 			let thisUser = undefined;
+
+			let g_genre = document.getElementById ( "genre" );
+			let g_categorie = document.getElementById ( "categorie" );
+			let g_club = document.getElementById ( "club" );
 
 			const g_mode = "<%- mode %>";
 

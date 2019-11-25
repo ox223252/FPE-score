@@ -30,7 +30,9 @@
 		</div>
 		<script type="text/javascript" src="/js/chartjs.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
-		<% include socket %>
+		<script src="/js/socket.js"></script>
+		<% include default_include_js.ejs %>
+		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript"> // globals vars
 			var config = {
 				"try" : {
@@ -172,7 +174,6 @@
 			let clubList = [];
 			let clubs = {};
 		</script>
-		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript"> // graph
 			function graph_average ( )
 			{
@@ -194,7 +195,6 @@
 				config[ 'average' ].data.datasets[ 2 ].data = [];
 
 				// draw evolution of points for selected way
-				console.log( average );
 				for ( let i = 0; i < average.length; i++ )
 				{
 					if ( average[ i ].min )
@@ -230,7 +230,6 @@
 					}
 					else
 					{ // voie de bloc
-						console.log( average );
 						config[ 'average' ].data.labels.push ( average[ i ].name );
 						config[ 'average' ].data.datasets[ 0 ].label = "echec";
 						config[ 'average' ].data.datasets[ 1 ].label = "zone";

@@ -39,11 +39,16 @@
 			<div id="results"></div>
 		</section>
 		<script src="/socket.io/socket.io.js"></script>
-		<% include socket %>
+		<script src="/js/socket.js"></script>
+		<% include default_include_js.ejs %>
+		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript"> // globals vars
 			let resultDisplay = document.getElementById ( "results" );
+
+			let g_genre = document.getElementById ( "genre" );
+			let g_categorie = document.getElementById ( "categorie" );
+			let g_club = document.getElementById ( "club" );
 		</script>
-		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript">
 			function drawTable ( )
 			{
