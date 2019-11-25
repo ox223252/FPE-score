@@ -1,34 +1,34 @@
 const blocOrder = [ "echec", "zone", "top" ];
 
-function setScore ( name, id, value, num )
+function setScore ( name, way, value, num )
 {
 	if ( !name ||
-		( id == undefined ) )
+		( way == undefined ) )
 	{
 		return ( false );
 	}
 
 	if ( !score[ name ] )
 	{
-		score[ name ] = [];
+		score[ name ] = {};
 	}
 
-	if ( !score[ name ][ id ] )
+	if ( !score[ name ][ way ] )
 	{
-		score[ name ][ id ] = [];
+		score[ name ][ way ] = [];
 	}
-	
+
 	if ( num == undefined )
 	{
-		score[ name ][ id ].push ( value );
+		score[ name ][ way ].push ( value );
 	}
 	else
 	{
-		score[ name ][ id ][ num ] = value;
+		score[ name ][ way ][ num ] = value;
 	}
 }
 
-function getScore ( name, id = rankId )
+function getScore ( name, id = "rank" )
 {
 	if ( !name ||
 		( id == undefined ) ||
@@ -37,8 +37,9 @@ function getScore ( name, id = rankId )
 	{
 		return ( false );
 	}
-	
+
 	let max = score[ name ][ id ][ 0 ];
+
 	for ( let i = 1; i < score[ name ][ id ].length; i++ )
 	{
 		if ( isNaN ( max ) )
@@ -162,7 +163,7 @@ function getNbEssaisZone ( name )
 		{
 			continue;
 		}
-		
+
 		let tmp = 0;
 		for ( let j = 0; j < score[ name ][ i ].length; j++ )
 		{
@@ -189,4 +190,34 @@ function getNbTests ( name, id )
 	}
 
 	return ( score[ name ][ id ].length );
+}
+
+function getStatus ( u = [] )
+{
+	let c = [];
+	let g = [];
+	let cl = [];
+
+	for ( let i = 0; i < u.length; i++ )
+	{
+		if ( u[ i ].categorie &&
+			!c.includes( u[ i ].categorie ) )
+		{
+			c.push ( u[ i ].categorie );
+		}
+
+		if ( u[ i ].genre &&
+			!g.includes( u[ i ].genre ) )
+		{
+			g.push ( u[ i ].genre );
+		}
+
+		if ( u[ i ].club &&
+			!cl.includes( u[ i ].club ) )
+		{
+			cl.push ( u[ i ].club );
+		}
+	}
+
+	return { categorie:c, genre:g, club:cl };
 }

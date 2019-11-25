@@ -34,31 +34,18 @@
 				</div>
 			</div>
 		</section>
+		<% include socket %>
 		<script src="/socket.io/socket.io.js"></script>
 		<script type="text/javascript" src="/js/chartjs.js"></script>
 		<script type="text/javascript"> // globals vars
-			let socket = io ( );
-
-			let users = <%- JSON.stringify(users) %>;
 			let thisUser = undefined;
-			let voie = <%- JSON.stringify(voie) %>;
-			let score = <%- JSON.stringify(score) %>;
-
-			let g_categorie = document.getElementById ( "categorie" );
-			let g_genre = document.getElementById ( "genre" );
-			let g_club = document.getElementById ( "club" );
 
 			const g_mode = "<%- mode %>";
 
-			// voie.length : total
-			// voie.length + 1 : rank
-			const totalId = voie.length;
-			const rankId = voie.length + 1;
-
-			const topId = voie.length + 2;
-			const testTopId = voie.length + 3;
-			const zoneId = voie.length + 4;
-			const testZoneId = voie.length + 5;
+			// const topId = rankId + 1;
+			// const testTopId = topId + 1;
+			// const zoneId = testTopId + 1;
+			// const testZoneId = zoneId + 1;
 
 			var pointConfig = {
 				// type: 'bar',
@@ -163,7 +150,7 @@
 						mode: 'nearest',
 						intersect: true
 					},
-        			scale: {
+					scale: {
 						ticks: {
 							display:false,
 						}
@@ -180,15 +167,15 @@
 			};
 
 			var average = {
-				"all" : [],
-				"tryed" : [],
+				"all" : {},
+				"tryed" : {},
 				"player" : 0
 			}
 
 			let chartjs = {};
 		</script>
 		<script type="text/javascript"> // graph
-			function drawCurves ( id = totalId )
+			function drawCurves ( id = "total" )
 			{
 				<% if ( mode == 'a' ) { %>
 					let userEl = document.getElementById ( "userGraph" );
@@ -222,7 +209,16 @@
 							continue;
 						}
 
-						pointConfig.data.datasets[ 0 ].data.push ( getScore( users[ i ].name, id ) );
+						let v = getScore( users[ i ].name, id );
+						if ( voie[ id ] &&
+							voie[ id ].score )
+						{
+							// for diff and bloc this will get the good value
+							// for speed and wait this will displau value
+							v = voie[ id ].score[ v ] || v;
+						}
+
+						pointConfig.data.datasets[ 0 ].data.push ( v );
 						pointConfig.data.labels.push ( getScore( users[ i ].name ) );
 					}
 
@@ -240,47 +236,54 @@
 						score[ thisUser ] )
 					{
 						userConfig.data.datasets[ 0 ].label = thisUser;
-						for ( let i = 0; i < voie.length; i++ )
+
+						let voiesName = Object.keys( voie );
+						for ( let i = 0; i < voiesName.length; i++ )
 						{
-							userConfig.data.labels[ i ] = voie[ i ].name;
-							if ( voie[ i ].type == 'vitesse' )
+							userConfig.data.labels[ i ] = voiesName[ i ];
+
+							let value = getScore( thisUser, voiesName[ i ] );
+
+							let v = voie[ voiesName[ i ] ];
+							if ( v &&
+								v.score )
 							{
-								userConfig.data.datasets[ 0 ].data[ i ] =  ( getScore( thisUser, i ) )? voie[ i ].score.time - getScore( thisUser, i ) : 0;
+								value = v.score[ value ] || value || 0;
+							}
+
+							if ( v.type == 'vitesse' )
+							{
+								userConfig.data.datasets[ 0 ].data[ i ] =  ( value )? v.score.time - value : 0;
 							}
 							else
 							{
-								userConfig.data.datasets[ 0 ].data[ i ] = getScore( thisUser, i ) | 0;
+								userConfig.data.datasets[ 0 ].data[ i ] = value;
 							}
-							userConfig.data.datasets[ 1 ].data[ i ] = average.all[ i ] / average.tryed[ i ];
-							userConfig.data.datasets[ 2 ].data[ i ] = average.all[ i ] / average.player;
+							userConfig.data.datasets[ 1 ].data[ i ] = average.all[ voiesName[ i ] ] / average.tryed[ voiesName[ i ] ];
+							userConfig.data.datasets[ 2 ].data[ i ] = average.all[ voiesName[ i ] ] / average.player;
 
-							switch ( voie[ i ].type )
+
+							switch ( v.type )
 							{
 								case 'bloc':
 								{
-									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.fin || 0;
+									userConfig.data.datasets[ 3 ].data[ i ] = v.score.top || 0;
 									break;
 								}
 								case 'diff':
 								{
-									if ( voie[ i ].score.tete )
-									{
-										userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.tete[ voie[ i ].score.tete.length - 1 ] || 0;
-									}
-									else
-									{
-										userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.moul[ voie[ i ].score.moul.length - 1 ] || 0;
-									}
+									userConfig.data.datasets[ 3 ].data[ i ] = v.score[ v.score.length - 1 ] || 0;
 									break;
 								}
 								case 'vitesse':
+								case 'endrance':
 								{
-									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.time || 0;
+									userConfig.data.datasets[ 3 ].data[ i ] = v.score.time || 0;
 									break;
 								}
 								case 'slack':
 								{
-									userConfig.data.datasets[ 3 ].data[ i ] = voie[ i ].score.distance || 0;
+									userConfig.data.datasets[ 3 ].data[ i ] = v.score.distance || 0;
 									break;
 								}
 								default:
@@ -289,6 +292,7 @@
 								}
 							}
 						}
+
 						userEl.style.display = "";
 						document.getElementById ( "legendGraph" ).style.display = "";
 
@@ -313,39 +317,9 @@
 				<% } %>
 			}
 		</script>
-		<script type="text/javascript"> // sockets
-			socket.on ( 'scores', function ( data )
-			{
-				setScore ( data.usr, data.voie, data.points );
-
-				calcTotal ( );
-				orderTable ( );
-				setRank ( );
-				drawTable ( );
-			});
-
-			socket.on ( 'users', function ( usr )
-			{
-				let i;
-				for ( i = 0; i < users.length; i++ )
-				{
-					if ( users[ i ].name == usr.name )
-					{
-						break;
-					}
-				}
-
-				if ( i == users.length )
-				{
-					users.push ( usr );
-				}
-
-				orderTable ( );
-			});
-		</script>
 		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript">
-			function calcTotal ( id = totalId, mode = g_mode )
+			function calcTotal ( id = "total", mode = g_mode )
 			{ // get data to calculate average and globals metrics
 				// init average struct
 				for ( let i = 0; i < voie.length; i++ )
@@ -355,64 +329,17 @@
 					average.player = 0;
 				}
 
+				if ( !users )
+				{
+					return "error";
+				}
+
 				switch ( mode )
 				{
 					case "a":
 					case "autre":
-					{
-						for ( let i = 0; i < users.length; i++ )
-						{
-							if ( !score[ users[ i ].name ] )
-							{
-								continue;
-							}
-							let somme = 0;
-
-							for ( let j = 0; j < voie.length; j++ )
-							{
-								if ( ( voie[ j ].type == 'vitesse' ) &&
-									getScore( users[ i ].name, j ) )
-								{
-									let tmp = ( voie[ j ].score.time - getScore( users[ i ].name, j ) );
-									somme += ( tmp < 0 )? 0: tmp;
-
-									average.all[ j ] += tmp; // totalise points for all users
-									if ( getScore( users[ i ].name, j ) )
-									{
-										average.tryed[ j ]++;
-									}
-								}
-								else if ( ( voie[ j ].type == 'endurance' ) &&
-									getScore( users[ i ].name, j ) )
-								{
-									if ( voie[ j ].score.time )
-									{
-										somme += Math.min ( voie[ j ].score.time, getScore( users[ i ].name, j ) );
-									}
-									else
-									{
-										somme += getScore( users[ i ].name, j );
-									}
-								}
-								else
-								{
-									somme += getScore( users[ i ].name, j ) | 0;
-									average.all[ j ] += getScore( users[ i ].name, j ) | 0;
-
-									if ( getScore( users[ i ].name, j ) )
-									{
-										average.tryed[ j ]++;
-									}
-								}
-							}
-
-							if ( score[ users[ i ].name ] )
-							{
-								average.player++;
-							}
-
-							setScore( users[ i ].name, totalId, somme );
-						}
+					{ // for non offical contest mode
+						calcAutre ( users, voie, score );
 						break;
 					}
 					case "b":
@@ -457,7 +384,7 @@
 
 							let str = top+'.'+nbTestTop+'.'+zone+'.'+nbTestZone;
 
-							setScore( users[ i ].name, totalId, str, 0 );
+							setScore( users[ i ].name, "total", str, 0 );
 						}
 						break;
 					}
@@ -506,7 +433,7 @@
 								continue;
 							}
 
-							setScore( users[ i ].name, totalId, Math.sqrt ( qRank[ users[ i ].name ] ), 0 );
+							setScore( users[ i ].name, total, Math.sqrt ( qRank[ users[ i ].name ] ), 0 );
 						}
 						break;
 					}
@@ -527,20 +454,119 @@
 								let time = getScore( users[ i ].name, j );
 								if ( !time )
 								{
-									setScore( users[ i ].name, totalId, undefined, 0 );
+									setScore( users[ i ].name, total, undefined, 0 );
 									break;
 								}
 								somme += parseFloat ( time );
 
-								setScore( users[ i ].name, totalId, somme, 0 );
+								setScore( users[ i ].name, total, somme, 0 );
 							}
 						}
 						break;
 					}
 				}
+
+				function calcAutre ( l_users, l_voies, l_scores )
+				{
+					for ( let i = 0; i < l_users.length; i++ )
+					{
+						if ( !l_scores[ l_users[ i ].name ] )
+						{ // if no score for some user, treat the next
+							continue;
+						}
+
+						let somme = 0;
+
+						let v = Object.keys( voie );
+
+						for ( let j = 0; j < v.length; j++ )
+						{
+							let l_voie = l_voies[ v[ j ] ];
+
+							let value = getScore( users[ i ].name, v[ j ] );
+							value = l_voie.score[ value ] || value;
+							if ( isNaN( value ) )
+							{
+								console.log( "error : value should be a number, verify config for "+l_voie );
+								return;
+							}
+
+							if ( !average.all[ v[ j ] ]  )
+							{
+								average.all[ v[ j ] ] = 0;
+							}
+
+							if ( !average.tryed[ v[ j ] ]  )
+							{
+								average.tryed[ v[ j ] ] = 0;
+							}
+
+
+							if ( !value )
+							{ // la voie n'a pas été faite
+								continue;
+							}
+
+							switch ( l_voie.type )
+							{
+								case "vitesse":
+								{
+									let tmp = ( l_voie.score.time - value );
+									somme += ( tmp < 0 )? 0: tmp;
+
+									average.all[ v[ j ] ] += tmp; // totalise points for all users
+									if ( value )
+									{
+										average.tryed[ v[ j ] ]++;
+									}
+									break;
+								}
+								case "endurance":
+								{
+									if ( l_voie.score.time )
+									{
+										somme += Math.min ( l_voie.score.time, value );
+									}
+									else
+									{
+										somme += value;
+									}
+
+									// TODO
+									average.all[ v[ j ] ] += tmp; // totalise points for all users
+									if ( value )
+									{
+										average.tryed[ v[ j ] ]++;
+									}
+									break;
+								}
+								case "manual":
+								default:
+								{
+									somme += value || 0;
+									average.all[ v[ j ] ] += value || 0;
+
+									if ( value )
+									{
+										average.tryed[ v[ j ] ]++;
+									}
+
+									break;
+								}
+							}
+						}
+
+						if ( score[ users[ i ].name ] )
+						{
+							average.player++;
+						}
+
+						setScore( users[ i ].name, "total", somme, 0 );
+					}
+				}
 			}
 
-			function dropDownUser ( id = totalId )
+			function dropDownUser ( id = "total" )
 			{ // put user without score at the end
 				let somethingChange = false;
 				do
@@ -579,7 +605,7 @@
 				while ( somethingChange );
 			}
 
-			function orderTable ( id = totalId, mode = g_mode )
+			function orderTable ( id = "total", mode = g_mode )
 			{
 				dropDownUser ( id );
 
@@ -588,39 +614,19 @@
 					case "a":
 					case "autre":
 					{
-						for ( let i = 0; i < users.length - 1; i++ )
+						if ( ( id < voie.length ) &&
+							( voie[ id ].type == 'vitesse' ) )
+						{ // order speed test (less is better)
+							if ( parseFloat( getScore( users[ i ].name, id ) ) > parseFloat( getScore( users[ j ].name, id ) ) )
+							{
+								let tmp = users[ i ];
+								users[ i ] = users[ j ];
+								users[ j ] = tmp;
+							}
+						}
+						else
 						{
-							if ( !score[ users[ i ].name ] )
-							{
-								break;
-							}
-
-							for ( let j = i+1; j < users.length; j++ )
-							{
-								if ( !getScore( users[ j ].name, id ) )
-								{
-									break;
-								}
-
-								if ( ( id < voie.length ) &&
-									( voie[ id ].type == 'vitesse' ) )
-								{ // order speed test (less is better)
-									if ( parseFloat( getScore( users[ i ].name, id ) ) > parseFloat( getScore( users[ j ].name, id ) ) )
-									{
-										let tmp = users[ i ];
-										users[ i ] = users[ j ];
-										users[ j ] = tmp;
-									}
-								}
-								else if ( !getScore( users[ i ].name, id ) || 
-									getScore( users[ j ].name, id ) &&
-									( getScore( users[ i ].name, id ) < getScore( users[ j ].name, id ) ) )
-								{
-									let tmp = users[ i ];
-									users[ i ] = users[ j ];
-									users[ j ] = tmp;
-								}
-							}
+							orderAutre ( );
 						}
 						break;
 					}
@@ -744,16 +750,57 @@
 						break;
 					}
 				}
+
+				function orderAutre ( )
+				{
+					for ( let i = 0; i < users.length - 1; i++ )
+					{
+						if ( !score[ users[ i ].name ] )
+						{
+							break;
+						}
+
+						let value_I = getScore( users[ i ].name, id );
+
+						if ( isNaN ( value_I ) )
+						{
+							value_I = voie[ id ].score[ value_I ];
+						}
+
+						for ( let j = i+1; j < users.length; j++ )
+						{
+							let value_J = getScore( users[ j ].name, id );
+							if ( !value_J )
+							{
+								break;
+							}
+
+							if ( isNaN ( value_J ) )
+							{
+								value_J = voie[ id ].score[ value_J ];
+							}
+
+							if ( !value_I || 
+								( value_I < value_J ) )
+							{
+								let tmp = users[ i ];
+								users[ i ] = users[ j ];
+								users[ j ] = tmp;
+							}
+						}
+					}
+				}
+
 				setRank ( id );
 			}
 
-			function setRank ( id = totalId )
+			function setRank ( id = "total" )
 			{
 				// set ranks
 				let lastEntry = 0;
 				let lastRank = 0;
 
-				for ( let i = 0; i < users.length - 1; i++ )
+				for ( let i = 0; i < users.length; i++ )
 				{
 					if ( !score[ users[ i ].name ] )
 					{
@@ -784,21 +831,22 @@
 						lastRank++;
 					}
 
-					setScore( users[ i ].name, rankId, lastRank, 0 );
+					setScore( users[ i ].name, "rank", lastRank, 0 );
 				}
 			}
 
-			function drawTable ( id = totalId )
+			function drawTable ( id = "total" )
 			{
 				let str = "<div  id=\"results\"><table><tr><td onclick=\"updateUser();\"></td><td>h/f</td><td>cat.</td>";
 
 				// header
-				for ( let j = 0; j < voie.length; j++ )
+				let v = Object.keys( voie );
+				for ( let j = 0; j < v.length; j++ )
 				{
-					str += '<td onclick="orderTable('+j+');drawTable('+j+');">'+voie[ j ].name+'</td>';
+					str += '<td onclick="orderTable(\''+v[ j ]+'\');drawTable(\''+v[ j ]+'\');">'+v[ j ]+'</td>';
 				}
-				str += '<td onclick="orderTable('+totalId+');drawTable();">Total</td>';
-				str += '<td onclick="orderTable('+totalId+');drawTable();">rank</td>';
+				str += '<td onclick="orderTable(\'total\');drawTable();">Total</td>';
+				str += '<td onclick="orderTable(\'total\');drawTable();">rank</td>';
 
 				for ( let i = 0; i < users.length; i++ )
 				{
@@ -841,28 +889,48 @@
 					}
 
 					// score
-					for ( let j = 0; j < voie.length + 2; j++ )
+					for ( let j = 0; j < v.length; j++ )
 					{
-						if ( j == id )
-						{
-							str += '<td class="hightlight">';
-						}
-						else
-						{
-							str += '<td>';
-						}
-
-						if ( getScore( users[ i ].name, j ) )
-						{
-							str += getScore( users[ i ].name, j );
-						}
-
-						str+='</td>';
+						str += getTrack ( users[ i ].name, v[ j ], id );
 					}
+					str += getTrack ( users[ i ].name, "total", id );
+					str += getTrack ( users[ i ].name, "rank", id );
+					
+
 					str += '</tr>';
 				}
+
 				document.getElementById ( "dataContent" ).innerHTML = str+'</table></div>';
 				drawCurves ( id );
+
+				function getTrack ( name, id, h )
+				{
+					let s = "";
+					if ( h == id )
+					{
+						s += '<td class="hightlight">';
+					}
+					else
+					{
+						s += '<td>';
+					}
+					
+					let v = getScore( name, id );
+					if ( voie[ id ] &&
+						voie[ id ].score )
+					{
+						// for diff and bloc this will get the good value
+						// for speed and wait this will displau value
+						s += voie[ id ].score[ v ] || v || "";
+					}
+					else
+					{
+						s += v || "";
+					}
+
+					s +='</td>';
+					return ( s );
+				}
 			}
 
 			function updateUser ( user )
@@ -873,65 +941,34 @@
 
 			function updateSelector ( )
 			{
-				let genre = [];
-				let categorie = [];
-				let club = [];
 
-				for ( let i = 0; i < users.length; i++ )
+				let l = getStatus ( users );
+
+				uOneSlector ( "genre", g_genre, l.genre );
+				uOneSlector ( "age", g_categorie, l.categorie );
+				uOneSlector ( "club", g_club, l.club );
+
+				function uOneSlector ( str, selector, list )
 				{
-					if ( !categorie.includes( users[ i ].categorie ) )
+					if ( !list )
 					{
-						categorie.push ( users[ i ].categorie );
+						return "error";
 					}
 
-					if ( !genre.includes( users[ i ].genre ) )
-					{
-						genre.push ( users[ i ].genre );
+					while ( selector.options.length )
+					{ // remove all options from selector
+						selector.options.remove ( 0 );
 					}
 
-					if ( !club.includes( users[ i ].club ) )
+					// set first option to everything
+					selector.options.add ( new Option ( str, 0 ) );
+					selector.options[ 0 ].value = "all";
+
+					for ( let i = 0; i < list.length; i++ )
 					{
-						club.push ( users[ i ].club );
+						selector.options.add ( new Option ( list[ i ], i + 1 ) );
+						selector.options[ i + 1 ].value = list[ i ];
 					}
-				}
-
-				
-				while ( g_genre.options.length )
-				{
-					g_genre.options.remove ( 0 );
-				}
-				g_genre.options.add ( new Option ( "genre", 0 ) );
-				g_genre.options[ 0 ].value = "all";
-				for ( let i = 0; i < genre.length; i++ )
-				{
-					g_genre.options.add ( new Option ( genre[ i ], i + 1 ) );
-					g_genre.options[ i + 1 ].value = genre[ i ];
-				}
-
-
-				while ( g_categorie.options.length )
-				{
-					g_categorie.options.remove ( 0 );
-				}
-				g_categorie.options.add ( new Option ( "age", 0 ) );
-				g_categorie.options[ 0 ].value = "all";
-				for ( let i = 0; i < categorie.length; i++ )
-				{
-					g_categorie.options.add ( new Option ( categorie[ i ], i + 1 ) );
-					g_categorie.options[ i + 1 ].value = categorie[ i ];
-				}
-
-
-				while ( g_club.options.length )
-				{
-					g_club.options.remove ( 0 );
-				}
-				g_club.options.add ( new Option ( "Club", 0 ) );
-				g_club.options[ 0 ].value = "all";
-				for ( let i = 0; i < club.length; i++ )
-				{
-					g_club.options.add ( new Option ( club[ i ], i + 1 ) );
-					g_club.options[ i + 1 ].value = club[ i ];
 				}
 			}
 

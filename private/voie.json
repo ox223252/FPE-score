@@ -1,210 +1,35 @@
-[
-	{ "name":"bloc_vert",
-		"type":"bloc",
-		"score":{
-			"fin":10
-		},
-		"picture":["/imgs/IMG_8800.JPG"]
-	},
-	{ "name":"bloc_violet",
+{
+	"bloc_vert": {
 		"type":"bloc",
 		"score":{
 			"zone":5,
-			"fin":10
-		},
-		"picture":["/imgs/IMG_8804.2.JPG"]
+			"top":10
+		}
 	},
-	{ "name":"bloc_marbré_jaune",
+	"bloc_violet":{
+		"type":"bloc",
+		"score":{
+			"zone":5,
+			"top":10
+		}
+	},
+	"bloc_marbré_jaune":{
 		"type":"bloc",
 		"score":
 		{
 			"zone":6,
-			"fin":15
-		},
-		"picture":["/imgs/IMG_8799.JPG"]
+			"top":15
+		}
 	},
-	{ "name":"bloc_marbré_violet",
+	"bloc_marbré_violet":{
 		"type":"bloc",
 		"score":{
 			"zone":9,
-			"fin":18
-		},
-		"picture":["/imgs/IMG_8802.JPG"]
-	},
-	{ "name":"bloc_noir",
-		"type":"bloc",
-		"score":{
-			"fin":25
-		},
-		"picture":["/imgs/IMG_8804.JPG"]
-	},
-	{ "name":"bloc_jaune",
-		"type":"bloc",
-		"score":{
-			"zone":12,
-			"fin":30
-		},
-		"picture":["/imgs/IMG_8805.JPG"]
-	},
-	{ "name":"bloc_bleu",
-		"type":"bloc",
-		"score":
-		{
-			"zone":20,
-			"fin":30
-		},
-		"picture":["/imgs/IMG_8798.JPG"],
-		"comment":"rebord gauche interdit"
-	},
-	{ "name":"bloc_rouge",
-		"type":"bloc",
-		"score":{
-			"zone":20,
-			"fin":40
-		},
-		"picture":["/imgs/IMG_8801.JPG"]
-	},
-
-	{ "name":"atelier surprise",
-		"type":"endurance",
-		"score":{
-			"time":60
-		},
-		"picture":[],
-		"comment":"chaussons obligatoires, interdit de se tenir sur le dessus ou sur les parties métaliques, temps maximum 60s"
-	},
-
-	{ "name":"R4_Rouge",
-		"type":"diff",
-		"score":
-		{
-			"moul":[6,10,15,20]
-		},
-		"picture":["/imgs/IMG_8807.JPG"]
-	},
-	{ "name":"R5_verte",
-		"type":"diff",
-		"score":
-		{
-			"moul":[6,10,15,20],
-			"tete":[12,20,27,35]
-		},
-		"picture":["/imgs/IMG_8808.JPG"]
-	},
-	{ "name":"R6_rouge",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG_8808.2.JPG"]
-	},
-	{ "name":"R6_marbré_bleu",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG_8808.2.JPG"]
-	},
-	{ "name":"R7_jaune",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG_8809-jaune.JPG","/imgs/IMG_8809.JPG"]
-	},
-	{ "name":"R7_rouge",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG8809-rouge.JPG","/imgs/IMG_8809.JPG"]
-	},
-	{ "name":"R8_violet",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG_8809.2-violet.JPG","/imgs/IMG_8809.2.JPG"]
-	},
-	{ "name":"R8_vert",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG_8809.2-vert.JPG","/imgs/IMG_8809.2.JPG"]
-	},
-	{ "name":"R9_rose",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG_8809.2.JPG"]
-	},
-	{ "name":"R9_marbré_violet",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG_8809.2.JPG"]
-	},
-	{ "name":"R10_jaune",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG_8809.2.JPG"]
-	},
-	{ "name":"R10_marbré_rouge",
-		"type":"diff",
-		"score":
-		{
-			"moul":[10,15,20,25,30,40],
-			"tete":[12,20,27,35,42,50]
-		},
-		"picture":["/imgs/IMG_8809.2.JPG"]
-	},
-
-	{
-		"name":"R7_vitesse_jaune",
-		"type":"vitesse",
-		"score":
-		{
-			"time":60
+			"top":18
 		}
 	},
-	{
-		"name":"R8_vitesse_orange",
-		"type":"vitesse",
-		"score":
-		{
-			"time":60
-		}
-	},
-
-	{
-		"name":"slack",
-		"type":"slack",
-		"score":
-		{
-			"distance":25
-		}
+	"diff_A":{
+		"type":"diff",
+		"score":[8,16,24,32,40]
 	}
-]
+}

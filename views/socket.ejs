@@ -1,0 +1,45 @@
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript"> // globals vars
+			let socket = io ( );
+
+			let users = <%- JSON.stringify(users) %>;
+			let voie = <%- JSON.stringify(voie) %>;
+			let score = <%- JSON.stringify(score) %>;
+
+			let g_genre = document.getElementById ( "genre" );
+			let g_categorie = document.getElementById ( "categorie" );
+			let g_club = document.getElementById ( "club" );
+		</script>
+
+		<script type="text/javascript"> // sockets
+			socket.on ( 'scores', function ( data )
+			{
+				setScore ( data.usr, data.voie, data.points );
+
+				if ( calcTotal ) calcTotal ( ); // acceuril.html
+				if ( orderTable ) orderTable ( ); // acceuril.html
+				if ( setRank ) setRank ( ); // acceuril.html
+				if ( drawTable ) drawTable ( ); // acceuril.html
+				if ( calcAverage ) calcAverage ( ); // statistiques.html
+			});
+
+			socket.on ( 'users', function ( usr )
+			{
+				let i;
+				for ( i = 0; i < users.length; i++ )
+				{
+					if ( users[ i ].name == usr.name )
+					{
+						break;
+					}
+				}
+
+				if ( i == users.length )
+				{
+					users.push ( usr );
+				}
+
+				if ( updateSelector ) updateSelector ( ); // fullDisplay.html
+				if ( orderTable ) orderTable ( ); // acceuril.html / fullDisplay.html
+			});
+		</script>

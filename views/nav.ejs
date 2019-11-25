@@ -41,15 +41,16 @@
 					options += '>diff</option>';
 				}
 				
-				for ( var i = 0; i < voie.length; i++ )
+				let v = Object.keys(voie);
+				for ( var i = 0; i < v.length; i++ )
 				{
-					options += '<option value="'+voie[i].name+'"';
-					if ( page == voie[i].name )
+					options += '<option value="'+v[i]+'"';
+					if ( page == v[i] )
 					{
 						flagSelect = true;
 						options += ' selected';
 					}
-					options += '>' + voie[i].type + ' : ' + voie[i].name + '</option>';
+					options += '>' + voie[ v[i] ].type + ' : ' + v[i] + '</option>';
 				}
 			%>
 			<div <% if ( flagSelect ) { %> class="selected" <% } %>><select onchange="window.location.href = '/set/'+this.value;"; >

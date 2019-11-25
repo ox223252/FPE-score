@@ -324,7 +324,7 @@ app.all ( '/validate', function ( req, res )
 		{
 			if ( !score[ req.body.usr ] )
 			{ // if no score table is created for this user
-				score[ req.body.usr ] = [];
+				score[ req.body.usr ] = {};
 			}
 
 			if ( !score[ req.body.usr ][ req.body.voie ] )
