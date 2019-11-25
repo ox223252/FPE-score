@@ -299,6 +299,7 @@ app.all ( '/addUser', function ( req, res )
 				loged:req.authenticated.loged,
 				users:users,
 				voie:voie,
+				score:score,
 				mode:mode,
 				page:"addUser"
 			} );

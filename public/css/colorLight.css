@@ -31,3 +31,13 @@ nav > div.mainLinks > *.selected
 {
 	background-color: #eee;
 }
+
+.suggestion
+{
+	background: lightgrey;
+}
+
+.suggestion:hover
+{
+	background: grey;
+}

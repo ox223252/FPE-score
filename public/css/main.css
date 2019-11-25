@@ -171,3 +171,15 @@ section input[type='text'], section input[type='number'], section select
 	display:block;
 	height: auto;
 }
+
+#clubSugest
+{
+	width: 100%;
+}
+.suggestion
+{
+	width: 100%;
+	margin: 2px;
+	border-radius: 5px;
+	text-align: center;
+}

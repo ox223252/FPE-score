@@ -59,3 +59,12 @@ nav > div.mainLinks > *.selected
 	background-color: #313131;
 }
 
+.suggestion
+{
+	background: grey;
+}
+
+.suggestion:hover
+{
+	background: lightgrey;
+}

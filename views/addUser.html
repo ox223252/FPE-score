@@ -5,7 +5,9 @@
 		<% include nav %>
 		<section id="addUser">
 			<div>
-				<input id="user" type="text" placeholder="new user" onkeyup="exist(this);"/>
+				<input id="nom" type="text" placeholder="NOM" onkeyup="this.value = this.value.toUpperCase();drawNamesList();"/>
+				<input id="prenom" type="text" placeholder="Prénom" onkeyup="drawNamesList();"/>
+				<div id="availablesNames"></div>
 				<select id="categorie">
 					<option disabled selected></option>
 					<option value="microbe">microbe</option>
@@ -28,21 +30,67 @@
 				<button onclick="addUser()">Ok</button>
 			</div>
 		</section>
+		<% include default_include_js %>
 		<script type="text/javascript"> // password
+			function getName ( )
+			{
+				let nom = document.getElementById( 'nom' ).value;
+				let prenom = document.getElementById( 'prenom' ).value;
+				let str = nom;
+				if ( prenom.length )
+				{
+					str+=" ";
+				}
+				str += prenom;
+				return  prenom;
+			}
+
+			function getNamesList ( )
+			{
+				let nom = document.getElementById( 'nom' ).value;
+				let prenom = document.getElementById( 'prenom' ).value;
+
+				let list = [];
+				for ( let i = 0; i < users.length; i++ )
+				{
+					if ( nom.length &&
+						( users[i].name.indexOf (nom) >= 0 ) ||
+						prenom.length &&
+						( users[i].name.indexOf (prenom) >= 0 ) )
+					{
+						list.push ( users[i].name );
+					}
+				}
+				return list;
+			}
+
+			function drawNamesList ( )
+			{
+				let table = document.getElementById("availablesNames");
+				let str = "";
+				let list = getNamesList();
+				for ( let i=0; i < list.length; i++ )
+				{
+					str+="<div>"+list[i]+"</div>";
+				}
+				table.innerHTML = str;
+			}
+
 			function addUser ( )
 			{
-				let user = document.getElementById( 'user' );
+				let user = getName( );
 				let categorie = document.getElementById ( 'categorie' ).value;
 				let genre = document.getElementById ( 'genre' ).value;
 				let club = document.getElementById ( 'club' ).value;
 
-				if ( ( user.value == "" ) ||
+				if ( ( user == "" ) ||
 					!categorie ||
 					!genre )
 				{
-					user.style.color = "";
+					console.log("user");
 					return;
 				}
+				console.log(user);
 
 				let xhr = new XMLHttpRequest();
 
@@ -55,45 +103,19 @@
 					{
 						if ( xhr.status === 200 )
 						{
-							user.value = "";
+							document.getElementById( 'nom' ).value = "";
+							document.getElementById( 'prenom' ).value = "";
+							document.getElementById("availablesNames").innerHTML="ok";
+						}
+						else if ( xhr.status === 500 )
+						{
+							document.getElementById("availablesNames").innerHTML="utilisateur déjà dans le système";
 						}
 					}
 				});
 
 				xhr.overrideMimeType("text/plain");
-				xhr.send("name="+user.value+"&categorie="+categorie+"&genre="+genre+"&club="+club );
-			}
-
-			function exist ( user )
-			{
-				if ( user.value == "" )
-				{
-					user.style.color = "";
-					return;
-				}
-				let xhr = new XMLHttpRequest();
-
-				xhr.open('POST', '/userExist' );
-				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-				xhr.addEventListener ( 'readystatechange', function ( )
-				{
-					if ( ( xhr.readyState === XMLHttpRequest.DONE )
-						&& ( xhr.status === 200 ) )
-					{
-						if ( xhr.responseText != "exist" )
-						{
-							user.style.color = "#afa";
-						}
-						else
-						{
-							user.style.color = "#faa";
-						}
-					}
-				});
-
-				xhr.overrideMimeType("text/plain");
-				xhr.send("user="+user.value);
+				xhr.send("name="+user+"&categorie="+categorie+"&genre="+genre+"&club="+club );
 			}
 
 			function getClub ( partName, sugestId, masterId )
@@ -135,7 +157,7 @@
 
 				for ( let i = 0; i < choices.length; i++ )
 				{
-					div.innerHTML += "<div onclick=\"setValue('"+sugestId+"','"+masterId+"',this.innerHTML);\">"+choices[ i ]+"</div>";
+					div.innerHTML += "<div class='suggestion' onclick=\"setValue('"+sugestId+"','"+masterId+"',this.innerHTML);\">"+choices[ i ]+"</div>";
 				}
 			}
 		</script>
