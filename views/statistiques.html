@@ -545,49 +545,46 @@
 			function calcAverage ( TYPE = "a" )
 			{
 				average = [];
-
+				
+				let v = Object.keys( voie );
 				switch ( TYPE )
 				{
 					case "a":
 					case "autre":
 					{
-						for ( let i = 0; i < voie.length; i++ )
+						for ( let i = 0; i < v.length; i++ )
 						{
 							average[ i ] = {};
-							average[ i ].name = voie[ i ].name;
+							average[ i ].name = v[ i ];
 							average[ i ].nbTry = 0;
 							average[ i ].nbPlayerTestIt = 0;
 							average[ i ].total = 0;
 							average[ i ].success = 0;
 							average[ i ].min = undefined;
 							player = 0;
-							switch ( voie[ i ].type )
+
+							let lV = voie[ v[ i ] ];
+							switch ( lV.type )
 							{
 								case 'bloc':
 								{
-									average[ i ].max = voie[ i ].score.fin;
+									average[ i ].max = voie[ v[ i ] ].score.top;
 									break;
 								}
 								case 'diff':
 								{
-									if ( voie[ i ].score.tete )
-									{
-										average[ i ].max = voie[ i ].score.tete[ voie[ i ].score.tete.length - 1 ];
-									}
-									else
-									{
-										average[ i ].max = voie[ i ].score.moul[ voie[ i ].score.moul.length - 1 ];
-									}
+									average[ i ].max = lV.score[ lV.score.length - 1 ];
 									break;
 								}
+								case 'endurance':
 								case 'vitesse':
 								{
-									average[ i ].max = voie[ i ].score.time;
+									average[ i ].max = lV.score.time;
 									break;
 								}
 								case 'slack':
 								{
-									average[ i ].max = voie[ i ].score.distance;
+									average[ i ].max = lV.score.distance;
 									break;
 								}
 							}
@@ -601,14 +598,17 @@
 							}
 							player++;
 
-							for ( let j = 0; j < voie.length; j++ )
+							for ( let j = 0; j < v.length; j++ )
 							{
-								average[ j ].nbTry += getNbTests ( users[ i ].name, j ) | 0;
-								average[ j ].total += getScore ( users[ i ].name, j ) | 0;
-								average[ j ].nbPlayerTestIt += ( getNbTests ( users[ i ].name, j ) )? 1 : 0;;
+								let lV = voie[ v[ j ] ];
+								average[ j ].nbTry += getNbTests ( users[ i ].name, v[j] ) || 0;
+								let s = getScore ( users[ i ].name, v[j] );
+								s = lV.score[ s ] || s || 0;
+								average[ j ].total += s;
+								average[ j ].nbPlayerTestIt += ( getNbTests ( users[ i ].name, v[j] ) )? 1 : 0;;
 
-								if ( ( voie[ j ].type != 'vitesse' ) &&
-									( getScore ( users[ i ].name, j ) == parseFloat ( average[ j ].max ) ) )
+								if ( ( lV.type != 'vitesse' ) &&
+									( getScore ( users[ i ].name, v[j] ) == parseFloat ( average[ j ].max ) ) )
 								{
 									average[ j ].success++;
 								}
@@ -619,10 +619,10 @@
 					case "b":
 					case "bloc":
 					{
-						for ( let i = 0; i < voie.length; i++ )
+						for ( let i = 0; i < v.length; i++ )
 						{
 							average[ i ] = {};
-							average[ i ].name = voie[ i ].name;
+							average[ i ].name = v[ i ];
 							average[ i ].nbTry = 0;
 							average[ i ].nbPlayerTestIt = 0;
 							average[ i ].zone = 0;
@@ -639,9 +639,10 @@
 								continue;
 							}
 
-							for ( let j = 0; j < voie.length; j++ )
+							for ( let j = 0; j < v.length; j++ )
 							{
-								let result = getScore ( users[ i ].name, j );
+
+								let result = getScore ( users[ i ].name, v[j] );
 								if ( !result )
 								{
 									continue;
@@ -674,10 +675,10 @@
 					case "diff":
 					case "difficulte":
 					{
-						for ( let i = 0; i < voie.length; i++ )
+						for ( let i = 0; i < v.length; i++ )
 						{
 							average[ i ] = {};
-							average[ i ].name = voie[ i ].name;
+							average[ i ].name = v[ i ];
 							average[ i ].nbTry = 0;
 							average[ i ].nbPlayerTestIt = 0;
 							average[ i ].total = 0;
@@ -685,15 +686,7 @@
 							average[ i ].min = undefined;
 							player = 0;
 
-							if ( voie[ i ].score &&
-								voie[ i ].score.tete )
-							{
-								average[ i ].max = voie[ i ].score.tete[ voie[ i ].score.tete.length - 1 ];
-							}
-							else
-							{
-								average[ i ].max = voie[ i ].score || 0;
-							}
+							average[ i ].max = voie[ v[ i ] ].score || 0;
 						}
 
 						for ( let i = 0; i < users.length; i++ )
@@ -703,16 +696,16 @@
 								continue;
 							}
 
-							for ( let j = 0; j < voie.length; j++ )
+							for ( let j = 0; j < v.length; j++ )
 							{
-								let result = getScore ( users[ i ].name, j );
+								let result = getScore ( users[ i ].name, v[ j ] );
 								if ( !result )
 								{
 									continue;
 								}
 
 								average[ j ].nbPlayerTestIt++;
-								average[ j ].nbTry += getNbTests ( users[ i ].name, j );
+								average[ j ].nbTry += getNbTests ( users[ i ].name, v[ j ] );
 								average[ j ].total += result;
 
 								if ( result == average[ j ].max )
@@ -727,10 +720,10 @@
 					case "v":
 					case "vitesse":
 					{
-						for ( let i = 0; i < voie.length; i++ )
+						for ( let i = 0; i < v.length; i++ )
 						{
 							average[ i ] = {};
-							average[ i ].name = voie[ i ].name;
+							average[ i ].name = v[ i ];
 							average[ i ].nbTry = 0;
 							average[ i ].nbPlayerTestIt = 0;
 							average[ i ].total = 0;
@@ -748,9 +741,9 @@
 								continue;
 							}
 
-							for ( let j = 0; j < voie.length; j++ )
+							for ( let j = 0; j < v.length; j++ )
 							{
-								let result = getScore ( users[ i ].name, j );
+								let result = getScore ( users[ i ].name, v[ j ] );
 								if ( !result )
 								{
 									continue;
@@ -759,7 +752,7 @@
 								result = parseFloat ( result );
 
 								average[ j ].nbPlayerTestIt++;
-								average[ j ].nbTry += getNbTests ( users[ i ].name, j );
+								average[ j ].nbTry += getNbTests ( users[ i ].name, v[ j ] );
 								average[ j ].total += result;
 
 								if ( average[ j ].max < result )

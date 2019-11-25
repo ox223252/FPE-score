@@ -41,15 +41,10 @@
 		<script src="/socket.io/socket.io.js"></script>
 		<% include socket %>
 		<script type="text/javascript"> // globals vars
-			let g_genre = document.getElementById ( "genre" );
-			let g_categorie = document.getElementById ( "categorie" );
-			let g_club = document.getElementById ( "club" );
-
 			let resultDisplay = document.getElementById ( "results" );
 		</script>
 		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript">
-
 			function drawTable ( )
 			{
 				resultDisplay.innerHTML = "";
@@ -61,9 +56,10 @@
 			{
 				let nbVoie = 0;
 
-				for ( let i = 0; i < voie.length; i++ )
+				let v = Object.keys( voie );
+				for ( let i = 0; i < v.length; i++ )
 				{
-					if ( voie[ i ].type == TYPE )
+					if ( voie[ v[i] ].type == TYPE )
 					{
 						nbVoie++;
 					}
@@ -98,9 +94,9 @@
 
 					str += "<tr><td rowspan=" + (nbVoie + 1) + ">" + users[ i ].name + "</td></tr>";
 
-					for ( j = 0; j < voie.length; j++ )
+					for ( j = 0; j < v.length; j++ )
 					{
-						if ( voie[ j ].type != TYPE )
+						if ( voie[ v[j] ].type != TYPE )
 						{
 							continue;
 						}
@@ -108,14 +104,28 @@
 
 						str += "<tr>";
 
-						str +=  "<td>" + voie[ j ].name + "</td>"
+						str +=  "<td>" + v[j] + "</td>"
 
 						if ( score[ users[ i ].name ] && 
-							score[ users[ i ].name ][ j ] )
+							score[ users[ i ].name ][ v[j] ] )
 						{
-							for ( k = 0; k  < score[ users[ i ].name ][ j ].length; k++ )
+							let lS = getScore ( users[ i ].name, v[ j ] );
+
+							for ( k = 0; k  < score[ users[ i ].name ][ v[j] ].length; k++ )
 							{
-								str += "<td>" + score[ users[ i ].name ][ j ][ k ] + "</td>";
+								let s = score[ users[ i ].name ][ v[j] ][ k ];
+
+								str += "<td";
+								if ( lS == s )
+								{
+									str += " class='hightlight'";
+								}
+								str += ">" + voie[ v[j] ].score[ s ];
+								if ( voie[ v[j] ].score[ s ] )
+								{
+									str += " (" + s + ")";
+								}
+								str += "</td>";
 							}
 						}
 
