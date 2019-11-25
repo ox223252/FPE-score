@@ -30,12 +30,8 @@
 		</div>
 		<script type="text/javascript" src="/js/chartjs.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
+		<% include socket %>
 		<script type="text/javascript"> // globals vars
-			let socket = io ( );
-			let users = <%- JSON.stringify(users) %>;
-			let voie = <%- JSON.stringify(voie) %>;
-			let score = <%- JSON.stringify(score) %>;
-
 			var config = {
 				"try" : {
 					type: 'bar',
@@ -175,31 +171,6 @@
 			let chartjs = {};
 			let clubList = [];
 			let clubs = {};
-		</script>
-		<script type="text/javascript"> // sockets
-			socket.on ( 'scores', function ( data )
-			{
-				setScore ( data.usr, data.voie, data.points );
-
-				calcAverage ( );
-			});
-
-			socket.on ( 'users', function ( usr )
-			{
-				let i;
-				for ( i = 0; i < users.length; i++ )
-				{
-					if ( users[ i ].name == usr.name )
-					{
-						break;
-					}
-				}
-
-				if ( i == users.length )
-				{
-					users.push ( usr );
-				}
-			});
 		</script>
 		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript"> // graph
