@@ -1,5 +1,11 @@
 const blocOrder = [ "echec", "zone", "top" ];
 
+function calcTotal(){};
+function orderTable(){};
+function setRank(){};
+function drawTable(){};
+function calcAverage(){};
+
 function setScore ( name, way, value, num )
 {
 	if ( !name ||
@@ -71,16 +77,17 @@ function getNbTop ( name )
 	}
 
 	let top = 0;
-	for ( let i = 0; i < voie.length; i++ )
+	let v = Object.kes( voie );
+	for ( let i = 0; i < v.length; i++ )
 	{
-		if ( !score[ name ][ i ] )
+		if ( !score[ name ][ v[i] ] )
 		{
 			continue;
 		}
 
-		for ( let j = 0; j < score[ name ][ i ].length; j++ )
+		for ( let j = 0; j < score[ name ][ v[i] ].length; j++ )
 		{
-			if ( score[ name ][ i ][ j ] == 'top' )
+			if ( score[ name ][ v[i] ][ j ] == 'top' )
 			{
 				top++;
 				break; // si un top à été compté dans une voie on passe à la suivante
@@ -99,18 +106,20 @@ function getNbEssaisTop ( name )
 	}
 
 	let essai = 0;
-	for ( let i = 0; i < voie.length; i++ )
+	let v = Object.kes( voie );
+	for ( let i = 0; i < v.length; i++ )
 	{
-		if ( !score[ name ][ i ] )
+		if ( !score[ name ][ v[i] ] )
 		{
 			continue;
 		}
 
 		let tmp = 0;
-		for ( let j = 0; j < score[ name ][ i ].length; j++ )
+		let v = Object.kes( voie );
+		for ( let j = 0; j < score[ name ][ v[i] ].length; j++ )
 		{
 			tmp++;
-			if ( score[ name ][ i ][ j ] == 'top' )
+			if ( score[ name ][ v[i] ][ j ] == 'top' )
 			{
 				essai += tmp;
 				break; // si un top à été compté dans une voie on passe à la suivante
@@ -129,16 +138,17 @@ function getNbZone ( name )
 	}
 
 	let zone = 0;
-	for ( let i = 0; i < voie.length; i++ )
+	let v = Object.kes( voie );
+	for ( let i = 0; i < v.length; i++ )
 	{
-		if ( !score[ name ][ i ] )
+		if ( !score[ name ][ v[i] ] )
 		{
 			continue;
 		}
-		for ( let j = 0; j < score[ name ][ i ].length; j++ )
+		for ( let j = 0; j < score[ name ][ v[i] ].length; j++ )
 		{
-			if ( ( score[ name ][ i ][ j ] == 'top' ) ||
-				( score[ name ][ i ][ j ] == 'zone' ) )
+			if ( ( score[ name ][ v[i] ][ j ] == 'top' ) ||
+				( score[ name ][ v[i] ][ j ] == 'zone' ) )
 			{
 				zone++;
 				break;
@@ -157,19 +167,20 @@ function getNbEssaisZone ( name )
 	}
 
 	let essai = 0;
-	for ( let i = 0; i < voie.length; i++ )
+	let v = Object.kes( voie );
+	for ( let i = 0; i < v.length; i++ )
 	{
-		if ( !score[ name ][ i ] )
+		if ( !score[ name ][ v[i] ] )
 		{
 			continue;
 		}
 
 		let tmp = 0;
-		for ( let j = 0; j < score[ name ][ i ].length; j++ )
+		for ( let j = 0; j < score[ name ][ v[i] ].length; j++ )
 		{
 			tmp++;
-			if ( ( score[ name ][ i ][ j ] == 'top' ) ||
-				( score[ name ][ i ][ j ] == 'zone' ) )
+			if ( ( score[ name ][ v[i] ][ j ] == 'top' ) ||
+				( score[ name ][ v[i] ][ j ] == 'zone' ) )
 			{
 				essai += tmp;
 				break;
