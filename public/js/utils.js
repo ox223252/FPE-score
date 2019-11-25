@@ -1,11 +1,5 @@
 const blocOrder = [ "echec", "zone", "top" ];
 
-function calcTotal(){};
-function orderTable(){};
-function setRank(){};
-function drawTable(){};
-function calcAverage(){};
-
 function setScore ( name, way, value, num )
 {
 	if ( !name ||
@@ -231,4 +225,40 @@ function getStatus ( u = [] )
 	}
 
 	return { categorie:c, genre:g, club:cl };
+}
+
+function getUsersNamesList ( u, cat, genre, club )
+{
+	let o = [];
+	for ( let i = 0; i < u.length; i++ )
+	{
+		if ( cat &&
+			cat != "all" &&
+			u[ i ].categorie != cat )
+		{
+			continue;
+		}
+
+		if ( genre &&
+			genre != "all" &&
+			u[ i ].genre != genre )
+		{
+			continue;
+		}
+
+		if ( club &&
+			club != "all" &&
+			u[ i ].club != club )
+		{
+			continue;
+		}
+
+		o.push( u[ i ].name );
+	}
+
+	o.sort(function (a, b) {
+		return a.toLowerCase().localeCompare(b.toLowerCase());
+	});
+
+	return ( o );
 }

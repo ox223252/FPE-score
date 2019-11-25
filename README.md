@@ -3,6 +3,9 @@
 
 ## ![flag](res/fr.jpg) [Documentation](https://github.com/ox223252/FPE-score/wiki) :
 
+## Warning:
+last version configuration not compatible with v1.0 configuration
+
 ## TODO :
  - [x] ajout dynamique des participants
  - [x] ajout des résultats pour une voie
@@ -29,3 +32,4 @@
  - [ ] modifier le CSS, pour le rendre cohérent
  - [ ] retravailler le *HTML* pour le rendre cohérent
  - [ ] ajouter un mode pour avoir le start/stop des voies de vitesse automatique
+ - [x] ordonnancement des joueurs par ordre alphabétique dans les listes déroulantes

@@ -49,6 +49,7 @@
 			<p id="serverMsg">
 			</p>
 		</section>
+		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript">
 			let current = "<%- page %>";
 
@@ -76,23 +77,12 @@
 				select.options[ 0 ].selected = true;
 				select.options[ 0 ].disabled = true;
 
-				for ( let i = 0, k = 1; i < users.length; i++ )
+				let list = getUsersNamesList ( users, categorie, genre );
+
+				for ( let i = 0; i < list.length; i++ )
 				{
-					if ( ( genre != "all" ) &&
-						(  users[ i ].genre != genre ) )
-					{
-						continue;
-					}
-
-					if ( ( categorie != "all" ) &&
-						(  users[ i ].categorie != categorie ) )
-					{
-						continue;
-					}
-
-					select.options.add ( new Option ( users[ i ].name, k ) );
-					select.options[ k ].value = users[ i ].name;
-					k++;
+					select.options.add ( new Option ( list[ i ], i+1 ) );
+					select.options[ i+1 ].value = list[ i ];
 				}
 			}
 

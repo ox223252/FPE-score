@@ -12,6 +12,12 @@
 		</script>
 
 		<script type="text/javascript"> // sockets
+			function calcTotal(){};
+			function orderTable(){};
+			function setRank(){};
+			function drawTable(){};
+			function calcAverage(){};
+
 			socket.on ( 'scores', function ( data )
 			{
 				setScore ( data.usr, data.voie, data.points );
