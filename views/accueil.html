@@ -327,7 +327,8 @@
 			function calcTotal ( id = "total", mode = g_mode )
 			{ // get data to calculate average and globals metrics
 				// init average struct
-				for ( let i = 0; i < voie.length; i++ )
+				let v = Object.keys( voie );
+				for ( let i = 0; i < v.length; i++ )
 				{
 					average.all[ i ] = 0;
 					average.tryed[ i ] = 0;
@@ -344,20 +345,104 @@
 					case "a":
 					case "autre":
 					{ // for non offical contest mode
-						calcAutre ( users, voie, score );
+						for ( let i = 0; i < users.length; i++ )
+						{
+							if ( !score[ users[ i ].name ] )
+							{ // if no score for some user, treat the next
+								continue;
+							}
+
+							let somme = 0;
+
+							for ( let j = 0; j < v.length; j++ )
+							{
+								let l_voie = voie[ v[ j ] ];
+
+								let value = getScore( users[ i ].name, v[ j ] );
+								value = l_voie.score[ value ] || value;
+								if ( isNaN( value ) )
+								{
+									console.log( "error : value should be a number, verify config for "+l_voie );
+									return;
+								}
+
+								if ( !average.all[ v[ j ] ]  )
+								{
+									average.all[ v[ j ] ] = 0;
+								}
+
+								if ( !average.tryed[ v[ j ] ]  )
+								{
+									average.tryed[ v[ j ] ] = 0;
+								}
+
+
+								if ( !value )
+								{ // la voie n'a pas été faite
+									continue;
+								}
+
+								switch ( l_voie.type )
+								{
+									case "vitesse":
+									{
+										let tmp = ( l_voie.score.time - value );
+										somme += ( tmp < 0 )? 0: tmp;
+
+										average.all[ v[ j ] ] += tmp; // totalise points for all users
+										if ( value )
+										{
+											average.tryed[ v[ j ] ]++;
+										}
+										break;
+									}
+									case "endurance":
+									{
+										if ( l_voie.score.time )
+										{
+											somme += Math.min ( l_voie.score.time, value );
+										}
+										else
+										{
+											somme += value;
+										}
+
+										// TODO
+										average.all[ v[ j ] ] += tmp; // totalise points for all users
+										if ( value )
+										{
+											average.tryed[ v[ j ] ]++;
+										}
+										break;
+									}
+									case "manual":
+									default:
+									{
+										somme += value || 0;
+										average.all[ v[ j ] ] += value || 0;
+
+										if ( value )
+										{
+											average.tryed[ v[ j ] ]++;
+										}
+
+										break;
+									}
+								}
+							}
+
+							if ( score[ users[ i ].name ] )
+							{
+								average.player++;
+							}
+
+							setScore( users[ i ].name, "total", somme, 0 );
+						}
 						break;
 					}
 					case "b":
 					case "bloc":
 					{
-						let l = voie.length.toString( ).length;
-						divider = 1;
-
-						while ( l-- )
-						{
-							divider *= 10;
-						}
-
 						for ( let i = 0; i < users.length; i++ )
 						{
 							if ( !score[ users[ i ].name ] )
@@ -370,15 +455,15 @@
 							let zone = getNbZone ( users[ i ].name );
 							let nbTestZone = getNbEssaisZone ( users[ i ].name );
 
-							setScore( users[ i ].name, topId, top );
-							setScore( users[ i ].name, testTopId, nbTestTop );
+							setScore( users[ i ].name, "top", top );
+							setScore( users[ i ].name, "testTop", nbTestTop );
 
-							setScore( users[ i ].name, zoneId, zone );
-							setScore( users[ i ].name, testZoneId, nbTestZone );
+							setScore( users[ i ].name, "zone", zone );
+							setScore( users[ i ].name, "testZone", nbTestZone );
 
-							for ( let j = 0; j < voie.length; j++ )
+							for ( let j = 0; j < v.length; j++ )
 							{
-								average.tryed[ j ] += getNbTests ( users[ i ].name, j );
+								average.tryed[ j ] += getNbTests ( users[ i ].name, v[j] );
 								average.all[ j ] += top;
 							}
 
@@ -471,104 +556,6 @@
 					}
 				}
 
-				function calcAutre ( l_users, l_voies, l_scores )
-				{
-					for ( let i = 0; i < l_users.length; i++ )
-					{
-						if ( !l_scores[ l_users[ i ].name ] )
-						{ // if no score for some user, treat the next
-							continue;
-						}
-
-						let somme = 0;
-
-						let v = Object.keys( voie );
-
-						for ( let j = 0; j < v.length; j++ )
-						{
-							let l_voie = l_voies[ v[ j ] ];
-
-							let value = getScore( users[ i ].name, v[ j ] );
-							value = l_voie.score[ value ] || value;
-							if ( isNaN( value ) )
-							{
-								console.log( "error : value should be a number, verify config for "+l_voie );
-								return;
-							}
-
-							if ( !average.all[ v[ j ] ]  )
-							{
-								average.all[ v[ j ] ] = 0;
-							}
-
-							if ( !average.tryed[ v[ j ] ]  )
-							{
-								average.tryed[ v[ j ] ] = 0;
-							}
-
-
-							if ( !value )
-							{ // la voie n'a pas été faite
-								continue;
-							}
-
-							switch ( l_voie.type )
-							{
-								case "vitesse":
-								{
-									let tmp = ( l_voie.score.time - value );
-									somme += ( tmp < 0 )? 0: tmp;
-
-									average.all[ v[ j ] ] += tmp; // totalise points for all users
-									if ( value )
-									{
-										average.tryed[ v[ j ] ]++;
-									}
-									break;
-								}
-								case "endurance":
-								{
-									if ( l_voie.score.time )
-									{
-										somme += Math.min ( l_voie.score.time, value );
-									}
-									else
-									{
-										somme += value;
-									}
-
-									// TODO
-									average.all[ v[ j ] ] += tmp; // totalise points for all users
-									if ( value )
-									{
-										average.tryed[ v[ j ] ]++;
-									}
-									break;
-								}
-								case "manual":
-								default:
-								{
-									somme += value || 0;
-									average.all[ v[ j ] ] += value || 0;
-
-									if ( value )
-									{
-										average.tryed[ v[ j ] ]++;
-									}
-
-									break;
-								}
-							}
-						}
-
-						if ( score[ users[ i ].name ] )
-						{
-							average.player++;
-						}
-
-						setScore( users[ i ].name, "total", somme, 0 );
-					}
-				}
 			}
 
 			function dropDownUser ( id = "total" )
@@ -631,7 +618,42 @@
 						}
 						else
 						{
-							orderAutre ( );
+							for ( let i = 0; i < users.length - 1; i++ )
+							{
+								if ( !score[ users[ i ].name ] )
+								{
+									break;
+								}
+
+								let value_I = getScore( users[ i ].name, id );
+
+								if ( isNaN ( value_I ) )
+								{
+									value_I = voie[ id ].score[ value_I ];
+								}
+
+								for ( let j = i+1; j < users.length; j++ )
+								{
+									let value_J = getScore( users[ j ].name, id );
+									if ( !value_J )
+									{
+										break;
+									}
+
+									if ( isNaN ( value_J ) )
+									{
+										value_J = voie[ id ].score[ value_J ];
+									}
+
+									if ( !value_I || 
+										( value_I < value_J ) )
+									{
+										let tmp = users[ i ];
+										users[ i ] = users[ j ];
+										users[ j ] = tmp;
+									}
+								}
+							}
 						}
 						break;
 					}
@@ -649,21 +671,31 @@
 									break;
 								}
 
-								if ( ( getNbTop ( users[ i ].name ) < getNbTop ( users[ i + 1 ].name ) ) ||
-									( 
-										( getNbTop ( users[ i ].name ) == getNbTop ( users[ i + 1 ].name ) ) &&
-										( getNbEssaisTop ( users[ i ].name ) > getNbEssaisTop ( users[ i + 1 ].name ) ) 
-									) ||
-									(
-										( getNbTop ( users[ i ].name ) == getNbTop ( users[ i + 1 ].name ) ) &&
-										( getNbEssaisTop ( users[ i ].name ) == getNbEssaisTop ( users[ i + 1 ].name ) ) &&
-										( getNbZone ( users[ i ].name ) < getNbZone ( users[ i + 1 ].name ) )
-									) ||
-									(
-										( getNbTop ( users[ i ].name ) == getNbTop ( users[ i + 1 ].name ) ) &&
-										( getNbEssaisTop ( users[ i ].name ) == getNbEssaisTop ( users[ i + 1 ].name ) ) &&
-										( getNbZone ( users[ i ].name ) == getNbZone ( users[ i + 1 ].name ) ) &&
-										( getNbEssaisZone ( users[ i ].name ) < getNbEssaisZone ( users[ i + 1 ].name ) )
+								let top_I = getNbTop ( users[ i ].name );
+								let top_J = getNbTop ( users[ i + 1 ].name );
+
+								let essaiTop_I = getNbEssaisTop ( users[ i ].name );
+								let essaiTop_J = getNbEssaisTop ( users[ i + 1 ].name );
+
+								let zone_I = getNbZone ( users[ i ].name );
+								let zone_J = getNbZone ( users[ i + 1 ].name );
+
+								let essaiZone_I = getNbZone ( users[ i ].name );
+								let essaiZone_J = getNbZone ( users[ i + 1 ].name );
+
+								if ( ( top_I < top_J 
+									) || ( 
+										( top_I == top_J ) &&
+										( essaiTop_I > essaiTop_J ) 
+									) || (
+										( top_I == top_J ) &&
+										( essaiTop_I == essaiTop_J ) &&
+										( zone_I < zone_J )
+									) || (
+										( top_I == top_J ) &&
+										( essaiTop_I == essaiTop_J ) &&
+										( zone_I == zone_J ) &&
+										( essaiZone_I < essaiZone_J )
 									) )
 								{
 									change = true;
@@ -675,11 +707,6 @@
 							}
 						}
 						while ( change );
-
-						if ( id < voie.length )
-						{
-							dropDownUser ( id );
-						}
 						break;
 					}
 					case "d":
@@ -756,46 +783,6 @@
 					}
 				}
 
-				function orderAutre ( )
-				{
-					for ( let i = 0; i < users.length - 1; i++ )
-					{
-						if ( !score[ users[ i ].name ] )
-						{
-							break;
-						}
-
-						let value_I = getScore( users[ i ].name, id );
-
-						if ( isNaN ( value_I ) )
-						{
-							value_I = voie[ id ].score[ value_I ];
-						}
-
-						for ( let j = i+1; j < users.length; j++ )
-						{
-							let value_J = getScore( users[ j ].name, id );
-							if ( !value_J )
-							{
-								break;
-							}
-
-							if ( isNaN ( value_J ) )
-							{
-								value_J = voie[ id ].score[ value_J ];
-							}
-
-							if ( !value_I || 
-								( value_I < value_J ) )
-							{
-								let tmp = users[ i ];
-								users[ i ] = users[ j ];
-								users[ j ] = tmp;
-							}
-						}
-					}
-				}
-
 				setRank ( id );
 			}
 
@@ -848,7 +835,19 @@
 				let v = Object.keys( voie );
 				for ( let j = 0; j < v.length; j++ )
 				{
-					str += '<td onclick="orderTable(\''+v[ j ]+'\');drawTable(\''+v[ j ]+'\');">'+v[ j ]+'</td>';
+					if ( !printThisValue( voie[ v[j] ].type ) )
+					{
+						continue;
+					}
+
+					if ( g_mode != 'b' && g_mode != 'bloc' )
+					{
+						str += '<td onclick="orderTable(\''+v[ j ]+'\');drawTable(\''+v[ j ]+'\');">'+v[ j ]+'</td>';
+					}
+					else
+					{
+						str += '<td>'+v[ j ]+'</td>';
+					}
 				}
 				str += '<td onclick="orderTable(\'total\');drawTable();">Total</td>';
 				str += '<td onclick="orderTable(\'total\');drawTable();">rank</td>';
@@ -896,6 +895,10 @@
 					// score
 					for ( let j = 0; j < v.length; j++ )
 					{
+						if ( !printThisValue( voie[ v[j] ].type ) )
+						{
+							continue;
+						}
 						str += getTrack ( users[ i ].name, v[ j ], id );
 					}
 					str += getTrack ( users[ i ].name, "total", id );
@@ -921,7 +924,8 @@
 					}
 					
 					let v = getScore( name, id );
-					if ( voie[ id ] &&
+					if ( g_mode != "b" && g_mode != "bloc" &&
+						voie[ id ] &&
 						voie[ id ].score )
 					{
 						// for diff and bloc this will get the good value
@@ -935,6 +939,19 @@
 
 					s +='</td>';
 					return ( s );
+				}
+
+				function printThisValue ( type )
+				{
+					if ( ( g_mode == "b" || g_mode == "bloc" ) && type != "bloc" )
+					{
+						return false;
+					}
+					if ( ( g_mode == "d" || g_mode == "diff" || g_mode == "difficulte" ) && type != "diff" )
+					{
+						return false;
+					}
+					return true;
 				}
 			}
 

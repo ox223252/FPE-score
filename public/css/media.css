@@ -6,11 +6,11 @@ nav > input, nav > label
 
 @media (max-width: 480px)
 { /* change size for smallest mobiles devices */
-	a, select, input[type=text], input[type=password], input[type=number], button
+	a, select, input[type=text], input[type=password], input[type=number], button,  .suggestion
 	{
 		font-size: 1.5em;
 	}
-	#chronoStart, #chronoStop, #validate
+	#chronoStart, #chronoStop, #validate,
 	{
 		margin: 5px;
 		font-size: 2em;
@@ -19,11 +19,11 @@ nav > input, nav > label
 
 @media (min-width: 481px) and (max-width: 1280px)
 { /* change size for other mobiles devices */
-	a, select, input[type=text], input[type=password], input[type=number], button
+	a, select, input[type=text], input[type=password], input[type=number], button,  .suggestion
 	{
 		font-size: 1.2em;
 	}
-	#chronoStart, #chronoStop, #validate
+	#chronoStart, #chronoStop, #validate,
 	{
 		margin: 5px;
 		font-size: 2em;

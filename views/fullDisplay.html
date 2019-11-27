@@ -54,7 +54,44 @@
 			{
 				resultDisplay.innerHTML = "";
 
-				[ "bloc", "diff", "vitesse", "slack", "endurance" ].forEach ( ( item ) => drawPart ( item ) );
+
+				<% switch ( mode )
+				{ 
+					case "a":
+					case "autre":
+					{
+					%>
+						let  type = [ "bloc", "diff", "vitesse", "slack", "endurance" ];
+					<%
+						break;
+					}
+					case "b":
+					case "bloc":
+					{
+					%>
+						let  type = [ "bloc" ];
+					<%
+						break;
+					}
+					case "d":
+					case "diff":
+					case "diffculte":
+					{
+					%>
+						let  type = [ "diff" ];
+					<%
+						break;
+					}
+					case "v":
+					case "vitesse":
+					{
+					%>
+						let  type = [ "vitesse" ];
+					<%
+						break;
+					}
+				} %>
+				type.forEach ( ( item ) => drawPart ( item ) );
 			}
 
 			function drawPart ( TYPE )
@@ -114,21 +151,28 @@
 						if ( score[ users[ i ].name ] && 
 							score[ users[ i ].name ][ v[j] ] )
 						{
-							let lS = getScore ( users[ i ].name, v[ j ] );
+							let max = getScore ( users[ i ].name, v[ j ] );
 
 							for ( k = 0; k  < score[ users[ i ].name ][ v[j] ].length; k++ )
 							{
 								let s = score[ users[ i ].name ][ v[j] ][ k ];
 
 								str += "<td";
-								if ( lS == s )
+								if ( max == s )
 								{
 									str += " class='hightlight'";
 								}
-								str += ">" + voie[ v[j] ].score[ s ];
+								str += ">"
+
+								<% if ( mode != "b" && mode != "bloc" ) { %>
 								if ( voie[ v[j] ].score[ s ] )
 								{
-									str += " (" + s + ")";
+									str += voie[ v[j] ].score[ s ] + " (" + s + ")";
+								}
+								else 
+								<% } %>
+								{ 
+									str += s;
 								}
 								str += "</td>";
 							}

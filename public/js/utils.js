@@ -71,14 +71,14 @@ function getNbTop ( name )
 	}
 
 	let top = 0;
-	let v = Object.kes( voie );
+	let v = Object.keys( voie );
 	for ( let i = 0; i < v.length; i++ )
 	{
-		if ( !score[ name ][ v[i] ] )
+		if ( !score[ name ] ||
+			!score[ name ][ v[i] ] )
 		{
 			continue;
 		}
-
 		for ( let j = 0; j < score[ name ][ v[i] ].length; j++ )
 		{
 			if ( score[ name ][ v[i] ][ j ] == 'top' )
@@ -100,16 +100,15 @@ function getNbEssaisTop ( name )
 	}
 
 	let essai = 0;
-	let v = Object.kes( voie );
+	let v = Object.keys( voie );
 	for ( let i = 0; i < v.length; i++ )
 	{
-		if ( !score[ name ][ v[i] ] )
+		if ( !score[ name ] ||
+			!score[ name ][ v[i] ] )
 		{
 			continue;
 		}
-
 		let tmp = 0;
-		let v = Object.kes( voie );
 		for ( let j = 0; j < score[ name ][ v[i] ].length; j++ )
 		{
 			tmp++;
@@ -132,10 +131,11 @@ function getNbZone ( name )
 	}
 
 	let zone = 0;
-	let v = Object.kes( voie );
+	let v = Object.keys( voie );
 	for ( let i = 0; i < v.length; i++ )
 	{
-		if ( !score[ name ][ v[i] ] )
+		if ( !score[ name ] ||
+			!score[ name ][ v[i] ] )
 		{
 			continue;
 		}
@@ -161,14 +161,14 @@ function getNbEssaisZone ( name )
 	}
 
 	let essai = 0;
-	let v = Object.kes( voie );
+	let v = Object.keys( voie );
 	for ( let i = 0; i < v.length; i++ )
 	{
-		if ( !score[ name ][ v[i] ] )
+		if ( !score[ name ] ||
+			!score[ name ][ v[i] ] )
 		{
 			continue;
 		}
-
 		let tmp = 0;
 		for ( let j = 0; j < score[ name ][ v[i] ].length; j++ )
 		{
