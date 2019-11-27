@@ -366,7 +366,7 @@
 
 					config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,0,0,0.7)", borderColor: "rgba(255,0,0,0.7)", data: [ clubs[ clubList[ i ] ].microbe ], label: "microbe" });
 					config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,30,0,0.7)", borderColor: "rgba(255,30,0,0.7)", data: [ clubs[ clubList[ i ] ].poussin ], label: "poussin" });
-					config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,60,0,0.7)", borderColor: "rgba(255,60,0,0.7)", data: [ clubs[ clubList[ i ] ].bejamin ], label: "bejamin" });
+					config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,60,0,0.7)", borderColor: "rgba(255,60,0,0.7)", data: [ clubs[ clubList[ i ] ].benjamin ], label: "benjamin" });
 					config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,90,0,0.7)", borderColor: "rgba(255,90,0,0.7)", data: [ clubs[ clubList[ i ] ].minime ], label: "minime" });
 					config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,120,0,0.7)", borderColor: "rgba(255,120,0,0.7)", data: [ clubs[ clubList[ i ] ].cadet ], label: "cadet" });
 					config[ 'club_' + clubList[ i ] ].data.datasets.push ({ backgroundColor: "rgba(255,150,0,0.7)", borderColor: "rgba(255,150,0,0.7)", data: [ clubs[ clubList[ i ] ].senior ], label: "senior" });
@@ -487,7 +487,7 @@
 						clubs[ users[ i ].club ] = {};
 						clubs[ users[ i ].club ].microbe = 0;
 						clubs[ users[ i ].club ].poussin = 0;
-						clubs[ users[ i ].club ].bejamin = 0;
+						clubs[ users[ i ].club ].benjamin = 0;
 						clubs[ users[ i ].club ].minime = 0;
 						clubs[ users[ i ].club ].cadet = 0;
 						clubs[ users[ i ].club ].senior = 0;
@@ -503,9 +503,9 @@
 
 					for ( let j = 0; j < voie.length; j++ )
 					{
-						clubs[ users[ i ].club ].nbTry += getNbTests ( users[ i ].name, j ) | 0;
+						clubs[ users[ i ].club ].nbTry += getNbTests ( users[ i ].name, j ) || 0;
 
-						if ( average[ j ].max == getScore ( users[ i ].name, j ) | 0 )
+						if ( average[ j ].max == getScore ( users[ i ].name, j ) || 0 )
 						{
 							clubs[ users[ i ].club ].win++;;
 						}
@@ -515,7 +515,7 @@
 				clubs[ 'tous' ] = {};
 				clubs[ 'tous' ].microbe = 0;
 				clubs[ 'tous' ].poussin = 0;
-				clubs[ 'tous' ].bejamin = 0;
+				clubs[ 'tous' ].benjamin = 0;
 				clubs[ 'tous' ].minime = 0;
 				clubs[ 'tous' ].cadet = 0;
 				clubs[ 'tous' ].senior = 0;
@@ -529,7 +529,7 @@
 				{
 					clubs[ 'tous' ].microbe += clubs[ clubList[ i ] ].microbe;
 					clubs[ 'tous' ].poussin += clubs[ clubList[ i ] ].poussin;
-					clubs[ 'tous' ].bejamin += clubs[ clubList[ i ] ].bejamin;
+					clubs[ 'tous' ].benjamin += clubs[ clubList[ i ] ].benjamin;
 					clubs[ 'tous' ].minime += clubs[ clubList[ i ] ].minime;
 					clubs[ 'tous' ].cadet += clubs[ clubList[ i ] ].cadet;
 					clubs[ 'tous' ].senior += clubs[ clubList[ i ] ].senior;
@@ -600,14 +600,16 @@
 							for ( let j = 0; j < v.length; j++ )
 							{
 								let lV = voie[ v[ j ] ];
-								average[ j ].nbTry += getNbTests ( users[ i ].name, v[j] ) || 0;
+								let t = getNbTests ( users[ i ].name, v[j] ) || 0;
 								let s = getScore ( users[ i ].name, v[j] );
 								s = lV.score[ s ] || s || 0;
-								average[ j ].total += s;
-								average[ j ].nbPlayerTestIt += ( getNbTests ( users[ i ].name, v[j] ) )? 1 : 0;;
+
+								average[ j ].total += Number( s );
+								average[ j ].nbTry += t;
+								average[ j ].nbPlayerTestIt += ( t )? 1 : 0;
 
 								if ( ( lV.type != 'vitesse' ) &&
-									( getScore ( users[ i ].name, v[j] ) == parseFloat ( average[ j ].max ) ) )
+									( s == parseFloat ( average[ j ].max ) ) )
 								{
 									average[ j ].success++;
 								}
@@ -701,6 +703,12 @@
 								if ( !result )
 								{
 									continue;
+								}
+								result = Number ( result );
+
+								if ( result > average[ i ].max )
+								{
+									average[ i ].max = result;
 								}
 
 								average[ j ].nbPlayerTestIt++;

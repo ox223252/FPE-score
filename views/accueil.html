@@ -359,10 +359,18 @@
 								let l_voie = voie[ v[ j ] ];
 
 								let value = getScore( users[ i ].name, v[ j ] );
-								value = l_voie.score[ value ] || value;
+								if ( value == "echec" )
+								{
+									value = 0;
+								}
+								else
+								{
+									value = l_voie.score[ value ] || value;
+								}
 								if ( isNaN( value ) )
 								{
-									console.log( "error : value should be a number, verify config for "+l_voie );
+									console.log( "error : value should be a number, verify config for "+v[ j ] );
+									console.log( value );
 									return;
 								}
 
@@ -387,9 +395,10 @@
 									case "vitesse":
 									{
 										let tmp = ( l_voie.score.time - value );
-										somme += ( tmp < 0 )? 0: tmp;
+										tmp = ( tmp < 0 )? 0: tmp;
+										somme += Number( tmp );
 
-										average.all[ v[ j ] ] += tmp; // totalise points for all users
+										average.all[ v[ j ] ] += Number( tmp ); // totalise points for all users
 										if ( value )
 										{
 											average.tryed[ v[ j ] ]++;
@@ -398,17 +407,19 @@
 									}
 									case "endurance":
 									{
+										let tmp = 0;
 										if ( l_voie.score.time )
 										{
-											somme += Math.min ( l_voie.score.time, value );
+											tmp = Math.min ( l_voie.score.time, value )
 										}
 										else
 										{
-											somme += value;
+											tmp = value;
 										}
+										somme += Number( tmp );
 
 										// TODO
-										average.all[ v[ j ] ] += tmp; // totalise points for all users
+										average.all[ v[ j ] ] += Number( tmp ); // totalise points for all users
 										if ( value )
 										{
 											average.tryed[ v[ j ] ]++;
@@ -418,8 +429,8 @@
 									case "manual":
 									default:
 									{
-										somme += value || 0;
-										average.all[ v[ j ] ] += value || 0;
+										somme += Number( value || 0 );
+										average.all[ v[ j ] ] += Number( value || 0 );
 
 										if ( value )
 										{
@@ -450,6 +461,7 @@
 								continue;
 							}
 
+							// get the four value needed to calc bloc rank
 							let top = getNbTop ( users[ i ].name );
 							let nbTestTop = getNbEssaisTop ( users[ i ].name );
 							let zone = getNbZone ( users[ i ].name );
@@ -463,6 +475,10 @@
 
 							for ( let j = 0; j < v.length; j++ )
 							{
+								if ( voie[ v[j] ].type != "bloc" )
+								{
+									continue;
+								}
 								average.tryed[ j ] += getNbTests ( users[ i ].name, v[j] );
 								average.all[ j ] += top;
 							}
@@ -484,35 +500,41 @@
 					{
 						let qRank = {};
 
-						for ( track = 0; track < voie.length; track++ )
+						// init local rank
+						for ( i = 0; i < users.length; i++ )
 						{
-							orderTable ( track );
-							setRank ( track );
+							qRank[ users[ i ].name ] = 0;
+						}
+
+						for ( let track = 0; track < v.length; track++ )
+						{ // dans l'idée on utilise le rang de chaque utilisateur sur chaque vois pour calculer le rang global
+							if ( voie[ v[track] ].type != "diff" )
+							{
+								continue;
+							}
+
+							orderTable ( v[track] );
+							setRank ( v[track] );
 
 							for ( i = 0; i < users.length; i++ )
 							{
 								let tmp = 0;
 								if ( !score[ users[ i ].name ] )
-								{
+								{ // pas de score pour cet utilisateur
 									continue;
 								}
-								else if ( !score[ users[ i ].name ][ track ] )
-								{
+								else if ( !score[ users[ i ].name ][ v[track] ] )
+								{ // pas de score de diff pour cet utilisateur
 									tmp = users.length;
 								}
 								else
 								{
-									tmp = score[ users[ i ].name ][ rankId ][ 0 ];
+									tmp = score[ users[ i ].name ][ "rank" ][ 0 ];
 								}
 
-								if ( !qRank[ users[ i ].name ] )
-								{
-									qRank[ users[ i ].name ] = tmp * tmp;
-								}
-								else
-								{
-									qRank[ users[ i ].name ] += tmp * tmp;
-								}
+								console.log( users[ i ].name + " : " + tmp );
+
+								qRank[ users[ i ].name ] += tmp * tmp;
 							}
 						}
 
@@ -523,7 +545,7 @@
 								continue;
 							}
 
-							setScore( users[ i ].name, total, Math.sqrt ( qRank[ users[ i ].name ] ), 0 );
+							setScore( users[ i ].name, "total", Math.sqrt ( qRank[ users[ i ].name ] ), 0 );
 						}
 						break;
 					}
@@ -555,7 +577,6 @@
 						break;
 					}
 				}
-
 			}
 
 			function dropDownUser ( id = "total" )
@@ -606,10 +627,12 @@
 					case "a":
 					case "autre":
 					{
-						if ( ( id < voie.length ) &&
+						let v = Object.keys( voie );
+
+						if ( ( v.indexOf ( id ) >= 0 ) &&
 							( voie[ id ].type == 'vitesse' ) )
 						{ // order speed test (less is better)
-							if ( parseFloat( getScore( users[ i ].name, id ) ) > parseFloat( getScore( users[ j ].name, id ) ) )
+							if ( parseFloat( getScore( users[ i ].name, v[id] ) ) > parseFloat( getScore( users[ j ].name, v[id] ) ) )
 							{
 								let tmp = users[ i ];
 								users[ i ] = users[ j ];
@@ -625,19 +648,18 @@
 									break;
 								}
 
-								let value_I = getScore( users[ i ].name, id );
-
-								if ( isNaN ( value_I ) )
-								{
-									value_I = voie[ id ].score[ value_I ];
-								}
-
 								for ( let j = i+1; j < users.length; j++ )
 								{
 									let value_J = getScore( users[ j ].name, id );
 									if ( !value_J )
 									{
 										break;
+									}
+									
+									let value_I = getScore( users[ i ].name, id );
+									if ( isNaN ( value_I ) )
+									{
+										value_I = voie[ id ].score[ value_I ];
 									}
 
 									if ( isNaN ( value_J ) )
