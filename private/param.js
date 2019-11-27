@@ -8,7 +8,7 @@ userDataBase = './private/users.json';
 // port de connection pour l'interface web,
 // fpe-score.local:port (dans le cas du port 80 nous 
 // n'avons pas besoin de le noter)
-port = 80;
+port = 6080;
 
 // taille de la clée de securitée plus c'est grand mieux 
 // c'est mais plus c'est long à générer
