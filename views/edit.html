@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+	<% include head %>
+	<body>
+		<% include nav %>
+		<section>
+			<div>
+				<form>
+					<select id="genre" onchange="updateName();">
+						<option value="all">Tous</option>
+					</select>
+					<select id="categorie" onchange="updateName();">
+						<option value="all">Tous</option>
+					</select>
+					<select id="club" onchange="updateName();">
+						<option value="all">Tous</option>
+					</select>
+					<select id="name" onchange="drawResults();">
+						<option value="" selected="" disabled=""></option>
+					</select>
+				</form>
+				<div id="serverMsg"></div>
+				<div id="results"></div>
+				<div id="form"></div>
+			</div>
+		</section>
+		<script src="/socket.io/socket.io.js"></script>
+		<% include default_include_js %>
+		<script src="/js/socket.js"></script>
+		<script type="text/javascript" src="/js/utils.js"></script>
+		<script type="text/javascript" src="/js/chartjs.js"></script>
+		<script type="text/javascript">
+			let list = {};
+			let resultDisplay = document.getElementById( "results" );
+			let clubEl = document.getElementById("club");
+			let genreEl = document.getElementById("genre");
+			let catEl = document.getElementById("categorie");
+			let nameEl = document.getElementById("name");
+
+			let id = null;
+			let trackName = null;
+
+			function updateCGC ( )
+			{
+				list.genre = [];
+				list.cat = [];
+				list.club = [];
+
+				for ( let i = 0; i < users.length; i++ )
+				{
+					if( !list.genre.includes ( users[i].genre ) )
+					{
+						list.genre.push ( users[i].genre );
+					}
+					if( !list.cat.includes ( users[i].categorie ) )
+					{
+						list.cat.push ( users[i].categorie );
+					}
+					if( !list.club.includes ( users[i].club ) )
+					{
+						list.club.push ( users[i].club );
+					}
+				}
+				
+				updateSelector ( clubEl, list.club, 1 );
+				updateSelector ( genreEl, list.genre, 1 );
+				updateSelector ( catEl, list.cat, 1 );
+			}
+
+			function updateName ( )
+			{
+				list.name = [];
+				
+				for ( let i = 0; i < users.length; i++ )
+				{
+					if ( clubEl.value &&
+						clubEl.value != "all" &&
+						clubEl.value != users[i].club )
+					{
+						continue;
+					}
+
+					if ( genreEl.value &&
+						genreEl.value != "all" &&
+						genreEl.value != users[i].genre )
+					{
+						continue;
+					}
+
+					if ( catEl.value &&
+						catEl.value != "all" &&
+						catEl.value != users[i].categorie )
+					{
+						continue;
+					}
+					
+					if ( nameEl.value &&
+						nameEl.value != "all" &&
+						nameEl.value != users[i].name )
+					{
+						continue;
+					}
+
+					list.name.push ( users[i].name );
+				}
+				updateSelector ( nameEl, list.name, 1 );
+			}
+
+			function updateSelector ( slector = null, array = [], id = 0 )
+			{
+				if ( !updateSelector )
+				{
+					return;
+				}
+
+				while ( slector.options.length > id )
+				{
+					slector.options.remove ( id );
+				}
+
+				for ( let i = 0; i < array.length; i++ )
+				{
+					slector.options.add ( new Option ( array[i], i+id ) );
+					slector.options[ i+id ].value = array[i];
+				}
+			}
+
+			updateCGC ( );
+			updateName ( );
+			drawResults ( );
+
+			function drawResults ( )
+			{
+				resultDisplay.innerHTML = "";
+
+				<% switch ( mode )
+				{ 
+					case "a":
+					case "autre":
+					{
+					%>
+						let  type = [ "bloc", "diff", "vitesse", "slack", "endurance" ];
+					<%
+						break;
+					}
+					case "b":
+					case "bloc":
+					{
+					%>
+						let  type = [ "bloc" ];
+					<%
+						break;
+					}
+					case "d":
+					case "diff":
+					case "diffculte":
+					{
+					%>
+						let  type = [ "diff" ];
+					<%
+						break;
+					}
+					case "v":
+					case "vitesse":
+					{
+					%>
+						let  type = [ "vitesse" ];
+					<%
+						break;
+					}
+				} %>
+				type.forEach ( ( item, name ) => drawPart ( item, nameEl.value ) );
+			}
+
+			function drawPart ( TYPE, name )
+			{
+				let nbVoie = 0;
+
+				let v = Object.keys( voie );
+				for ( let i = 0; i < v.length; i++ )
+				{
+					if ( voie[ v[i] ].type == TYPE )
+					{
+						nbVoie++;
+					}
+				}
+
+				if ( nbVoie <= 0 )
+				{
+					return ( false );
+				}
+			
+				let str = "<div id='printTable'><table>";
+			
+				for ( let i = 0; i < users.length; i++ )
+				{
+					if ( users[ i ].name != name )
+					{
+						continue;
+					}
+
+					str += "<tr><td rowspan=" + (nbVoie + 1) + ">" + users[ i ].name + "</td></tr>";
+
+					for ( j = 0; j < v.length; j++ )
+					{
+						if ( voie[ v[j] ].type != TYPE )
+						{
+							continue;
+						}
+
+
+						str += "<tr id='"+v[j]+"'>";
+
+						str +=  "<td>" + v[j] + "</td>"
+
+						if ( score[ users[ i ].name ] && 
+							score[ users[ i ].name ][ v[j] ] )
+						{
+							let max = getScore ( users[ i ].name, v[ j ] );
+
+							for ( k = 0; k  < score[ users[ i ].name ][ v[j] ].length; k++ )
+							{
+								let s = score[ users[ i ].name ][ v[j] ][ k ];
+
+								str += "<td onclick='change(event)'";
+								if ( max == s )
+								{
+									str += " class='hightlight'";
+								}
+								str += " id='"+k+"'";
+								str += ">"
+
+								<% if ( mode != "b" && mode != "bloc" ) { %>
+								if ( voie[ v[j] ].score[ s ] )
+								{
+									str += voie[ v[j] ].score[ s ] + " (" + (isNaN(s)?s:(Number(s)+1)) + ")";
+								}
+								else 
+								<% } %>
+								{ 
+									str += s;
+								}
+								str += "</td>";
+							}
+						}
+
+						str +="<td onclick='change(event)'></td></tr>";
+					}
+				}
+
+				str += "</table></div>";
+
+				resultDisplay.innerHTML += str;
+			}
+
+			function change ( ev )
+			{
+				if ( !ev )
+				{
+					return;
+				}
+
+				id = ev.target.id;
+				trackName = ev.target.parentNode.id;
+
+				if ( !id ||
+					!id.length )
+				{
+					id = null;
+				}
+
+				drawForm ( );
+			}
+
+			function validate ( )
+			{
+				let value = document.getElementById( "newResult" ).value;
+				// <% if ( mode == 'd' ) { %> 
+				// 	points = parseFloat ( points ) + parseFloat ( document.getElementById( 'bonus' ).checked ? 0.25 : 0 );
+				// <% } %>
+
+				let xhr = new XMLHttpRequest();
+
+				xhr.open('POST', '/validate' );
+				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+				xhr.addEventListener ( 'readystatechange', function ( )
+				{
+					if ( xhr.readyState === XMLHttpRequest.DONE )
+					{
+						if ( xhr.status === 200 )
+						{
+							drawResults ( );
+						}
+						else if ( xhr.status === 401 )
+						{
+							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:#f55;\">" + xhr.responseText + "</span>";
+						}
+						else
+						{
+							console.log( xhr.status );
+						}
+					}
+				});
+
+				console.log( id );
+
+				xhr.overrideMimeType("text/plain");
+				let cmd = "usr="+nameEl.value;
+				cmd += "&voie="+trackName;
+				cmd += "&points="+value;
+				if ( id )
+				{
+					cmd += "&resultId="+id;
+				}
+				xhr.send(cmd);
+				document.getElementById( 'serverMsg' ).innerHTML = "";
+				document.getElementById( 'form' ).innerHTML = "";
+			}
+
+			function drawForm ( )
+			{
+				let form = document.getElementById( 'form' );
+				document.getElementById( 'serverMsg' ).innerHTML = "";
+
+				let result = "";
+				if( score[ nameEl.value ] &&
+					score[ nameEl.value ][ trackName ] &&
+					score[ nameEl.value ][ trackName ][ id ] )
+				{
+					result = score[ nameEl.value ][ trackName ][ id ];
+				}
+
+				switch ( voie[ trackName ].type )
+				{
+					case "bloc":
+					{
+						let str = "<p>Nouvelle valeur</p><select id='newResult' autofocus>";
+						str += "<option value='void' "+((result=="")?"selected":"")+">pas fait</option>";
+						str += "<option value='echec' "+((result=="echec")?"selected":"")+">echec</option>";
+						str += "<option value='zone' "+((result=="zone")?"selected":"")+">zone</option>";
+						str += "<option value='top' "+((result=="top")?"selected":"")+">top</option>";
+						str += "</select><button onclick='validate();'>Ok</button>";
+						form.innerHTML = str;
+						break;
+					}
+					case "diff":
+					{
+						let str = "<p>Nouvelle valeur</p>";
+
+						<% if ( mode == 'd' ) { %>
+							str += '<input id="newResult" autofocus type="number" min="0.0" step="0.5"><div style="text-align:center" title="deplacement significatif de la main et du centre de gravitée ?"><input type="checkbox" id="bonus"><span style="position:relative;top:-0.2em"> +<span><div>';
+						<% } else { %>
+							str += '<select id="newResult" autofocus>';
+
+							let i = 0; 
+							while ( i < ( voie[ trackName ].score.length - 1 ) )
+							{
+								str += "<option value="+i+((i==result)?" selected":"")+">degaine "+(i+1)+"</option>";
+								i++;
+							}
+							str += "<option value="+i+((i==result)?" selected":"")+">top</option>";
+							str += '</select>';
+						<% } %>
+
+						str += "<button onclick='validate();'>Ok</button>";
+						form.innerHTML = str;
+						break;
+					}
+					default:
+					{
+						form.innerHTML = '<input id="newResult" type="number" step=0.5 value="'+result+'"><button onclick="validate();">Ok</button>';
+						break;
+					}
+				}
+			}
+		</script>
+	</body>
+</html>

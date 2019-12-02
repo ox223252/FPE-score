@@ -10,6 +10,7 @@
 
 		<% if ( loged ) { %>
 			<a href="/addUser" <% if ( page == "addUser" ) { %> class="selected" <% } %>>New user</a>
+			<a href="/edit" <% if ( page == "edit" ) { %> class="selected" <% } %>>Edit Score</a>
 			<% let options = '<option disabled selected style="color:grey;" >voie</option>';
 				let flagSelect = false;
 				if ( ( mode == "b" ) ||

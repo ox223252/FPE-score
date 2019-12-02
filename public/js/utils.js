@@ -1,6 +1,6 @@
 const blocOrder = [ "echec", "zone", "top" ];
 
-function setScore ( name, way, value, num )
+function setScore ( name, way, value, id = undefined )
 {
 	if ( !name ||
 		( way == undefined ) )
@@ -18,13 +18,17 @@ function setScore ( name, way, value, num )
 		score[ name ][ way ] = [];
 	}
 
-	if ( num == undefined )
+	if ( id == undefined )
 	{
 		score[ name ][ way ].push ( value );
 	}
+	else if ( value == "void" )
+	{
+		score[ name ][ way ].splice( id, 1 );
+	}
 	else
 	{
-		score[ name ][ way ][ num ] = value;
+		score[ name ][ way ][ id ] = value;
 	}
 }
 

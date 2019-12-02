@@ -10,7 +10,7 @@ function orderTable(){};
 
 socket.on ( 'scores', function ( data )
 {
-	setScore ( data.usr, data.voie, data.points );
+	setScore ( data.usr, data.voie, data.points, data.resultId );
 
 	calcTotal ( ); // acceuril.html
 	orderTable ( ); // acceuril.html

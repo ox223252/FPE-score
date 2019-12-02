@@ -30,7 +30,7 @@ nav > input, nav > label
 	}
 }
 
-@media (max-width: 480px)
+@media (max-width: 819px)
 { /* change display for smallest mobiles devices */
 	nav > label
 	{

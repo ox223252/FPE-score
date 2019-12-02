@@ -73,6 +73,7 @@ table
 	border-collapse: collapse;
 	border: solid 1px;
 	min-width: 300px;
+	width:100%;
 	margin:5px;
 }
 table tr
@@ -182,4 +183,8 @@ section input[type='text'], section input[type='number'], section select
 	margin: 5px;
 	border-radius: 5px;
 	text-align: center;
+}
+td
+{
+	min-width:50px;
 }

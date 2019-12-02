@@ -311,6 +311,28 @@ app.all ( '/addUser', function ( req, res )
 	}
 });
 
+app.all ( '/edit', function (req, res )
+{
+	if ( req.authenticated.loged )
+	{
+		if ( !userExist( req.body.name ) )
+		{
+			res.render ( 'edit.html', {
+				loged:req.authenticated.loged,
+				users:users,
+				voie:voie,
+				score:score,
+				mode:mode,
+				page:"edit"
+			});
+		}
+	}
+	else
+	{
+		res.redirect ( '/' );
+	}
+})
+
 // ajax part
 app.all ( '/validate', function ( req, res )
 {
@@ -332,7 +354,22 @@ app.all ( '/validate', function ( req, res )
 			{
 				score[ req.body.usr ][ req.body.voie ] = [];
 			}
-			score[ req.body.usr ][ req.body.voie ].push ( req.body.points );
+
+			if ( req.body.resultId )
+			{
+				if ( req.body.points == "void" )
+				{
+					score[ req.body.usr ][ req.body.voie ].splice( req.body.resultId, 1 );
+				}
+				else
+				{
+					score[ req.body.usr ][ req.body.voie ][ req.body.resultId ] = ( req.body.points );
+				}
+			}
+			else
+			{
+				score[ req.body.usr ][ req.body.voie ].push ( req.body.points );
+			}
 
 			fs.writeFileSync ( scoreDataBase, JSON.stringify ( score ), 'utf8' );
 
