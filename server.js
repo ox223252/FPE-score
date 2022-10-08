@@ -65,30 +65,22 @@ const args = require('yargs')
 process.argv = [ ];
 const RSA = require ( './RSA_gen' );
 
-// get user data base
-let score = {};
-let voie = [];
-let users = [];
-let login = {};
-
-if ( fs.existsSync ( scoreDataBase ) )
-{
-	score = require ( scoreDataBase );
+////////////////////////////////////////////////////////////////////////////////
+// read databases
+////////////////////////////////////////////////////////////////////////////////
+let data = {
+	score: {},
+	voie:  [],
+	users: [],
+	login: {},
 }
 
-if ( fs.existsSync ( voieDataBase ) )
+for ( let file of [ "user", "score", "voie", "login" ])
 {
-	voie = require ( voieDataBase );
-}
-
-if ( fs.existsSync ( userDataBase ) )
-{
-	users = require ( userDataBase );
-}
-
-if ( fs.existsSync ( loginDataBase ) )
-{
-	login = require ( loginDataBase );
+	if ( fs.existsSync ( file ) )
+	{
+		data[ file ] = require ( file );
+	}
 }
 
 // engine part
