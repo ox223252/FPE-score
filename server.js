@@ -1,7 +1,3 @@
-let port = 6683;
-let keySize = 4096;
-let mode = "a";
-
 // const declaration
 let scoreDataBase = './private/score.json';
 let voieDataBase = './private/voie.json';
@@ -19,49 +15,51 @@ const crypto = require ( 'crypto' );
 const favicon = require ( 'serve-favicon' );
 const cryptico = require ( 'cryptico' ); // generated RSA key for password encryption http://wwwtyro.github.io/cryptico/
 
-const args = require('yargs').argv;
-
-eval ( fs.readFileSync ( './private/param.js' ) + '' );
-
-// FPE score marker:
-//   [--port=<uint>]
-//   [--keySize=<uint>]
-//   [--mode=<a/b/c/d/v>]
-//   [--voie=./path/file.json]
-//   [--score=./path/file.json]
-//   [--user=./path/file.json]
-
-if ( args.port &&
-	!isNaN ( args.port ) )
-{
-	port = args.port
-}
-
-if ( args.keySize &&
-	!isNaN ( args.keySize ) )
-{
-	keySize = args.keySize
-}
-
-if ( args.mode )
-{
-	mode = args.mode[ 0 ];
-}
-
-if ( args.voie )
-{
-	voieDataBase = args.voie;
-}
-
-if ( args.score )
-{
-	scoreDataBase = args.score;
-}
-
-if ( args.user )
-{
-	userDataBase = args.user;
-}
+////////////////////////////////////////////////////////////////////////////////
+// read arg from cmd line
+////////////////////////////////////////////////////////////////////////////////
+const args = require('yargs')
+	.option('help', {
+		alias: 'h',
+		type: 'boolean',
+		describe: 'this window',
+	})
+	.option('port', {
+		alias: 'p',
+		describe: 'connection port',
+		default: 80
+	})
+	.option('keySize',{
+		alias: 'k',
+		describe: 'user login for SQL databse connection',
+		default: 4096
+	})
+	.option('mode',{
+		alias: 'm',
+		describe: 'a/b/c/d/v',
+		default: 'a'
+	})
+	.option('voie',{
+		alias: 'v',
+		describe: '/path/to/file',
+		default: ""
+	})
+	.option('score',{
+		alias: 's',
+		describe: '/path/to/file',
+		default: ""
+	})
+	.option('user',{
+		alias: 'u',
+		describe: '/path/to/file',
+		default: ""
+	})
+	.option('login',{
+		alias: 'l',
+		describe: '/path/to/file',
+		default: "./private/login.json"
+	})
+	.argv;
 
 // own module declaration
 process.argv = [ ];
