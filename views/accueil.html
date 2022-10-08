@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-	<% include head %>
+	<%- include("partials/head") -%>
 	<body>
-		<% include nav %>
+		<%- include("partials/nav") -%>
 		<section>
 			<div>
 				<form>
@@ -35,7 +35,7 @@
 			</div>
 		</section>
 		<script src="/socket.io/socket.io.js"></script>
-		<% include default_include_js %>
+		<%- include("partials/default_include_js") -%>
 		<script src="/js/socket.js"></script>
 		<script type="text/javascript" src="/js/chartjs.js"></script>
 		<script type="text/javascript"> // globals vars

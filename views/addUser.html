@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-	<% include head %>
+	<%- include("partials/head") -%>
 	<body>
-		<% include nav %>
+		<%- include("partials/nav") -%>
 		<section id="addUser">
 			<div>
 				<input id="nom" type="text" placeholder="NOM" onkeyup="this.value = this.value.toUpperCase();drawNamesList();"/>
@@ -30,7 +30,7 @@
 				<button onclick="addUser()">Ok</button>
 			</div>
 		</section>
-		<% include default_include_js %>
+		<%- include("partials/default_include_js") -%>
 		<script type="text/javascript"> // password
 			function getName ( )
 			{

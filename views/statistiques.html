@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-	<% include head %>
+	<%- include("partials/head") -%>
 	<body>
-		<% include nav %>
+		<%- include("partials/nav") -%>
 		<section id="stats">
 			<div class="graphPaper" id="resultGraphs">
 				<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_average"></canvas>
@@ -31,7 +31,7 @@
 		<script type="text/javascript" src="/js/chartjs.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="/js/socket.js"></script>
-		<% include default_include_js.ejs %>
+		<%- include("partials/default_include_js") -%>
 		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript"> // globals vars
 			var config = {

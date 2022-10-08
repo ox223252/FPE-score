@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-	<% include head %>
+	<%- include("partials/head") -%>
 	<body>
-		<% include nav %>
+		<%- include("partials/nav") -%>
 		<style type="text/css" media="print">
 			nav
 			{
@@ -40,7 +40,7 @@
 		</section>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="/js/socket.js"></script>
-		<% include default_include_js.ejs %>
+		<%- include("partials/default_include_js") -%>
 		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript"> // globals vars
 			let resultDisplay = document.getElementById ( "results" );
