@@ -1,8 +1,10 @@
 // const declaration
-let scoreDataBase = './private/score.json';
-let voieDataBase = './private/voie.json';
-let userDataBase = './private/users.json';
-const loginDataBase = './private/login.json';
+const defaultDataBase = {
+	score: './private/score.json',
+	voie: './private/voie.json',
+	user: './private/users.json',
+	login: './private/login.json',
+}
 
 // modules declaration
 const express = require ( 'express' );
@@ -42,29 +44,29 @@ const args = require('yargs')
 	.option('voie',{
 		alias: 'v',
 		describe: '/path/to/file',
-		default: ""
+		default: defaultDataBase.voie
 	})
 	.option('score',{
 		alias: 's',
 		describe: '/path/to/file',
-		default: ""
+		default: defaultDataBase.score
 	})
 	.option('user',{
 		alias: 'u',
 		describe: '/path/to/file',
-		default: ""
+		default: defaultDataBase.user
 	})
 	.option('login',{
 		alias: 'l',
 		describe: '/path/to/file',
-		default: "./private/login.json"
+		default: defaultDataBase.login
 	})
 	.argv;
 
 ////////////////////////////////////////////////////////////////////////////////
 // read databases
 ////////////////////////////////////////////////////////////////////////////////
-let data = {
+let database = {
 	score: {},
 	voie:  [],
 	users: [],
@@ -73,9 +75,9 @@ let data = {
 
 for ( let file of [ "user", "score", "voie", "login" ])
 {
-	if ( fs.existsSync ( file ) )
+	if ( fs.existsSync ( args[ file ] ) )
 	{
-		data[ file ] = require ( file );
+		database[ file ] = require ( args[ file ] );
 	}
 }
 

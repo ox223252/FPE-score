@@ -54,7 +54,7 @@ app.all ( '/', function ( req, res )
 		voie:database.voie,
 		score:database.score,
 		page:"accueil",
-		mode:mode
+		mode:args.mode
 	} );
 });
 
@@ -65,7 +65,7 @@ app.all ( '/statistiques', function ( req, res )
 		users:database.users,
 		voie:database.voie,
 		score:database.score,
-		mode:mode,
+		mode:args.mode,
 		page:"statistiques"
 	} );
 });
@@ -77,7 +77,7 @@ app.all ( '/getResults', function ( req, res )
 		users:database.users,
 		voie:database.voie,
 		score:database.score,
-		mode:mode,
+		mode:args.mode,
 		page:"getResults",
 	} );
 });
@@ -162,7 +162,7 @@ app.all ( '/set/:id', function ( req, res )
 			users:database.users,
 			voie:database.voie,
 			page:req.params.id,
-			mode:mode
+			mode:args.mode
 		} );
 	}
 	else
@@ -205,7 +205,7 @@ app.all ( '/addUser', function ( req, res )
 				users:database.users,
 				voie:database.voie,
 				score:database.score,
-				mode:mode,
+				mode:args.mode,
 				page:"addUser"
 			} );
 		}
@@ -227,7 +227,7 @@ app.all ( '/edit', function (req, res )
 				users:database.users,
 				voie:database.voie,
 				score:database.score,
-				mode:mode,
+				mode:args.mode,
 				page:"edit"
 			});
 		}
