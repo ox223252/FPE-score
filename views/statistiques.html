@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-	<%- include("partials/head") -%>
+	<%- include("partials/head.html") -%>
 	<body>
-		<%- include("partials/nav") -%>
+		<%- include("partials/nav.html") -%>
 		<section id="stats">
 			<div class="graphPaper" id="resultGraphs">
 				<canvas width="700" height="700" class="chartjs-render-monitor" id="graph_average"></canvas>
@@ -780,27 +780,27 @@
 				}
 			}
 			
-			calcAverage ( "<%- mode %>" );
-			getClubsStats ( );
+			// calcAverage ( "<%- mode %>" );
+			// getClubsStats ( );
 			
-			graph_average ( );
-			graph_try ( );
-			graph_club ( );
-			graph_participants ( );
+			// graph_average ( );
+			// graph_try ( );
+			// graph_club ( );
+			// graph_participants ( );
 
-			document.getElementById ( 'popupMenu' ).addEventListener ( "contextmenu", function ( ev )
-			{
-				ev.preventDefault();
-				ev.stopPropagation();
-				document.getElementById ( 'popupMenu' ).style.display = "none";
-			});
+			// document.getElementById ( 'popupMenu' ).addEventListener ( "contextmenu", function ( ev )
+			// {
+			// 	ev.preventDefault();
+			// 	ev.stopPropagation();
+			// 	document.getElementById ( 'popupMenu' ).style.display = "none";
+			// });
 
-			document.addEventListener ( "contextmenu", function ( ev )
-			{
-				ev.preventDefault();
-				ev.stopPropagation();
-				document.getElementById ( 'popupMenu' ).style.display = "flex";
-			});
+			// document.addEventListener ( "contextmenu", function ( ev )
+			// {
+			// 	ev.preventDefault();
+			// 	ev.stopPropagation();
+			// 	document.getElementById ( 'popupMenu' ).style.display = "flex";
+			// });
 		</script>
 	</body>
 </html>

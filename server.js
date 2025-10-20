@@ -1,26 +1,25 @@
-// const declaration
-const defaultDataBase = {
-	score: './private/score.json',
-	voie: './private/voie.json',
-	user: './private/users.json',
-	login: './private/login.json',
-}
+let params = {
+	rebootPending: false,
+	db:{
+		path:{
+			score: './private/score',
+			voies: './private/voie',
+			users: './private/users',
+			login: './private/login',
+		},
+		score: {},
+		voies: [],
+		users: [],
+		login: {},
+	},
+};
 
-// modules declaration
-const express = require ( 'express' );
-const session = require ( "client-sessions" ); // create session encypted https://github.com/mozilla/node-client-sessions
-const helmet = require ( 'helmet' );
-
-const bodyParser = require ( 'body-parser' );
-const fs = require ( 'fs' );
-const crypto = require ( 'crypto' );
-const favicon = require ( 'serve-favicon' );
-const cryptico = require ( 'cryptico' ); // generated RSA key for password encryption http://wwwtyro.github.io/cryptico/
 
 ////////////////////////////////////////////////////////////////////////////////
 // read arg from cmd line
 ////////////////////////////////////////////////////////////////////////////////
-const args = require('yargs')
+import yargs from 'yargs'
+const args = yargs(process.argv)
 	.option('help', {
 		alias: 'h',
 		type: 'boolean',
@@ -31,80 +30,85 @@ const args = require('yargs')
 		describe: 'connection port',
 		default: 80
 	})
-	.option('keySize',{
-		alias: 'k',
-		describe: 'user login for SQL databse connection',
-		default: 4096
-	})
 	.option('mode',{
 		alias: 'm',
-		describe: 'a/b/c/d/v',
+		describe: 'a/b/c/d/v autre/block/combiné/dif/vitesse',
+		choices: [ "a", "b", "c", "d", "v", "autre", "block", "contest", "dif", "vitesse" ],
 		default: 'a'
 	})
-	.option('voie',{
+	.option('voies',{
 		alias: 'v',
 		describe: '/path/to/file',
-		default: defaultDataBase.voie
+		default: params.db.path.voies
 	})
 	.option('score',{
 		alias: 's',
 		describe: '/path/to/file',
-		default: defaultDataBase.score
+		default: params.db.path.score
 	})
-	.option('user',{
+	.option('users',{
 		alias: 'u',
 		describe: '/path/to/file',
-		default: defaultDataBase.user
+		default: params.db.path.users
 	})
 	.option('login',{
 		alias: 'l',
 		describe: '/path/to/file',
-		default: defaultDataBase.login
+		default: params.db.path.login
+	})
+	.option('try',{
+		describe: "max try before ban",
+		default: 4
+	})
+	.option("server",{
+		describe: 'server type',
+		choices: [ 'http', 'https' ],
+		default: 'https',
+	})
+	.option("key",{
+		describe: "private key",
+		default: "res/private-key.pem",
+	})
+	.option('keySize',{
+		describe: 'user login for SQL databse connection',
+		default: 4096
+	})
+	.option("key",{
+		describe: "private key",
+		default: "res/private-key.pem",
+	})
+	.option("cert",{
+		describe: "private key",
+		default: "res/certificate.pem",
 	})
 	.argv;
+
+params.args = args;
 
 ////////////////////////////////////////////////////////////////////////////////
 // read databases
 ////////////////////////////////////////////////////////////////////////////////
-let database = {
-	score: {},
-	voie:  [],
-	users: [],
-	login: {},
-}
+import {dbInit} from "./db.js"
 
-for ( let file of [ "user", "score", "voie", "login" ])
-{
-	if ( fs.existsSync ( args[ file ] ) )
-	{
-		database[ file ] = require ( args[ file ] );
-	}
-}
+dbInit ( params );
 
 ////////////////////////////////////////////////////////////////////////////////
-/// RSA declaration
+// calc rank for existing scores
 ////////////////////////////////////////////////////////////////////////////////
-process.argv = [ ];
-const RSA = require ( './RSA_gen' );
+import {calcAll} from "./calc.js"
+calcAll ( params );
 
 ////////////////////////////////////////////////////////////////////////////////
-/// engine part
+/// root/ajax part
 ////////////////////////////////////////////////////////////////////////////////
-eval( fs.readFileSync ( "./webEngine.js" ) + '' );
+import rooter from "./root.main.js";
+import ajax from "./root.ajax.js";
+
+rooter.init ( params )
+ajax.init ( rooter.express, params );
 
 ////////////////////////////////////////////////////////////////////////////////
-/// RSA management part
+/// IO socket
 ////////////////////////////////////////////////////////////////////////////////
-
-RSA.status.on ( 'ready', () => 
-{
-	io.emit( 'waitKey', 'ok' );
-	console.log ( 'key generated' );
-});
-RSA.status.on ( 'failed', () =>
-{
-	io.emit( 'waitKey', 'error' );
-	console.log ( 'key generation failed' );
-});
-
-RSA.init ( {length:args.keySize} );
+import socketIO from "./ioSocket.js";
+socketIO ( rooter.server, params );

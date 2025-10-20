@@ -1,323 +1,232 @@
 <!DOCTYPE html>
 <html>
-	<%- include("partials/head") -%>
+	<%- include("partials/head.html") -%>
 	<body>
-		<link rel="stylesheet" href="/css/set.css">
-		<%- include("partials/nav") -%>
+		<%- include("partials/nav.html") -%>
 		<section>
-			<div id="setSection">
-				<div>
-					<label>categorie :</label>
-					<select id="categorie" onchange="updateUsers();">
-						<option value="all">tous</option>
-						<option value="microbe">microbe</option>
-						<option value="poussin">poussin</option>
-						<option value="benjamin">benjamin</option>
-						<option value="minime">minime</option>
-						<option value="cadet">cadet</option>
-						<option value="senior">senior</option>
-						<option value="veterant">veterant</option>
+				<form>
+					<span>
+						<label for="genre">Genre</label>
+						<select id="genre"></select>
+					</span>
+					<span>
+						<label for="categorie">Categorie</label>
+						<select id="categorie"></select>
+					</span>
+					<span>
+						<label for="club">Club</label>
+						<select id="club"></select>
+					</span>
+					<span>
+						<label for="user">Utilisateur</label>
+						<select id="user"></select>
+					</span>
+					<span>
+						<label for=voie>Type</label>
+						<select id="voie"></select>
+					</span>
+					<input id="scoreDiff"></input>
+					<select id="scoreBloc">
+						<option diseabled>--</option>
+						<option value="echec">Echec</option>
+						<option value="zone">Zone</option>
+						<option value="top">Top</option>
 					</select>
-				</div>
-				<div>
-					<label>genre :</label>
-					<select id="genre" onchange="updateUsers();">
-						<option value="all">tous</option>
-						<option value="homme">homme</option>
-						<option value="femme">femme</option>
-					</select>
-				</div>
-				<div>
-					<label>user :</label>
-					<select id="usr"></select>
-				</div>
-				<div>
-					<label>type :</label>
-					<select id="voie" onchange="updateComments();updatePoints();"></select>
-				</div>
-				<div id="score" style="display:inline-block"></div>
-				<div id="startStop" style="text-align: center">
-					<button id="chronoStart" onclick="chronoStart();">Start</button>
-					<button id="chronoStop" onclick="chronoStop();">Stop</button>
-				</div>
-				<div style="text-align: center;">
-					<button id="validate" onclick="validate(this);"">Valider</button>
-				</div>
+					<div id="chrono">
+						<button id="chronoStart">Start</button>
+						<button id="chronoStop">Stop</button>
+					</div>
+					<div>
+						<button id="validate">Valider</button>
+					</div>
+				</form>
+				<img id="img"></img>
 			</div>
 			<div id="comments">
 			</div>
 			<p id="serverMsg">
 			</p>
 		</section>
-		<script type="text/javascript" src="/js/utils.js"></script>
-		<script type="text/javascript">
-			let current = "<%- page %>";
+		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
+		<script type="text/javascript" nonce="<%- locals.nonce %>">
+			let domEls = {
+				club: document.getElementById ( "club" ),
+				genre: document.getElementById ( "genre" ),
+				categorie: document.getElementById ( "categorie" ),
+				user:  document.getElementById ( "user" ),
+				voie:  document.getElementById ( "voie" ),
+				start: document.getElementById ( "chronoStart" ),
+				stop:  document.getElementById ( "chronoStop" ),
+				validate: document.getElementById ( "validate" ),
+				chrono: document.getElementById ( "chrono" ),
+				img: document.getElementById ( "img" ),
+				score: {
+					diff: document.getElementById ( "scoreDiff" ),
+					bloc: document.getElementById ( "scoreBloc" ),
+				},
+				serverMsg: document.getElementById ( "serverMsg" ),
+				comments: document.getElementById ( "comments" ),
+			};
 
-			function loadPage( name )
-			{
-				window.location.href = '/set/'+name;
-			}
+			domEls.score.bloc.style.display = "none";
+			domEls.score.diff.style.display = "none";
+			domEls.chrono.style.display = "none";
+			domEls.comments.display = "none";
+			domEls.serverMsg.display = "none";
+			domEls.img.style.display = "none";
 
-			let users = <%- JSON.stringify(users) %>;
-			let voie = <%- JSON.stringify(voie) %>;
 
-			function updateUsers ( )
-			{
-				let select = document.getElementById ( "usr" );
-				let categorie = document.getElementById ( "categorie" ).value;
-				let genre = document.getElementById ( "genre" ).value;
+			let socket = io ( );
+			let filters = {
+				user:{},
+				voie:{},
+			};
 
-				while ( select.options.length )
+			socket.on ( "setUCCG", (msg)=>{
+				uOneSlector ( {default:"genre", selector:domEls.genre, list:msg.map ( u2=>u2.genre ).distinct ( )} )
+				uOneSlector ( {default:"categorie", selector:domEls.categorie, list:msg.map ( u2=>u2.categorie ).distinct ( )} )
+				uOneSlector ( {default:"club", selector:domEls.club, list:msg.map ( u2=>u2.club ).distinct ( )} )
+				uOneSlector ( {default:"user", selector:domEls.user, list:msg.map ( u2=>u2.name ).distinct ( )} )
+			} );
+
+			socket.on ( "setVoies", (msg)=>{
+				console.log ( msg )
+				uOneSlector ( {default:"voie", selector:domEls.voie, list:msg} )
+
+				domEls.voie.options[ 0 ].disabled = true;
+			})
+
+			socket.on ( "setVoie", (msg)=>{
+				if ( msg.comments )
 				{
-					select.options.remove ( 0 );
-				}
-
-				select.options.add ( new Option ( "", 0 ) );
-				select.options[ 0 ].value = '';
-				select.options[ 0 ].selected = true;
-				select.options[ 0 ].disabled = true;
-
-				let list = getUsersNamesList ( users, categorie, genre );
-
-				for ( let i = 0; i < list.length; i++ )
-				{
-					select.options.add ( new Option ( list[ i ], i+1 ) );
-					select.options[ i+1 ].value = list[ i ];
-				}
-			}
-
-			function updateVoie ( name )
-			{
-				let select = document.getElementById ( 'voie' );
-
-				if ( name != "bloc" ||
-					name != "diff" || 
-					voie[ name ].type != "speed" )
-				{
-					document.getElementById ( 'startStop' ).style.display = "none";
+					domEls.comments.display = "";
+					domEls.comments.innerText = msg.comments;
 				}
 				else
 				{
-					document.getElementById ( 'startStop' ).style.display = "";
+					domEls.comments.display = "none";
 				}
 
-				while ( select.options.length )
+				if ( msg.picture )
 				{
-					select.options.remove ( 0 );
+					domEls.img.style.display = "";
+					domEls.img.src = msg.picture;
 				}
+				else
+				{
+					domEls.img.style.display = "none";
+				}
+				
+				domEls.score.bloc.style.display = "none";
+				domEls.score.diff.style.display = "none";
+				domEls.chrono.style.display = "none";
 
-				let v = Object.keys( voie );
-				switch ( name )
+				switch ( msg.type )
 				{
 					case "bloc":
+					{
+						domEls.score.bloc.style.display = "";
+						break;
+					}
 					case "diff":
 					{
-						select.options.add ( new Option ( name, 0 ) );
-						select.options[ 0 ].disabled = true;
-						select.options[ 0 ].selected = true;
-
-						for ( let i = 0, j = 1; i < v.length; i++ )
-						{
-							if ( voie[ v[ i ] ].type != name )
-							{
-								continue;
-							}
-
-							select.options.add ( new Option ( v[ i ], j ) );
-							select.options[ j ].value = v[ i ];
-							j++;
-						}
-
+						domEls.score.diff.style.display = "";
+						break;
+					}
+					case "vitesse":
+					case "endurance":
+					{
+						domEls.chrono.style.display = "";
+						break;
+					}
+					case "slack":
+					{
+						domEls.score.diff.style.display = "";
 						break;
 					}
 					default:
 					{
-						select.options.add ( new Option ( name, 0 ) );
-						select.options[ 0 ].value = name;
-
-						updateComments ( );
-						updatePoints ( );
+						console.error ( "type inconnue" );
+						console.error ( msg );
 						break;
 					}
 				}
-			}
+			});
 
-			function updateComments ( )
+			socket.on ( "connect", ()=>{
+				socket.emit ( "getUCCG", filters.user );
+				socket.emit ( "getVoies", filters.voie );
+			});
+
+			socket.on ( "error", (msg)=>{
+				domEls.serverMsg.display = "";
+				domEls.serverMsg.innerText = msg;
+			});
+
+			socket.on ( "ok", ()=>{
+				domEls.score.diff.value = "";
+				domEls.score.bloc.options[ 0 ].selected = true;
+			});
+
+			for ( let key of [ "club","genre","categorie"] )
 			{
-				let com = document.getElementById ( 'comments' );
-				let id = document.getElementById ( 'voie' ).value;
-				com.innerHTML = '';
-
-				if ( id >= voie.length )
-				{
-					return ( false );
-				}
-				
-				if ( voie[ id ].comment )
-				{
-					com.innerHTML += '<p>'+voie[ id ].comment+'</p>'
-				}
-
-				if ( voie[ id ].picture )
-				{
-					for ( let i = 0; i < voie[ id ].picture.length; i++ )
+				domEls[ key ].addEventListener ( "change", (ev)=>{
+					if ( "all" == ev.target.value )
 					{
-						com.innerHTML += '<div style="text-align:center"><img src="'+voie[ id ].picture[ i ]+'"></div>'
+						delete filters.user[ key ];
 					}
-				}
+					else
+					{
+						filters.user[ key ] = ev.target.value;
+					}
+					socket.emit ( "getUCCG", {filters:filters.user} );
+				} )
 			}
 
-			function updatePoints ( )
-			{
-				let id = document.getElementById ( "voie" ).value;
-				if ( !voie[ id ] )
+			domEls.voie.addEventListener ( "change", (ev)=>{
+				if ( ev.target.value == "all" )
 				{
 					return;
 				}
+				socket.emit ( "getVoie", ev.target.value );
+			})
 
-				let el = document.getElementById ( 'score' );
-				el.innerHTML = '';
+			domEls.validate.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+				domEls.serverMsg.display = "none";
 
-				switch ( voie[ id ].type )
+				if ( domEls.user.value == domEls.user.options[ 0 ].value )
 				{
-					case 'bloc':
-					{
-						el.innerHTML = '<select id="points"></select>'
-						select = document.getElementById ( 'points' );
-						select.options.add ( new Option ( 'echec', 0 ) );
-						select.options[0].value = 'echec';
-						select.options.add ( new Option ( 'zone', 1 ) );
-						select.options[1].value = 'zone';
-						select.options.add ( new Option ( 'top', 2 ) );
-						select.options[2].value = 'top';
-						break;
-					}
-					case 'diff':
-					{
-
-						<% if ( mode == 'd' ) { %>
-							el.innerHTML = '<input id="points" type="number" min="0.0" step="0.5"><div style="text-align:center" title="deplacement significatif de la main et du centre de gravitée ?"><input type="checkbox" id="bonus"><span style="position:relative;top:-0.2em"> +<span><div>';
-							document.getElementById ( 'startStop' ).style.display = "";
-						<% } else { %>
-							el.innerHTML = '<select id="points"></select>'
-							select = document.getElementById ( 'points' );
-
-							select.options.add ( new Option ( 'echec', 0 ) );
-							select.options[ 0 ].value = 0;
-
-							let i = 0; 
-							while ( i < ( voie[ id ].score.length - 1 ) )
-							{
-								select.options.add ( new Option ( 'degaine_' + ( i + 1 ), i + 1 ) );
-								select.options[ i + 1 ].value = i;
-
-								i++;
-							}
-							
-							select.options.add ( new Option ( 'top', i + 1 ) );
-							select.options[ i + 1 ].value = i;
-						<% } %>
-						break;
-					}
-					case 'vitesse':
-					case 'endurance':
-					{
-						el.innerHTML = '<input id="points" type="number" min="0.0" step="0.001">';
-						document.getElementById ( 'startStop' ).style.display = "";
-						break;
-					}
-					case 'slack':
-					{
-						el.innerHTML = '<input id="points" type="number" min="0.0" step="0.01">';
-						break;
-					}
-				}
-			}
-
-			let interval = null;
-			let beginChrono = null;
-
-			function chronoStart ( )
-			{
-				beginChrono = new Date ( );
-				interval = setInterval ( function ( begin, display )
-				{
-					let current = new Date ( );
-					
-					if ( display )
-					{
-						display.value =  ( current.getTime()  - begin.getTime() ) / 1000;
-					}
-				}, 30, beginChrono, document.getElementById ( "points" ) );
-			}
-
-			function chronoStop ( )
-			{
-				clearInterval ( interval );
-				let current = new Date ( );
-					
-				document.getElementById ( "points" ).value =  ( current.getTime()  - beginChrono.getTime() ) / 1000;
-
-				interval = null;
-				beginChrono = null;
-			}
-		</script>
-		<script type="text/javascript">
-			function validate ( el )
-			{
-				let user = document.getElementById( 'usr' ).value;
-				let voie = document.getElementById( 'voie' ).value;
-				let points = document.getElementById( 'points' ).value;
-
-				<% if ( mode == 'd' ) { %> 
-					points = parseFloat ( points ) + parseFloat ( document.getElementById( 'bonus' ).checked ? 0.25 : 0 );
-				<% } %>
-
-				if ( ( user == "" ) ||
-					( voie == "" ) ||
-					( points == "" ) )
-				{
+					domEls.serverMsg.innerText = "le competiteur n'est pas renseigné"
+					domEls.user.classList.add ( "err" )
 					return;
 				}
-
-
-				let xhr = new XMLHttpRequest();
-
-				xhr.open('POST', '/validate' );
-				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-				xhr.addEventListener ( 'readystatechange', function ( )
+				else
 				{
-					if ( xhr.readyState === XMLHttpRequest.DONE )
-					{
-						if ( xhr.status === 200 )
-						{
-							updateUsers ( );
-							updatePoints ( );
-							el.disabled = false;
-							el.style.backgroundColor = "";
-						}
-						else if ( xhr.status === 401 )
-						{
-							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:#f55;\">" + xhr.responseText + "</span>";
-						}
+					domEls.user.classList.remove ( "err" )
+				}
+
+				if ( domEls.voie.value == domEls.voie.options[ 0 ].value )
+				{
+					domEls.serverMsg.innerText = "la voie n'est pas renseigné"
+					domEls.user.classList.add ( "err" )
+					return;
+				}
+				else
+				{
+					domEls.user.classList.remove ( "err" )
+				}
+
+				socket.emit ( "setScore", {
+					user: domEls.user.value,
+					voie: domEls.voie.value,
+					score:{
+						diff: domEls.score.diff.value,
+						bloc: domEls.score.bloc.value,
+						vitesse: 12,
 					}
-				});
-
-				xhr.overrideMimeType("text/plain");
-				xhr.send("usr="+user+"&voie="+voie+"&points="+points);
-				document.getElementById( 'serverMsg' ).innerHTML = "";
-				el.disabled = true;
-				el.style.backgroundColor = "rgba(0,255,0,0.2);";
-			}
-		</script>
-		<script type="text/javascript">
-			window.onload = function ( )
-			{
-				updateVoie ( "<%-page%>" );
-			}
-
-			window.onready = updateUsers ( );
+				})
+			})
 		</script>
 	</body>
 </html>

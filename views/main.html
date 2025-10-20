@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+	<%- include("partials/head.html") -%>
+	<body>
+		<%- include("partials/nav.html") -%>
+		<section>
+			<div>
+				<form>
+					<span>
+						<label for="genre">Genre</label>
+						<select id="genre"></select>
+					</span>
+					<span>
+						<label for="categorie">Categorie</label>
+						<select id="categorie"></select>
+					</span>
+					<span>
+						<label for="club">Club</label>
+						<select id="club"></select>
+					</span>
+				</form>
+				<table>
+					<tbody id="dataTable"></tbody>
+				</table>
+				<div id="grapghs">
+					<canvas 
+						width="700"
+						height="400"
+						class="chartjs-render-monitor"
+						id="pointGraph">
+					</canvas>
+					<canvas 
+						width="700"
+						height="700"
+						class="chartjs-render-monitor"
+						id="userGraph">
+					</canvas>
+					<ul id="legendGraph" class="smothText">
+						<li>moyenne tenté : moyenne des points obtenu pas les personnes 
+							ayant tenté cette voie</li>
+						<li>moyenne totale : moyenne des points obtenu sur cette voie 
+							par toues les personnes ayant participé</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
+		<script type="text/javascript" nonce="<%- locals.nonce %>">
+			Array.prototype.distinct = function () { return Array.from ( new Set ( this ) ); };
+
+			let domEls = {
+				input:{
+					genre: document.getElementById ( "genre" ),
+					categorie: document.getElementById ( "categorie" ),
+					club: document.getElementById ( "club" ),
+				},
+				dataTable: document.getElementById ( "dataTable" ),
+				grapghs:{
+					points: document.getElementById ( "pointGraph" ),
+					users: document.getElementById ( "userGraph"),
+					legend: document.getElementById ( "legendGraph" ),
+
+					all: document.getElementById ( "grapghs" ),
+				},
+			};
+
+			let thisUser = undefined;
+
+			let pointConfig = {
+				// type: 'bar',
+				type: 'line',
+				data: {
+					labels: [],
+					datasets: [
+						{
+							label: 'points',
+							backgroundColor: "rgba(255,0,0,0.1)",
+							borderColor: "#f00",
+							data: [],
+							// fill: true,
+							fill: false,
+							lineTension: 0
+						},
+					]
+				},
+				options: {
+					animation: false,
+					responsive: true,
+					legend: {
+						// display: true,
+						display: false,
+					},
+					title: {
+						display: false,
+					},
+					tooltips: {
+						mode: 'index',
+						intersect: false,
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scales: {
+						xAxes: [{
+							display: true,
+							scaleLabel: {
+								display: true,
+								labelString: 'users rank'
+							}
+						}],
+						yAxes: [{
+							display: true,
+							scaleLabel: {
+								display: true,
+								labelString: 'points',
+							},
+							ticks: {
+								suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
+							}
+						}]
+					}
+				}
+			};
+
+			let userConfig = {
+				type: 'radar',
+				data: {
+					labels: [ ],
+					datasets: [
+						{
+							backgroundColor: "rgba(255,0,0,0.2)",
+							borderColor: "#f00",
+							borderWidth: 2,
+							data: [ ],
+							label: ''
+						},
+						{
+							backgroundColor: "rgba(0,255,255,0.2)",
+							borderColor: "rgba(0,255,255,0.2)",
+							data: [],
+							label: 'moyenne tenté'
+						},
+						{
+							backgroundColor: "rgba(0,0,255,0.4)",
+							borderColor: "rgba(0,0,255,0.4)",
+							data: [],
+							label: 'moyenne total'
+						},
+						{
+							backgroundColor: "rgba(0,0,0,0)",
+							borderColor: "rgba(0,0,0,1)",
+							borderWidth: 6,
+							data: [],
+							label: 'max'
+						}
+					]
+				},
+				options: {
+					maintainAspectRatio: true,
+					spanGaps: false,
+					elements: {
+						line: {
+							tension: 0
+						}
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scale: {
+						ticks: {
+							display:false,
+						}
+					},
+					plugins: {
+						filler: {
+							propagate: false
+						},
+						'samples-filler-analyser': {
+							target: 'chart-analyser'
+						}
+					},
+				}
+			};
+
+			let average = {
+				"all" : {},
+				"tryed" : {},
+				"player" : 0
+			};
+
+			let scores = {};
+
+			window.onload = function ( )
+			{
+				domEls.grapghs.points.style.display = "none";
+				domEls.grapghs.users.style.display = "none";
+				domEls.grapghs.legend.style.display = "none";
+			}
+
+			let socket = io ( );
+			let filters = {};
+			let selectedUsers = {};
+
+			socket.on ( "setUCCG", (msg)=>{
+				selectedUsers = msg;
+
+				uOneSlector ( {default:"genre", selector:domEls.input.genre, list:msg.map ( u2=>u2.genre ).distinct ( ) })
+				uOneSlector ( {default:"categorie", selector:domEls.input.categorie, list:msg.map ( u2=>u2.categorie ).distinct ( )} )
+				uOneSlector ( {default:"club", selector:domEls.input.club, list:msg.map ( u2=>u2.club ).distinct ( )} )
+
+				printTable ( );
+			} );
+
+			socket.on ( "connect", ()=>{
+				socket.emit ( "getUCCG", filters );
+				socket.emit ( "getScores", filters );
+			});
+
+			socket.on ( "scores", (msg)=>{
+				scores = msg;
+
+				printTable ( );
+			});
+
+			for ( let key in domEls.input )
+			{
+				domEls.input[ key ].addEventListener ( "change", (ev)=>{
+					if ( "all" == ev.target.value )
+					{
+						delete filters[ key ];
+					}
+					else
+					{
+						filters[ key ] = ev.target.value;
+					}
+					socket.emit ( "getUCCG", {filters} );
+				} )
+			}
+
+			function printTable ( )
+			{
+				let sU = selectedUsers.map ( u=>u.name );
+				let users = Object.keys ( scores ).filter ( u=>sU.includes ( u ) );
+
+				while ( domEls.dataTable.firstChild )
+				{
+					domEls.dataTable.removeChild ( domEls.dataTable.lastChild );
+				}
+
+				users.sort ( (a,b)=>{
+					return scores[ a ].rank - scores[ b ].rank;
+				})
+
+				let voies = users.map ( u=>Object.keys ( scores[ u ] ) ).flat ( Infinity ).distinct ( );
+
+				for ( let user of users )
+				{
+					let line = document.createElement ( "tr" );
+
+					let td = document.createElement ( "td" );
+					line.appendChild ( td )
+					td.innerHTML = user;
+
+					for ( let voie of voies )
+					{
+						if ( [ "rank", "total" ].includes ( voie ) )
+						{
+							continue;
+						}
+						let td = document.createElement ( "td" );
+						line.appendChild ( td );
+
+						if ( scores[ user ][ voie ] )
+						{
+							td.innerHTML = Math.max ( ...scores[ user ][ voie ] )
+						}
+					}
+					td = document.createElement ( "td" );
+					line.appendChild ( td )
+					td.innerHTML = scores[ user ].rank;
+
+					domEls.dataTable.appendChild ( line )
+				}
+			}
+		</script>
+	</body>
+</html>

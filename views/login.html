@@ -1,129 +1,78 @@
 <!DOCTYPE html>
 <html>
-	<%- include("partials/head") -%>
+	<%- include("partials/head.html") -%>
 	<body>
-		<%- include("partials/nav") -%>
+		<%- include("partials/nav.html") -%>
 		<section>
-			<style type="text/css">
-				#loader
-				{
-					/*border: 16px solid #333;*/
-					border-top: 16px solid #444;
-					border-radius: 50%;
-					width: 120px;
-					height: 120px;
-					animation: spin 3s linear infinite;
-				}
-
-				@keyframes spin
-				{
-					0% { transform: rotate(0deg); }
-					100% { transform: rotate(360deg); }
-				} 
-			</style>
-			<div id="loderDiv" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba( 0,0,0,0.2 ); display: none;">
-				<div id="loader"></div>
-			</div> 
 			<div>
 				<div>
-					<input id="user" type="text" placeholder="user" onchange="login();"/>
+					<input id="user" type="text" placeholder="user"/>
 				</div>
 				<div>
-					<input id="password" type="password" placeholder="password" onchange="login();"/>
+					<input id="password" type="password" placeholder="password"/>
 				</div>
 				<div>
-					<button id="valid" onclick="login();">Validate</button>
-				</div>
-				<div>
-					<a href="/">back</a>
+					<button id="valid">Connexion <span id="count"></span></button>
 				</div>
 				<div>
 					<p id="serverMsg"></p>
 				</div>
 			</div>
 		</section>
-		<script type="text/javascript" src="/js/cryptico.min.js"></script>
-		<script type="text/javascript" src="/js/sha512.min.js"></script>
-		<script type="text/javascript"> // password
-			let pubKey = "<%- pubKey %>";
+		<script type="text/javascript"  nonce="<%- locals.nonce %>"> // password
 
-			function displayValidate ( )
-			{
-				if ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test ( navigator.userAgent ) )
-				{
-					document.getElementById ( 'valid' ).style.display = "";
-				}
-				else
-				{
-					document.getElementById ( 'valid' ).style.display = "none";
-				}
+			let domEls = {
+				user: document.getElementById ( "user" ),
+				password: document.getElementById ( "password" ),
+				button: document.getElementById ( "valid" ),
+				count: document.getElementById ( "count" )
 			}
 
-			function login ( )
+			function log ( params )
 			{
-
-				let user = document.getElementById( 'user' ).value;
-				let password = document.getElementById( 'password' ).value;
-
-				if ( ( user == "" ) ||
-					( password == "" ) )
-				{
-					return;
-				}
-
-				let xhr = new XMLHttpRequest();
-
-				xhr.open('POST', '/login' );
-				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-				xhr.addEventListener ( 'readystatechange', function ( )
-				{
-					if ( xhr.readyState === XMLHttpRequest.DONE )
-					{
-						document.getElementById ( 'loderDiv' ).style.display = "none";
-						if ( xhr.status === 200 )
+				return fetch ( "/ajax/login", {
+						method: "POST",
+						body: JSON.stringify ( params ),
+						headers: {"Content-Type": "application/json"},
+					})
+					.then ( async r=>{
+						if ( r.ok )
 						{
-							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:green;\">Ok</span>";
-							window.location.href = "/";
-						}
-						else if ( xhr.status === 401 )
-						{
-							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:red;\">"+xhr.responseText+"</span>";
-						}
-						else if ( xhr.status === 403 )
-						{
-							if ( 5 - parseInt ( xhr.responseText ) )
-							{
-								document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:orange;\">pass invalid, it remain only <span style='color:red'>"+( 5 - parseInt ( xhr.responseText ) )+"</span> try</span>";
-							}
-							else
-							{
-								document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:red;\">no more try available</span>";
-							}
+							return r.json ( );
 						}
 						else
 						{
-							document.getElementById( 'serverMsg' ).innerHTML = "<span style=\"color:#f55;\">" + xhr.responseText + "</span>";
+							throw {status:r.status,json:await r.json()};
 						}
-					}
-				});
+					})
+					.then ( r=>{
+						if ( r.token )
+						{
+							localStorage.setItem ( "token", r.token );
+						}
 
-				// encrypt password to prevent clear storage on server
-				// you prevent the admin read it in clear mode
-				let tmp = {
-					"user":user,
-					"password":sha512(password)
-				};
-
-				let enc = cryptico.encrypt ( JSON.stringify ( tmp ), pubKey );
-
-				xhr.overrideMimeType ( "text/plain" );
-				// need encodeURIComponent() for plus (+) signs
-				xhr.send ( "data="+encodeURIComponent ( enc.cipher ) );
-				document.getElementById ( 'loderDiv' ).style.display = "";
+						return new Promise ( (ok,ko)=>{
+							setTimeout ( ok, 1000, r );
+						})
+					})
+					.then ( r=>{
+						window.location.pathname = r.target;
+					})
+					.catch ( console.log )
 			}
 
-			displayValidate ( );
+			window.onload = ()=>{
+				let token = localStorage.getItem ( "token" );
+
+				return log ( {token:token} );
+			}
+
+			domEls.button.onclick = ()=>{
+				return log ( {
+						user: domEls.user.value,
+						password: domEls.password.value,
+					} )
+			}
 		</script>
 	</body>
 </html>

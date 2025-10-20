@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-	<%- include("partials/head") -%>
+	<%- include("partials/head.html") -%>
 	<body>
-		<%- include("partials/nav") -%>
+		<%- include("partials/nav.html") -%>
 		<style type="text/css" media="print">
 			nav
 			{
@@ -39,17 +39,15 @@
 			<div id="results"></div>
 		</section>
 		<script src="/socket.io/socket.io.js"></script>
-		<script src="/js/socket.js"></script>
-		<%- include("partials/default_include_js") -%>
 		<script type="text/javascript" src="/js/utils.js"></script>
-		<script type="text/javascript"> // globals vars
+		<script type="text/javascript" nonce="<%- locals.nonce %>"> // globals vars
 			let resultDisplay = document.getElementById ( "results" );
 
 			let g_genre = document.getElementById ( "genre" );
 			let g_categorie = document.getElementById ( "categorie" );
 			let g_club = document.getElementById ( "club" );
 		</script>
-		<script type="text/javascript">
+		<script type="text/javascript" nonce="<%- locals.nonce %>">
 			function drawTable ( )
 			{
 				resultDisplay.innerHTML = "";
@@ -272,7 +270,7 @@
 			updateSelector ( );
 			drawTable ( );
 		</script>
-		<script type="text/javascript">
+		<script type="text/javascript" nonce="<%- locals.nonce %>">
 			document.getElementById ( 'popupMenu' ).addEventListener ( "contextmenu", function ( ev )
 			{
 				ev.preventDefault();

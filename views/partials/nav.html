@@ -1,0 +1,11 @@
+<nav>
+	<a href="/"	>Scores</a>
+	<a href="/login">Log in/out</a>
+	<a href="/statistiques">Stat.</a>
+	<a href="/results">Results</a>
+	<% if ( locals.logged ) { %>
+		<a href="/set">Set</a>
+		<a href="/addUser">New user</a>
+		<a href="/edit">Edit Score</a>
+	<% } %>
+</nav>
