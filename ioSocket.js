@@ -147,6 +147,13 @@ export default function socketIO ( server, params )
 
 		socket.on ( "getScores", ()=>{
 			socket.emit ( "scores", params?.db?.score );
-		})
+		});
+
+		socket.on ( "uValue", async (msg)=>{
+			params.db.score[ msg.name ][ msg.voie ][ msg.index ] = msg.value;
+			await calcAll ( params );
+			fs.writeFileSync ( params.db.path.score, JSON.stringify ( params.db.score, null, 4 ), 'utf8' );
+			io.emit ( "scores", params?.db?.score );
+		});
 	});
 }

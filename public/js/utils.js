@@ -278,258 +278,121 @@ function uOneSlector ( params = {} )
 	}
 }
 
-
-function calcTotal ( id = "total", mode = "a" )
-{ // get data to calculate average and globals metrics
-	// init average struct
-	let v = Object.keys( voie );
-	for ( let i = 0; i < v.length; i++ )
+/// params : {
+/// 	selectedUsers
+/// 	thead
+/// 	tbody
+/// 	scores
+/// }
+function printTable ( params = {} )
+{
+	function createLine ( array )
 	{
-		average.all[ i ] = 0;
-		average.tryed[ i ] = 0;
-		average.player = 0;
+		let line = document.createElement ( "tr" );
+		for ( let item of array )
+		{
+			let td = document.createElement ( "td" );
+			line.appendChild ( td );
+
+			td.innerText = item;
+		}
+
+		return line;
 	}
 
-	if ( !users )
+	let sU = params.selectedUsers.map ( u=>u.name );
+	let users = Object.keys ( params.scores ).filter ( u=>sU.includes ( u ) );
+
+	while ( params.thead.firstChild )
 	{
-		return "error";
+		params.thead.removeChild ( params.thead.lastChild );
+	}
+	while ( domEls.table.tbody.firstChild )
+	{
+		params.tbody.removeChild ( params.tbody.lastChild );
 	}
 
-	switch ( mode )
+	users.sort ( (a,b)=>{
+		return params.scores[ a ].rank - params.scores[ b ].rank;
+	})
+
+	let voies = users.map ( u=>Object.keys ( params.scores[ u ] ) ).flat ( Infinity ).distinct ( ).sort ( );
+
+	params.thead.appendChild ( createLine ( [ "Nom", ...voies.filter ( v=>!["rank","total"].includes ( v ) ), "total", "rank" ] ) );
+
+	for ( let user of users )
 	{
-		case "a":
-		case "autre":
-		{ // for non offical contest mode
-			for ( let i = 0; i < users.length; i++ )
-			{
-				if ( !score[ users[ i ].name ] )
-				{ // if no score for some user, treat the next
-					continue;
-				}
-
-				let somme = 0;
-
-				for ( let j = 0; j < v.length; j++ )
+		params.tbody.appendChild ( createLine ( [
+			user,
+			...voies.filter ( v=>!["rank","total"].includes ( v ) ).map ( v=>{
+				if ( params.scores[ user ][ v ] )
 				{
-					let l_voie = voie[ v[ j ] ];
-
-					let value = getScore( users[ i ].name, v[ j ] );
-					if ( value == "echec" )
-					{
-						value = 0;
-					}
-					else
-					{
-						value = l_voie.score[ value ] || value;
-					}
-					if ( isNaN( value ) )
-					{
-						console.log( "error : value should be a number, verify config for "+v[ j ] );
-						console.log( value );
-						return;
-					}
-
-					if ( !average.all[ v[ j ] ]  )
-					{
-						average.all[ v[ j ] ] = 0;
-					}
-
-					if ( !average.tryed[ v[ j ] ]  )
-					{
-						average.tryed[ v[ j ] ] = 0;
-					}
-
-
-					if ( !value )
-					{ // la voie n'a pas été faite
-						continue;
-					}
-
-					switch ( l_voie.type )
-					{
-						case "vitesse":
-						{
-							let tmp = ( l_voie.score.time - value );
-							tmp = ( tmp < 0 )? 0: tmp;
-							somme += Number( tmp );
-
-							average.all[ v[ j ] ] += Number( tmp ); // totalise points for all users
-							if ( value )
-							{
-								average.tryed[ v[ j ] ]++;
-							}
-							break;
-						}
-						case "endurance":
-						{
-							let tmp = 0;
-							if ( l_voie.score.time )
-							{
-								tmp = Math.min ( l_voie.score.time, value )
-							}
-							else
-							{
-								tmp = value;
-							}
-							somme += Number( tmp );
-
-							// TODO
-							average.all[ v[ j ] ] += Number( tmp ); // totalise points for all users
-							if ( value )
-							{
-								average.tryed[ v[ j ] ]++;
-							}
-							break;
-						}
-						case "manual":
-						default:
-						{
-							somme += Number( value || 0 );
-							average.all[ v[ j ] ] += Number( value || 0 );
-
-							if ( value )
-							{
-								average.tryed[ v[ j ] ]++;
-							}
-
-							break;
-						}
-					}
+					return Math.max( ...params.scores[ user ][ v ] )
 				}
-
-				if ( score[ users[ i ].name ] )
+				else
 				{
-					average.player++;
+					return "";
 				}
+			}),
+			params.scores[ user ].total,
+			params.scores[ user ].rank
+		] ) );
+	}
+}
 
-				setScore( users[ i ].name, "total", somme, 0 );
-			}
-			break;
-		}
-		case "b":
-		case "bloc":
+/// params : {
+/// 	selectedUsers
+/// 	thead
+/// 	tbody
+/// 	scores
+/// 	socket
+/// }
+function printTableOne ( params = {} )
+{
+	while ( params.thead.firstChild )
+	{
+		params.thead.removeChild ( params.thead.lastChild );
+	}
+	while ( domEls.table.tbody.firstChild )
+	{
+		params.tbody.removeChild ( params.tbody.lastChild );
+	}
+
+	let score = params.scores[ params.selectedUsers[ 0 ].name ]
+	
+	for ( let voie in score )
+	{
+		if ( "Array" != score[ voie ].constructor.name )
 		{
-			for ( let i = 0; i < users.length; i++ )
-			{
-				if ( !score[ users[ i ].name ] )
-				{
-					continue;
-				}
-
-				// get the four value needed to calc bloc rank
-				let top = getNbTop ( users[ i ].name );
-				let nbTestTop = getNbEssaisTop ( users[ i ].name );
-				let zone = getNbZone ( users[ i ].name );
-				let nbTestZone = getNbEssaisZone ( users[ i ].name );
-
-				setScore( users[ i ].name, "top", top );
-				setScore( users[ i ].name, "testTop", nbTestTop );
-
-				setScore( users[ i ].name, "zone", zone );
-				setScore( users[ i ].name, "testZone", nbTestZone );
-
-				for ( let j = 0; j < v.length; j++ )
-				{
-					if ( voie[ v[j] ].type != "bloc" )
-					{
-						continue;
-					}
-					average.tryed[ j ] += getNbTests ( users[ i ].name, v[j] );
-					average.all[ j ] += top;
-				}
-
-				if ( score[ users[ i ].name ] )
-				{
-					average.player++;
-				}
-
-				let str = top+'.'+nbTestTop+'.'+zone+'.'+nbTestZone;
-
-				setScore( users[ i ].name, "total", str, 0 );
-			}
-			break;
+			continue;
 		}
-		case "d":
-		case "diff":
-		case "difficulte":
-		{
-			let qRank = {};
+		let line = document.createElement ( "tr" );
 
-			// init local rank
-			for ( i = 0; i < users.length; i++ )
-			{
-				qRank[ users[ i ].name ] = 0;
-			}
+		let th = document.createElement ( "th" );
+		line.appendChild ( th );
+		th.innerText = voie;
 
-			for ( let track = 0; track < v.length; track++ )
-			{ // dans l'idée on utilise le rang de chaque utilisateur sur chaque vois pour calculer le rang global
-				if ( voie[ v[track] ].type != "diff" )
-				{
-					continue;
-				}
+		score[ voie ].map ( (v,i)=>{
+			let td = document.createElement ( "td" );
+			line.appendChild ( td );
 
-				orderTable ( v[track] );
-				setRank ( v[track] );
+			let input = document.createElement ( "input" );
+			td.appendChild ( input );
 
-				for ( i = 0; i < users.length; i++ )
-				{
-					let tmp = 0;
-					if ( !score[ users[ i ].name ] )
-					{ // pas de score pour cet utilisateur
-						continue;
-					}
-					else if ( !score[ users[ i ].name ][ v[track] ] )
-					{ // pas de score de diff pour cet utilisateur
-						tmp = users.length;
-					}
-					else
-					{
-						tmp = score[ users[ i ].name ][ "rank" ][ 0 ];
-					}
+			input.value = v;
+			input.dataset.index = i;
+			input.dataset.id = voie;
 
-					console.log( users[ i ].name + " : " + tmp );
+			input.addEventListener ( "change", (ev)=>{
+				params.socket.emit ( "uValue", {
+					index:i,
+					voie:voie,
+					name:params.selectedUsers[ 0 ].name,
+					value: Number ( ev.target.value ),
+				} )
+			})
+		});
 
-					qRank[ users[ i ].name ] += tmp * tmp;
-				}
-			}
-
-			for ( i = 0; i < users.length; i++ )
-			{
-				if ( !score[ users[ i ].name ] )
-				{
-					continue;
-				}
-
-				setScore( users[ i ].name, "total", Math.sqrt ( qRank[ users[ i ].name ] ), 0 );
-			}
-			break;
-		}
-		case "v":
-		case "vitesse":
-		{
-			for ( let i = 0; i < users.length; i++ )
-			{
-				if ( !score[ users[ i ].name ] )
-				{
-					continue;
-				}
-
-				let somme = 0;
-
-				for ( let j = 0; j < voie.length; j++ )
-				{
-					let time = getScore( users[ i ].name, j );
-					if ( !time )
-					{
-						setScore( users[ i ].name, total, undefined, 0 );
-						break;
-					}
-					somme += parseFloat ( time );
-
-					setScore( users[ i ].name, total, somme, 0 );
-				}
-			}
-			break;
-		}
+		params.tbody.appendChild ( line );
 	}
 }

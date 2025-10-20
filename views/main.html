@@ -4,48 +4,46 @@
 	<body>
 		<%- include("partials/nav.html") -%>
 		<section>
-			<div>
-				<form>
-					<span>
-						<label for="genre">Genre</label>
-						<select id="genre"></select>
-					</span>
-					<span>
-						<label for="categorie">Categorie</label>
-						<select id="categorie"></select>
-					</span>
-					<span>
-						<label for="club">Club</label>
-						<select id="club"></select>
-					</span>
-				</form>
-				<table id="table">
-					<thead id="thead"></thead>
-					<tbody id="tbody"></tbody>
-				</table>
-				<div id="grapghs">
-					<canvas 
-						width="700"
-						height="400"
-						class="chartjs-render-monitor"
-						id="pointGraph">
-					</canvas>
-					<canvas 
-						width="700"
-						height="700"
-						class="chartjs-render-monitor"
-						id="userGraph">
-					</canvas>
-					<ul id="legendGraph" class="smothText">
-						<li>moyenne tenté : moyenne des points obtenu pas les personnes 
-							ayant tenté cette voie</li>
-						<li>moyenne totale : moyenne des points obtenu sur cette voie 
-							par toues les personnes ayant participé</li>
-					</ul>
-				</div>
+			<form>
+				<span>
+					<label for="genre">Genre</label>
+					<select id="genre"></select>
+				</span>
+				<span>
+					<label for="categorie">Categorie</label>
+					<select id="categorie"></select>
+				</span>
+				<span>
+					<label for="club">Club</label>
+					<select id="club"></select>
+				</span>
+			</form>
+			<table id="table">
+				<thead id="thead"></thead>
+				<tbody id="tbody"></tbody>
+			</table>
+			<div id="grapghs">
+				<canvas 
+					width="700"
+					height="400"
+					class="chartjs-render-monitor"
+					id="pointGraph">
+				</canvas>
+				<canvas 
+					width="700"
+					height="700"
+					class="chartjs-render-monitor"
+					id="userGraph">
+				</canvas>
+				<ul id="legendGraph" class="smothText">
+					<li>moyenne tenté : moyenne des points obtenu pas les personnes 
+						ayant tenté cette voie</li>
+					<li>moyenne totale : moyenne des points obtenu sur cette voie 
+						par toues les personnes ayant participé</li>
+				</ul>
 			</div>
 		</section>
-		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
+		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript" nonce="<%- locals.nonce %>">
 			Array.prototype.distinct = function () { return Array.from ( new Set ( this ) ); };
 
@@ -189,14 +187,6 @@
 				}
 			};
 
-			let average = {
-				"all" : {},
-				"tryed" : {},
-				"player" : 0
-			};
-
-			let scores = {};
-
 			window.onload = function ( )
 			{
 				domEls.grapghs.points.style.display = "none";
@@ -207,6 +197,7 @@
 			let socket = io ( );
 			let filters = {};
 			let selectedUsers = {};
+			let scores = {};
 
 			socket.on ( "setUCCG", (msg)=>{
 				selectedUsers = msg;
@@ -215,7 +206,12 @@
 				uOneSlector ( {default:"categorie", selector:domEls.input.categorie, list:msg.map ( u2=>u2.categorie ).distinct ( )} )
 				uOneSlector ( {default:"club", selector:domEls.input.club, list:msg.map ( u2=>u2.club ).distinct ( )} )
 
-				printTable ( );
+				printTable ({
+					thead: domEls.table.thead,
+					tbody: domEls.table.tbody,
+					scores: scores,
+					selectedUsers: selectedUsers,
+				});
 			} );
 
 			socket.on ( "connect", ()=>{
@@ -226,7 +222,12 @@
 			socket.on ( "scores", (msg)=>{
 				scores = msg;
 
-				printTable ( );
+				printTable ({
+					thead: domEls.table.thead,
+					tbody: domEls.table.tbody,
+					scores: scores,
+					selectedUsers: selectedUsers,
+				});
 			});
 
 			for ( let key in domEls.input )
@@ -242,60 +243,6 @@
 					}
 					socket.emit ( "getUCCG", {filters} );
 				} )
-			}
-
-			function printTable ( )
-			{
-				function createLine ( array )
-				{
-					let line = document.createElement ( "tr" );
-					for ( let item of array )
-					{
-						let td = document.createElement ( "td" );
-						line.appendChild ( td );
-						td.innerText = item;
-					}
-
-					return line;
-				}
-
-				let sU = selectedUsers.map ( u=>u.name );
-				let users = Object.keys ( scores ).filter ( u=>sU.includes ( u ) );
-
-				while ( domEls.table.thead.firstChild )
-				{
-					domEls.table.thead.removeChild ( domEls.table.thead.lastChild );
-				}
-				while ( domEls.table.tbody.firstChild )
-				{
-					domEls.table.tbody.removeChild ( domEls.table.tbody.lastChild );
-				}
-
-				users.sort ( (a,b)=>{
-					return scores[ a ].rank - scores[ b ].rank;
-				})
-
-				let voies = users.map ( u=>Object.keys ( scores[ u ] ) ).flat ( Infinity ).distinct ( ).sort ( );
-
-				domEls.table.thead.appendChild ( createLine ( [ "Nom", ...voies.filter ( v=>!["rank","total"].includes ( v ) ), "total", "rank" ] ) );
-
-				for ( let user of users )
-				{
-					domEls.table.tbody.appendChild ( createLine ( [
-						user,
-						...voies.filter ( v=>!["rank","total"].includes ( v ) ).map ( v=>{
-							if ( scores[ user ][ v ] )
-							{
-								return Math.max( ...scores[ user ][ v ] )
-							}
-							else
-							{
-								return "";
-							}
-						}),
-						scores[ user ].total,
-						scores[ user ].rank ] ) )
-				}
 			}
 		</script>
 	</body>
