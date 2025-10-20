@@ -30,10 +30,7 @@ export function calcAll ( params )
 						{
 							continue;
 						}
-						console.log ( user.name, voie, params.db.score[ user.name ][ voie ] )
 						params.db.score[ user.name ].total += Math.max ( ...params.db.score[ user.name ][ voie ] );
-						console.log ( " - ", params.db.score[ user.name ].total )
-							
 						params.db.voies[ voie ].meta.users++;
 
 						params.db.score[ user.name ][ voie ].map ( v=>{
@@ -61,9 +58,8 @@ export function calcAll ( params )
 			case "autre":
 			{
 				let users = Object.keys ( params.db.score )
-				users.sort ( (a,b)=>{ return params.db.score[ a ].total - params.db.score[ b ].total })
+				users.sort ( (a,b)=>{ return params.db.score[ b ].total - params.db.score[ a ].total })
 					.map ( (user,i)=>{
-						console.log ( user, i )
 						params.db.score[ user ].rank = (i+1);
 					})
 				break;
