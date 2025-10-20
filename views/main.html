@@ -19,8 +19,9 @@
 						<select id="club"></select>
 					</span>
 				</form>
-				<table>
-					<tbody id="dataTable"></tbody>
+				<table id="table">
+					<thead id="thead"></thead>
+					<tbody id="tbody"></tbody>
 				</table>
 				<div id="grapghs">
 					<canvas 
@@ -54,7 +55,11 @@
 					categorie: document.getElementById ( "categorie" ),
 					club: document.getElementById ( "club" ),
 				},
-				dataTable: document.getElementById ( "dataTable" ),
+				table: {
+					full: document.getElementById ( "table" ),
+					tbody: document.getElementById ( "tbody" ),
+					thead: document.getElementById ( "thead" ),
+				},
 				grapghs:{
 					points: document.getElementById ( "pointGraph" ),
 					users: document.getElementById ( "userGraph"),
@@ -241,47 +246,55 @@
 
 			function printTable ( )
 			{
+				function createLine ( array )
+				{
+					let line = document.createElement ( "tr" );
+					for ( let item of array )
+					{
+						let td = document.createElement ( "td" );
+						line.appendChild ( td );
+						td.innerText = item;
+					}
+
+					return line;
+				}
+
 				let sU = selectedUsers.map ( u=>u.name );
 				let users = Object.keys ( scores ).filter ( u=>sU.includes ( u ) );
 
-				while ( domEls.dataTable.firstChild )
+				while ( domEls.table.thead.firstChild )
 				{
-					domEls.dataTable.removeChild ( domEls.dataTable.lastChild );
+					domEls.table.thead.removeChild ( domEls.table.thead.lastChild );
+				}
+				while ( domEls.table.tbody.firstChild )
+				{
+					domEls.table.tbody.removeChild ( domEls.table.tbody.lastChild );
 				}
 
 				users.sort ( (a,b)=>{
 					return scores[ a ].rank - scores[ b ].rank;
 				})
 
-				let voies = users.map ( u=>Object.keys ( scores[ u ] ) ).flat ( Infinity ).distinct ( );
+				let voies = users.map ( u=>Object.keys ( scores[ u ] ) ).flat ( Infinity ).distinct ( ).sort ( );
+
+				domEls.table.thead.appendChild ( createLine ( [ "Nom", ...voies.filter ( v=>!["rank","total"].includes ( v ) ), "total", "rank" ] ) );
 
 				for ( let user of users )
 				{
-					let line = document.createElement ( "tr" );
-
-					let td = document.createElement ( "td" );
-					line.appendChild ( td )
-					td.innerHTML = user;
-
-					for ( let voie of voies )
-					{
-						if ( [ "rank", "total" ].includes ( voie ) )
-						{
-							continue;
-						}
-						let td = document.createElement ( "td" );
-						line.appendChild ( td );
-
-						if ( scores[ user ][ voie ] )
-						{
-							td.innerHTML = Math.max ( ...scores[ user ][ voie ] )
-						}
-					}
-					td = document.createElement ( "td" );
-					line.appendChild ( td )
-					td.innerHTML = scores[ user ].rank;
-
-					domEls.dataTable.appendChild ( line )
+					domEls.table.tbody.appendChild ( createLine ( [
+						user,
+						...voies.filter ( v=>!["rank","total"].includes ( v ) ).map ( v=>{
+							if ( scores[ user ][ v ] )
+							{
+								return Math.max( ...scores[ user ][ v ] )
+							}
+							else
+							{
+								return "";
+							}
+						}),
+						scores[ user ].total,
+						scores[ user ].rank ] ) )
 				}
 			}
 		</script>
