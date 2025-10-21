@@ -3,7 +3,6 @@ nav > input, nav > label
 	display:none;
 }
 
-
 @media (max-width: 480px)
 { /* change size for smallest mobiles devices */
 	a, select, input[type=text], input[type=password], input[type=number], button,  .suggestion
@@ -69,6 +68,14 @@ nav > input, nav > label
 	{
 		border: none;
 		border-radius: 5px;
+	}
+}
+
+@media screen and (max-width: 1200px)
+{
+	.table, .grapghs {
+		background: red;
+		/*display: none;*/
 	}
 }
 
