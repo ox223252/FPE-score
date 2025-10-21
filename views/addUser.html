@@ -1,165 +1,152 @@
 <!DOCTYPE html>
 <html>
-	<%- include("partials/head") -%>
+	<%- include("partials/head.html") -%>
 	<body>
-		<%- include("partials/nav") -%>
-		<section id="addUser">
-			<div>
-				<input id="nom" type="text" placeholder="NOM" onkeyup="this.value = this.value.toUpperCase();drawNamesList();"/>
-				<input id="prenom" type="text" placeholder="Prénom" onkeyup="drawNamesList();"/>
-				<div id="availablesNames"></div>
+		<%- include("partials/nav.html") -%>
+		<section>
+			<spaan>
+				<label>Nom Prenom :</label>
+				<input id="name" list="nameList" type="text" placeholder="Nom PRenom">
+				<datalist id="nameList"></datalist>
+			</span>
+			<span>
+				<label for="categorie">Categorie</label>
 				<select id="categorie">
-					<option disabled selected></option>
-					<option value="microbe">microbe</option>
-					<option value="poussin">poussin</option>
-					<option value="bejamin">benjamin</option>
-					<option value="minime">minime</option>
-					<option value="cadet">cadet</option>
+					<option disabled selected>--</option>
+					<option value="U8">U8</option>
+					<option value="U10">U10</option>
+					<option value="U12">U12</option>
+					<option value="U14">U14</option>
+					<option value="U16">U16</option>
+					<option value="U18">U18</option>
 					<option value="senior">senior</option>
 					<option value="veterant">vétéran</option>
 				</select>
+			</span>
+			<span>
+				<label for="genre">Genre</label>
 				<select id="genre">
-					<option disabled selected></option>
-					<option value="homme">homme</option>
-					<option value="femme">femme</option>
+					<option disabled selected>--</option>
+					<option value="M">homme</option>
+					<option value="F">femme</option>
 				</select>
-				<input id="club" placeholder="club" onkeyup="getClub(this.value,'clubSugest', this.id);" type="text" >
-				<div id="clubSugest" style="display:none">
-					
-				</div>
-				<button onclick="addUser()">Ok</button>
-			</div>
+			</span>
+			<span>
+				<label for="club">Club</label>
+				<input id="club" list="clubList" placeholder="club" type="text">
+				<datalist id="clubList">
+					<option value="test">
+				</datalist>
+			</option>
+			<button id="validate">Sauver</button>
+			<p id="serverMsg"></p>
 		</section>
-		<%- include("partials/default_include_js") -%>
-		<script type="text/javascript"> // password
-			function getName ( )
+		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
+		<script type="text/javascript" nonce="<%- locals.nonce %>">
+		let domEls = {
+			name: document.getElementById ( "name" ),
+			nameList: document.getElementById ( "nameList" ),
+			categorie: document.getElementById ( "categorie" ),
+			genre: document.getElementById ( "genre" ),
+			club: document.getElementById ( "club" ),
+			clubList: document.getElementById ( "clubList" ),
+			validate: document.getElementById ( "validate" ),
+			serverMsg: document.getElementById ( "serverMsg" ),
+		};
+
+		let socket = io ( );
+		let users = [];
+
+		socket.on ( "connect", ()=>{
+			socket.emit ( "getUsersList" );
+			socket.emit ( "getClubsList" );
+		})
+
+		socket.on ( "setClubsList", (msg)=>{
+			while ( clubList.options.length )
 			{
-				let nom = document.getElementById( 'nom' ).value;
-				let prenom = document.getElementById( 'prenom' ).value;
-				let str = nom;
-				if ( prenom.length )
-				{
-					str+=" ";
-				}
-				str += prenom;
-				return  prenom;
+				clubList.removeChild ( clubList.firstChild );
 			}
 
-			function getNamesList ( )
+			for ( let opt of msg )
 			{
-				let nom = document.getElementById( 'nom' ).value;
-				let prenom = document.getElementById( 'prenom' ).value;
+				let option = document.createElement ( 'option' );
+				option.value = opt;
+				clubList.appendChild ( option );
+			}
+		});
 
-				let list = [];
-				for ( let i = 0; i < users.length; i++ )
-				{
-					if ( nom.length &&
-						( users[i].name.indexOf (nom) >= 0 ) ||
-						prenom.length &&
-						( users[i].name.indexOf (prenom) >= 0 ) )
-					{
-						list.push ( users[i].name );
-					}
-				}
-				return list;
+		socket.on ( "setUsersList", (msg)=>{
+			users = msg;
+			while ( nameList.options.length )
+			{
+				nameList.removeChild ( nameList.firstChild );
 			}
 
-			function drawNamesList ( )
+			for ( let opt of msg )
 			{
-				let table = document.getElementById("availablesNames");
-				let str = "";
-				let list = getNamesList();
-				for ( let i=0; i < list.length; i++ )
-				{
-					str+="<div>"+list[i]+"</div>";
-				}
-				table.innerHTML = str;
+				let option = document.createElement ( 'option' );
+				option.value = opt;
+				nameList.appendChild ( option );
+			}
+		});
+
+		socket.on ( "error", (msg)=>{
+			console.log ( msg )
+			domEls.serverMsg.display = "";
+			domEls.serverMsg.innerText = msg;
+
+			document.body.style.backgroundColor = "red";
+
+			setTimeout ( ()=>{
+				document.body.style.backgroundColor = "";
+			}, 1000 );
+		});
+
+		socket.on ( "ok", ()=>{
+			console.log ( "ok" )
+			domEls.name.value = "";
+			domEls.club.value = "";
+			domEls.categorie.value = "";
+			domEls.genre.value = "";
+
+			document.body.style.backgroundColor = "green";
+
+			setTimeout ( ()=>{
+				document.body.style.backgroundColor = "";
+			}, 1000 );
+		});
+
+		domEls.validate.addEventListener ( "click", (ev)=>{
+			ev.preventDefault ( );
+			if ( undefined == msg.name )
+			{
+				domEls.serverMsg.innerText = "il manque le nom";
+				return;
+			}
+			if ( undefined == msg.categorie )
+			{
+				domEls.serverMsg.innerText = "il manque la categorie";
+				return;
+			}
+			if ( undefined == msg.genre )
+			{
+				domEls.serverMsg.innerText = "il manque le genre";
+				return;
+			}
+			if ( undefined == msg.club )
+			{
+				domEls.serverMsg.innerText = "il manque le club";
+				return;
 			}
 
-			function addUser ( )
-			{
-				let user = getName( );
-				let categorie = document.getElementById ( 'categorie' ).value;
-				let genre = document.getElementById ( 'genre' ).value;
-				let club = document.getElementById ( 'club' ).value;
-
-				if ( ( user == "" ) ||
-					!categorie ||
-					!genre )
-				{
-					console.log("user");
-					return;
-				}
-				console.log(user);
-
-				let xhr = new XMLHttpRequest();
-
-				xhr.open('POST', '/addUser' );
-				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-				xhr.addEventListener ( 'readystatechange', function ( )
-				{
-					if ( xhr.readyState === XMLHttpRequest.DONE )
-					{
-						if ( xhr.status === 200 )
-						{
-							document.getElementById( 'nom' ).value = "";
-							document.getElementById( 'prenom' ).value = "";
-							document.getElementById("availablesNames").innerHTML="ok";
-						}
-						else if ( xhr.status === 500 )
-						{
-							document.getElementById("availablesNames").innerHTML="utilisateur déjà dans le système";
-						}
-					}
-				});
-
-				xhr.overrideMimeType("text/plain");
-				xhr.send("name="+user+"&categorie="+categorie+"&genre="+genre+"&club="+club );
-			}
-
-			function getClub ( partName, sugestId, masterId )
-			{
-				if ( partName == "" )
-				{
-					document.getElementById ( sugestId ).style.display = "none";
-					return;
-				}
-				let xhr = new XMLHttpRequest();
-
-				xhr.open('POST', '/getClub' );
-				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-				xhr.addEventListener ( 'readystatechange', function ( )
-				{
-					if ( ( xhr.readyState === XMLHttpRequest.DONE )
-						&& ( xhr.status === 200 ) )
-					{
-						displaySugestions ( JSON.parse ( xhr.responseText ), sugestId, masterId );
-					}
-				});
-
-				xhr.overrideMimeType("text/plain");
-				xhr.send("partName="+partName);
-			}
-
-			function setValue ( sugestId, masterId, value )
-			{
-				document.getElementById ( masterId ).value = value;
-				document.getElementById ( sugestId ).style.display = "none";
-			}
-
-			function displaySugestions ( choices, sugestId, masterId )
-			{
-				let div = document.getElementById ( sugestId );
-				div.style.display = "";
-				div.innerHTML = "";
-
-				for ( let i = 0; i < choices.length; i++ )
-				{
-					div.innerHTML += "<div class='suggestion' onclick=\"setValue('"+sugestId+"','"+masterId+"',this.innerHTML);\">"+choices[ i ]+"</div>";
-				}
-			}
+			socket.emit ( "setUser",{
+				name: domEls.name.value.trim ( ),
+				categorie: domEls.categorie.value,
+				genre: domEls.genre.value,
+				club: domEls.club.value,
+			});
+		});
 		</script>
 	</body>
 </html>

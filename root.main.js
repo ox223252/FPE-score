@@ -181,4 +181,9 @@ main.express.all ( "/road", function ( req, res )
 	res.render ( 'road.html' );
 });
 
+main.express.all ( "/addUser", function ( req, res )
+{
+	res.render ( 'addUser.html' );
+});
+
 export default main;

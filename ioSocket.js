@@ -244,5 +244,50 @@ export default function socketIO ( server, params )
 			keys.map ( k=>delete tmp[ k ].meta );
 			fs.writeFileSync ( params.args?.voies, JSON.stringify ( tmp, null, 4 ) );
 		});
+
+		socket.on ( "getClubsList", ()=>{
+			socket.emit ( "setClubsList", params.db.users.map ( u=>u.club ).distinct ( ) );
+		});
+
+		socket.on ( "getUsersList", (msg)=>{
+			socket.emit ( "setUsersList", params.db.users.map ( u=>u.name ) );
+		});
+
+		socket.on ( "setUser", (msg)=>{
+			if ( undefined == msg.name )
+			{
+				socket.emit ( "error", "il manque le nom" );
+				return;
+			}
+			if ( undefined == msg.categorie )
+			{
+				socket.emit ( "error", "il manque la categorie" );
+				return;
+			}
+			if ( undefined == msg.genre )
+			{
+				socket.emit ( "error", "il manque le genre" );
+				return;
+			}
+			if ( undefined == msg.club )
+			{
+				socket.emit ( "error", "il manque le club" );
+				return;
+			}
+
+			let index = params.db.users.map ( u=>u.name ).indexOf ( msg.name );
+			if ( 0 <= index )
+			{
+				Object.assign ( params.db.users[ index ], msg );
+			}
+			else
+			{
+				params.db.users.push ( msg );
+			}
+
+			fs.writeFileSync ( params.args?.users, JSON.stringify ( params.db.users, null, 4 ) );
+
+			socket.emit ( "ok" );
+		});
 	});
 }
