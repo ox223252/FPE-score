@@ -117,7 +117,7 @@ main.express.use ( function ( req, res, next )
 	{
 		next ( );
 	}
-	else 
+	else
 	{
 		req.session.target = req.originalUrl;
 		res.redirect ( "/login" );

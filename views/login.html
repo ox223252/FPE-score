@@ -69,7 +69,10 @@
 			window.onload = ()=>{
 				let token = localStorage.getItem ( "token" );
 
-				return log ( {token:token} );
+				if ( token )
+				{
+					return log ( {token:token} );
+				}
 			}
 
 			domEls.button.onclick = ()=>{

@@ -94,7 +94,7 @@ ajax.express.all ( "/login", function ( req, res )
 			dbU.date = new Date ( ).getTime ( );
 			dbU.error = 0;
 
-			fs.writeFileSync ( ajax.params.args.login, JSON.stringify ( ajax.params?.db?.login, null, 1 ).replace ( / /g, "\t" ), "utf8" )
+			fs.writeFileSync ( ajax.params.args.login, JSON.stringify ( ajax.params?.db?.login, null, 4 ), "utf8" )
 			res.json ( {token: dbU.token,target:req.session.target || "/"} );
 			res.status ( 200 );
 			res.end ( );

@@ -136,9 +136,9 @@ export default function socketIO ( server, params )
 				}
 			}
 
-			await calcAll ( params );
-
 			score[ msg.voie ].push ( points );
+
+			await calcAll ( params );
 
 			fs.writeFileSync ( params.db.path.score, JSON.stringify ( params.db.score, null, 4 ), 'utf8' );
 			socket.emit ( "ok" );
