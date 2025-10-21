@@ -48,20 +48,25 @@ export default function socketIO ( server, params )
 			socket.emit ( "setUCCG", out );
 		});
 
+		socket.on ( "getListOfType", ()=>{
+			let out = Object.keys ( params.db.voies );
+			socket.emit ( "setListOfType", out.map ( k=>params.db.voies[ k ].type ).distinct ( ) )
+		});
+
 		socket.on ( "getVoies", function ( msg )
 		{
 			let out = Object.keys ( params.db.voies );
-
-			out.filter ( V=>{
-					for ( let key in msg?.filters )
+			out = out.filter ( v=>{
+					if ( undefined == msg.filters )
 					{
-						if ( params.db.voies[ v ][ key ] != msg.filters[ key ] )
-						{
-							return false;
-						}
+						return true;
 					}
-					return true;
-				})
+					else if ( msg.filters?.includes ( params.db.voies[ v ].type ) )
+					{
+						return true;
+					}
+					return false;
+				});
 
 			socket.emit ( "setVoies", out );
 		})

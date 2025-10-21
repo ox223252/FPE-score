@@ -21,13 +21,23 @@
 					<label for="user">Utilisateur</label>
 					<select id="user"></select>
 				</span>
+				<hr>
 				<span>
-					<label for=voie>Type</label>
+					<label for=type>Type de voie</label>
+					<select id="type">
+						<option value="all" diseabled selected>--</option>
+						<option value="bloc">Bloc</option>
+						<option value="diff">Diff</option>
+						<option value="autre">Autre</option>
+					</select>
+				</span>
+				<span>
+					<label for=voie>Voie</label>
 					<select id="voie"></select>
 				</span>
 				<input id="scoreDiff"></input>
 				<select id="scoreBloc">
-					<option diseabled>--</option>
+					<option diseabled selected>--</option>
 					<option value="echec">Echec</option>
 					<option value="zone">Zone</option>
 					<option value="top">Top</option>
@@ -53,6 +63,7 @@
 				genre: document.getElementById ( "genre" ),
 				categorie: document.getElementById ( "categorie" ),
 				user:  document.getElementById ( "user" ),
+				type:  document.getElementById ( "type" ),
 				voie:  document.getElementById ( "voie" ),
 				start: document.getElementById ( "chronoStart" ),
 				stop:  document.getElementById ( "chronoStop" ),
@@ -89,7 +100,6 @@
 			} );
 
 			socket.on ( "setVoies", (msg)=>{
-				console.log ( msg )
 				uOneSlector ( {default:"voie", selector:domEls.voie, list:msg} )
 
 				domEls.voie.options[ 0 ].disabled = true;
@@ -155,6 +165,7 @@
 			socket.on ( "connect", ()=>{
 				socket.emit ( "getUCCG", filters.user );
 				socket.emit ( "getVoies", filters.voie );
+				socket.emit ( "getListOfType" );
 			});
 
 			socket.on ( "error", (msg)=>{
@@ -165,6 +176,12 @@
 			socket.on ( "ok", ()=>{
 				domEls.score.diff.value = "";
 				domEls.score.bloc.options[ 0 ].selected = true;
+			});
+
+			socket.on ( "setListOfType", (msg)=>{
+				uOneSlector ( {default:"--", selector:domEls.type, list:msg} )
+				domEls.type.options[ 0 ].disabled = true;
+				domEls.voie.options[ 0 ].disabled = true;
 			});
 
 			for ( let key of [ "club","genre","categorie"] )
@@ -182,13 +199,36 @@
 				} )
 			}
 
+			domEls.type.addEventListener ( "change", (ev)=>{
+				switch ( ev.target.value )
+				{
+					case "all":
+					{
+						filters.voie = undefined;
+						break;
+					}
+					case "autre":
+					{
+						filters.voie = [ "endurance", "vitesse" ];
+						break;
+					}
+					default:
+					{
+						filters.voie = [ ev.target.value ];
+						break;
+					}
+				}
+
+				socket.emit ( "getVoies", {filters:filters.voie} );
+			});
+
 			domEls.voie.addEventListener ( "change", (ev)=>{
 				if ( ev.target.value == "all" )
 				{
 					return;
 				}
 				socket.emit ( "getVoie", ev.target.value );
-			})
+			});
 
 			domEls.validate.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
