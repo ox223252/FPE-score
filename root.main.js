@@ -103,6 +103,7 @@ main.express.use ( function ( req, res, next )
 	res.locals.nonce  = crypto.randomBytes ( 16 ).toString ( "hex" );
 	res.locals.logged = req.session?.logged || false;
 	res.locals.page   = req.originalUrl;
+	res.locals.mode    = main.params.args.mode;
 	next ( );
 } );
 
@@ -173,6 +174,11 @@ main.express.all ( "/set", function ( req, res )
 main.express.all ( "/edit", function ( req, res )
 {
 	res.render ( 'edit.html' );
+});
+
+main.express.all ( "/road", function ( req, res )
+{
+	res.render ( 'road.html' );
 });
 
 export default main;

@@ -85,6 +85,44 @@ const args = yargs(process.argv)
 
 params.args = args;
 
+switch ( params.args.mode )
+{
+	case "a":
+	case "autre":
+	{
+		params.type = [ "diff","bloc","endurance","vitesse","slack" ];
+		break;
+	}
+	case "b":
+	case "bloc":
+	{
+		params.type = [ "block" ];
+		break;
+	}
+	case "c":
+	case "contest":
+	{
+		params.type = [  "diff","block","vitesse" ];
+		break;
+	}
+	case "d":
+	case "diff":
+	{
+		params.type = [  "diff" ];
+		break;
+	}
+	case "v":
+	case "vitesse":
+	{
+		params.type = [  "vitesse" ];
+		break;
+	}
+	default:
+	{
+		throw "pas encore fait"
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // read databases
 ////////////////////////////////////////////////////////////////////////////////

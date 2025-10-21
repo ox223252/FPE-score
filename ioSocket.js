@@ -161,5 +161,88 @@ export default function socketIO ( server, params )
 			fs.writeFileSync ( params.db.path.score, JSON.stringify ( params.db.score, null, 4 ), 'utf8' );
 			io.emit ( "scores", params?.db?.score );
 		});
+
+		socket.on ( "getListOfAllTypes", ()=>{
+			socket.emit ( "setListOfAllTypes", params.type );
+		});
+
+		socket.on ( "newVoie", (msg)=>{
+			if ( !params.type.includes ( msg.type ) )
+			{
+				socket.emit ( "error", "type "+msg.type+"invalide, accepté : "+params.type );
+				return;
+			}
+
+			if ( msg.score )
+			{
+				msg.score = msg.score.replace ( /[ .]/g, "," ).split ( "," );
+				if ( "bloc" == msg.type )
+				{
+					if ( 2 != msg.score.length )
+					{
+						socket.emit ( "error", "pour le bloc seul un score de zone et de top sont requis" );
+						return;
+					}
+
+					msg.score = {
+						zone: msg.score[ 0 ],
+						top: msg.score[ 1 ],
+					};
+				}
+			}
+
+			if ( msg.img )
+			{
+				// let path = params.args?.voies?.split ( "/" )
+				// 	.reverse ( )
+				// 	.slice ( 1 )
+				// 	.reverse ( )
+				// 	.join ( "/" );
+				let path = "./public/imgs";
+
+				if ( !fs.existsSync ( path ) )
+				{
+					fs.mkdirSync ( path );
+				}
+
+				let ext = msg.img.split ( ";" )[ 0 ].split ( "/" )[ 1 ];
+				let post = 0;
+				do
+				{
+					let imgName = "img_"+msg.voie
+
+					if ( post++ )
+					{
+						imgName += "_"+post;
+					}
+
+					imgName += "."+ext;
+
+					if ( !fs.existsSync ( path+"/"+imgName ) )
+					{
+						fs.writeFileSync ( path+"/"+imgName, Buffer.from ( msg.img.split(',')[1], 'base64' ) );
+						msg.img = "/imgs/"+imgName;
+						break;
+					}
+				}
+				while ( true );
+			}
+
+			if ( !params.db.voies[ msg.voie ] )
+			{
+				params.db.voies[ msg.voie ] = msg;
+			}
+			else
+			{
+				Object.assign ( params.db.voies[ msg.voie ], msg );
+			}
+
+
+			let keys = Object.keys ( params.db.voies );
+			let tmp = JSON.parse ( JSON.stringify ( params.db.voies ) );
+
+			keys.map ( k=>delete tmp[ k ].meta );
+			fs.writeFileSync ( params.args?.voies, JSON.stringify ( tmp, null, 4 ) );
+		});
 	});
 }

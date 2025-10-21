@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+	<%- include("partials/head.html") -%>
+	<body>
+		<%- include("partials/nav.html") -%>
+		<form>
+			<span>
+				<label for="voie">Nom de voies existantes</label>
+				<select id="voie"></select>
+			</span>
+		</form>
+		<form>
+			<span>
+				<label for="newVoie">Nom de la nouvelle voie</label>
+				<input id="newVoie" type="text">
+			</span>
+			<span>
+				<label for="type">Type de voie</label>
+				<select id="type"></select>
+			</span>
+			<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
+			<span>
+				<label for="scores">Score</label>
+				<input id="scores"></input>
+				<span>Les differents scores doivent être separé par un point, une virgule ou un espace</span>
+			</span>
+			<% } %>
+			<textarea id="comments"></textarea>
+			<p id="serverMsg"></p>
+			<input id="img" type="file" accept="image/*" capture="environement">
+			<button id="validate">Sauver</button>
+		</form>
+		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
+		<script nonce="<%- locals.nonce %>">
+			let domEls = {
+				type:  document.getElementById ( "type" ),
+				voie:  document.getElementById ( "voie" ),
+				newVoie:  document.getElementById ( "newVoie" ),
+				validate: document.getElementById ( "validate" ),
+				img: document.getElementById ( "img" ),
+				comments: document.getElementById ( "comments" ),
+				serverMsg: document.getElementById ( "serverMsg" ),
+				<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
+				scores: document.getElementById ( "scores" ),
+				<% } %>
+			};
+			let socket = io ( );
+			
+			socket.on ( "connect", ()=>{
+				socket.emit ( "getListOfAllTypes" );
+				socket.emit ( "getVoies", {} );
+			});
+
+			socket.on ( "setVoies", (msg)=>{
+				uOneSlector ( {default:"--", selector:domEls.voie, list:msg} )
+
+				domEls.voie.options[ 0 ].disabled = true;
+			});
+
+			socket.on ( "setListOfAllTypes", (msg)=>{
+				uOneSlector ( {default:"--", selector:domEls.type, list:msg} )
+				domEls.type.options[ 0 ].disabled = true;
+			});
+
+			socket.on ( "error", (msg)=>{
+				domEls.serverMsg.display = "";
+				domEls.serverMsg.innerText = msg;
+
+				document.body.style.backgroundColor = "red";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
+			});
+
+			socket.on ( "ok", ()=>{
+				domEls.score.diff.value = "";
+				domEls.score.bloc.options[ 0 ].selected = true;
+
+				document.body.style.backgroundColor = "green";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
+			});
+
+			domEls.validate.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+
+				let out = {
+					voie: domEls.newVoie.value,
+					type: domEls.type.value,
+					comments: domEls.comments.value,
+					<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
+					score: domEls.scores.value,
+					<% } %>
+				}
+
+				let files = domEls.img.files;
+
+
+				// FileReader support
+				if (FileReader && files && files.length)
+				{
+					let fr = new FileReader();
+					fr.onload = function (ev) {
+						out.img = fr.result;
+						socket.emit ( "newVoie", out );
+					}
+					fr.onerror = function (ev) {
+						socket.emit ( "newVoie", out );
+					}
+					fr.readAsDataURL(files[0]);
+				}
+				else
+				{
+					socket.emit ( "newVoie", out );
+				}
+			});
+		</script>
+	</body>
+</html>
