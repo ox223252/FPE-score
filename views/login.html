@@ -25,7 +25,8 @@
 				user: document.getElementById ( "user" ),
 				password: document.getElementById ( "password" ),
 				button: document.getElementById ( "valid" ),
-				count: document.getElementById ( "count" )
+				count: document.getElementById ( "count" ),
+				msg: document.getElementById ( "serverMsg" ),
 			}
 
 			function log ( params )
@@ -51,6 +52,8 @@
 							localStorage.setItem ( "token", r.token );
 						}
 
+						domEls.msg.innerText = "redirection";
+
 						return new Promise ( (ok,ko)=>{
 							setTimeout ( ok, 1000, r );
 						})
@@ -58,7 +61,9 @@
 					.then ( r=>{
 						window.location.pathname = r.target;
 					})
-					.catch ( console.log )
+					.catch ( e=>{
+						domEls.msg.innerText = JSON.stringify ( e, null, 4 );
+					} )
 			}
 
 			window.onload = ()=>{

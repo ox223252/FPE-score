@@ -5,7 +5,6 @@ import fs from 'fs'; // read / write files
 import crypto from 'crypto'; // sha512
 import helmet from 'helmet'; // security module : clickjacking / xss / cross dommain / ...
 import express from 'express'; // routing module
-import session from "client-sessions"; // create session encypted https://github.com/mozilla/node-client-sessions
 import bodyParser from 'body-parser'; // parsing data from request
 import readline from "readline"; // read text line from input
 import ejs from "ejs";
@@ -87,7 +86,11 @@ ajax.express.all ( "/login", function ( req, res )
 			req.session.logged = true;
 			req.session.name = req.body?.user;
 
-			dbU.token = crypto.createHash ( 'sha512' ).update ( Math.random ( ).toString ( ) ).digest ( 'hex' );
+			if ( !dbU.token )
+			{
+				dbU.token = crypto.createHash ( 'sha512' ).update ( Math.random ( ).toString ( ) ).digest ( 'hex' );
+			}
+
 			dbU.date = new Date ( ).getTime ( );
 			dbU.error = 0;
 
