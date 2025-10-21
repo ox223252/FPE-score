@@ -171,11 +171,23 @@
 			socket.on ( "error", (msg)=>{
 				domEls.serverMsg.display = "";
 				domEls.serverMsg.innerText = msg;
+
+				document.body.style.backgroundColor = "red";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
 			});
 
 			socket.on ( "ok", ()=>{
 				domEls.score.diff.value = "";
 				domEls.score.bloc.options[ 0 ].selected = true;
+
+				document.body.style.backgroundColor = "green";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
 			});
 
 			socket.on ( "setListOfType", (msg)=>{

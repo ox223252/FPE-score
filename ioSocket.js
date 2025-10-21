@@ -81,6 +81,7 @@ export default function socketIO ( server, params )
 		socket.on ( "setScore", async (msg)=>{
 			if ( !socket.request.session?.logged )
 			{
+				io.emit ( "msg", "un utilisateur inconnue tente de rentrer des scores" );
 				return;
 			}
 
