@@ -3,33 +3,49 @@
 	<%- include("partials/head.html") -%>
 	<body>
 		<%- include("partials/nav.html") -%>
-		<form>
-			<span>
-				<label for="voie">Nom de voies existantes</label>
-				<select id="voie"></select>
-			</span>
-		</form>
-		<form>
-			<span>
-				<label for="newVoie">Nom de la nouvelle voie</label>
-				<input id="newVoie" type="text">
-			</span>
-			<span>
-				<label for="type">Type de voie</label>
-				<select id="type"></select>
-			</span>
-			<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
-			<span>
-				<label for="scores">Score</label>
-				<input id="scores"></input>
-				<span>Les differents scores doivent être separé par un point, une virgule ou un espace</span>
-			</span>
-			<% } %>
-			<textarea id="comments"></textarea>
-			<p id="serverMsg"></p>
-			<input id="img" type="file" accept="image/*" capture="environement">
-			<button id="validate">Sauver</button>
-		</form>
+		<style>
+			section {
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				align-items: space-around;
+				flex-wrap: wrap;
+				overflow:auto;
+			}
+			form {
+				display: flex;
+				flex-direction: column;
+			}
+		</style>
+		<section>
+			<form>
+				<span>
+					<label for="voie">Nom de voies existantes</label>
+					<select id="voie"></select>
+				</span>
+			</form>
+			<form>
+				<span>
+					<label for="newVoie">Nom de la nouvelle voie</label>
+					<input id="newVoie" type="text">
+				</span>
+				<span>
+					<label for="type">Type de voie</label>
+					<select id="type"></select>
+				</span>
+				<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
+				<span>
+					<label for="scores">Score</label>
+					<input id="scores"></input>
+					<span>Les differents scores doivent être separé par un point, une virgule ou un espace</span>
+				</span>
+				<% } %>
+				<textarea id="comments"></textarea>
+				<p id="serverMsg"></p>
+				<input id="img" type="file" accept="image/*" capture="environement">
+				<button id="validate">Sauver</button>
+			</form>
+		</section>
 		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
 		<script nonce="<%- locals.nonce %>">
 			let domEls = {
@@ -37,13 +53,12 @@
 				voie:  document.getElementById ( "voie" ),
 				newVoie:  document.getElementById ( "newVoie" ),
 				validate: document.getElementById ( "validate" ),
+				scores: document.getElementById ( "scores" ),
 				img: document.getElementById ( "img" ),
 				comments: document.getElementById ( "comments" ),
 				serverMsg: document.getElementById ( "serverMsg" ),
-				<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
-				scores: document.getElementById ( "scores" ),
-				<% } %>
 			};
+
 			let socket = io ( );
 			
 			socket.on ( "connect", ()=>{
@@ -91,13 +106,14 @@
 					voie: domEls.newVoie.value,
 					type: domEls.type.value,
 					comments: domEls.comments.value,
-					<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
-					score: domEls.scores.value,
-					<% } %>
+				};
+
+				if ( domEls.scores )
+				{
+					out.score = domEls.scores.value;
 				}
 
 				let files = domEls.img.files;
-
 
 				// FileReader support
 				if (FileReader && files && files.length)
