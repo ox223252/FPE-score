@@ -294,7 +294,10 @@ function printTable ( params = {} )
 			let td = document.createElement ( "td" );
 			line.appendChild ( td );
 
-			td.innerText = item;
+			let span = document.createElement ( "span" );
+			td.appendChild ( span );
+
+			span.innerText = item;
 		}
 
 		return line;

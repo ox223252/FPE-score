@@ -23,7 +23,7 @@
 				<thead id="thead"></thead>
 				<tbody id="tbody"></tbody>
 			</table>
-			<div id="grapghs">
+			<div id="graphs">
 				<canvas 
 					width="700"
 					height="400"
@@ -59,12 +59,12 @@
 					tbody: document.getElementById ( "tbody" ),
 					thead: document.getElementById ( "thead" ),
 				},
-				grapghs:{
+				graphs:{
 					points: document.getElementById ( "pointGraph" ),
 					users: document.getElementById ( "userGraph"),
 					legend: document.getElementById ( "legendGraph" ),
 
-					all: document.getElementById ( "grapghs" ),
+					all: document.getElementById ( "graphs" ),
 				},
 				serverMsg: document.getElementById ( "serverMsg" ),
 			};
@@ -191,9 +191,9 @@
 
 			window.onload = function ( )
 			{
-				domEls.grapghs.points.style.display = "none";
-				domEls.grapghs.users.style.display = "none";
-				domEls.grapghs.legend.style.display = "none";
+				domEls.graphs.points.style.display = "none";
+				domEls.graphs.users.style.display = "none";
+				domEls.graphs.legend.style.display = "none";
 			}
 
 			let socket = io ( );

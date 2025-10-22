@@ -4,41 +4,43 @@
 	<body>
 		<%- include("partials/nav.html") -%>
 		<section>
-			<spaan>
-				<label>Nom Prenom :</label>
-				<input id="name" list="nameList" type="text" placeholder="Nom PRenom">
-				<datalist id="nameList"></datalist>
-			</span>
-			<span>
-				<label for="categorie">Categorie</label>
-				<select id="categorie">
-					<option disabled selected>--</option>
-					<option value="U8">U8</option>
-					<option value="U10">U10</option>
-					<option value="U12">U12</option>
-					<option value="U14">U14</option>
-					<option value="U16">U16</option>
-					<option value="U18">U18</option>
-					<option value="senior">senior</option>
-					<option value="veterant">vétéran</option>
-				</select>
-			</span>
-			<span>
-				<label for="genre">Genre</label>
-				<select id="genre">
-					<option disabled selected>--</option>
-					<option value="M">homme</option>
-					<option value="F">femme</option>
-				</select>
-			</span>
-			<span>
-				<label for="club">Club</label>
-				<input id="club" list="clubList" placeholder="club" type="text">
-				<datalist id="clubList">
-					<option value="test">
-				</datalist>
-			</option>
-			<button id="validate">Sauver</button>
+			<form>
+				<spaan>
+					<label>Nom Prenom :</label>
+					<input id="name" list="nameList" type="text" placeholder="Nom PRenom">
+					<datalist id="nameList"></datalist>
+				</span>
+				<span>
+					<label for="categorie">Categorie</label>
+					<select id="categorie">
+						<option disabled selected>--</option>
+						<option value="U8">U8</option>
+						<option value="U10">U10</option>
+						<option value="U12">U12</option>
+						<option value="U14">U14</option>
+						<option value="U16">U16</option>
+						<option value="U18">U18</option>
+						<option value="senior">senior</option>
+						<option value="veterant">vétéran</option>
+					</select>
+				</span>
+				<span>
+					<label for="genre">Genre</label>
+					<select id="genre">
+						<option disabled selected>--</option>
+						<option value="M">homme</option>
+						<option value="F">femme</option>
+					</select>
+				</span>
+				<span>
+					<label for="club">Club</label>
+					<input id="club" list="clubList" placeholder="club" type="text">
+					<datalist id="clubList">
+						<option value="test">
+					</datalist>
+				</option>
+				<button id="validate">Sauver</button>
+			</form>
 			<p id="serverMsg"></p>
 		</section>
 		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>

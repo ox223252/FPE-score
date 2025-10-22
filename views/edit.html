@@ -22,10 +22,12 @@
 					<select id="name"></select>
 				</span>
 			</form>
-			<table id="table">
-				<thead id="thead"></thead>
-				<tbody id="tbody"></tbody>
-			</table>
+			<div>
+				<table>
+					<thead id="thead"></thead>
+					<tbody id="tbody"></tbody>
+				</table>
+			</div>
 			<div id="serverMsg"></div>
 		</section>
 		<script src="/js/socket.io.js"></script>
@@ -41,7 +43,6 @@
 					name: document.getElementById ( "name" ),
 				},
 				table: {
-					full: document.getElementById ( "table" ),
 					tbody: document.getElementById ( "tbody" ),
 					thead: document.getElementById ( "thead" ),
 				},
