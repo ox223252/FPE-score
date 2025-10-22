@@ -57,6 +57,8 @@
 			let selectedUsers = {};
 			let scores = {};
 
+			let tableClickEvent = new EventTarget ( );
+
 			socket.on ( "setUCCG", (msg)=>{
 				selectedUsers = msg;
 
@@ -74,6 +76,7 @@
 						scores: scores,
 						selectedUsers: selectedUsers,
 						socket: socket,
+						event: tableClickEvent,
 					});
 				}
 				else
@@ -83,6 +86,7 @@
 						tbody: domEls.table.tbody,
 						scores: scores,
 						selectedUsers: selectedUsers,
+						event: tableClickEvent,
 					});
 				}
 			} );
@@ -103,6 +107,7 @@
 						scores: scores,
 						selectedUsers: selectedUsers,
 						socket: socket,
+						event: tableClickEvent,
 					});
 				}
 				else
@@ -112,6 +117,7 @@
 						tbody: domEls.table.tbody,
 						scores: scores,
 						selectedUsers: selectedUsers,
+						event: tableClickEvent,
 					});
 				}
 			});
@@ -130,6 +136,19 @@
 					socket.emit ( "getUCCG", {filters} );
 				} )
 			}
+
+			tableClickEvent.addEventListener ( "click", (ev)=>{
+				if ( "all" == domEls.input.name.value )
+				{
+					domEls.input.name.value = ev.firstCell;
+				}
+				else
+				{
+					domEls.input.name.value = "all";
+				}
+
+				domEls.input.name.dispatchEvent ( new Event ( "change" ) );
+			})
 		</script>
 	</body>
 </html>

@@ -289,8 +289,7 @@ function printTable ( params = {} )
 	function createLine ( array )
 	{
 		let line = document.createElement ( "tr" );
-		for ( let item of array )
-		{
+		array.map ( (item,index)=>{
 			let td = document.createElement ( "td" );
 			line.appendChild ( td );
 
@@ -298,7 +297,19 @@ function printTable ( params = {} )
 			td.appendChild ( span );
 
 			span.innerText = item;
-		}
+
+			if ( params.event )
+			{
+				td.onclick = (ev)=>{
+					ev.preventDefault ( );
+					let e = new Event ( "click" );
+					e.value = item;
+					e.column = index;
+					e.firstCell = array[ 0 ];
+					params.event.dispatchEvent ( e );
+				};
+			}
+		})
 
 		return line;
 	}
@@ -374,6 +385,16 @@ function printTableOne ( params = {} )
 		let th = document.createElement ( "th" );
 		line.appendChild ( th );
 		th.innerText = voie;
+
+		if ( params.event )
+		{
+			th.onclick = (ev)=>{
+				ev.preventDefault ( );
+				let e = new Event ( "click" );
+				e.firstCell = voie;
+				params.event.dispatchEvent ( e );
+			};
+		}
 
 		score[ voie ].map ( (v,i)=>{
 			let td = document.createElement ( "td" );

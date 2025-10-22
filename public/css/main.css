@@ -32,7 +32,7 @@ section
 }
 
 div, form {
-	max-width: 100%;
+	width: 100%;
 	overflow: auto;
 }
 
@@ -43,7 +43,6 @@ table
 	border: solid 1px;
 	max-width: 100%;
 	width:100%;
-	margin:5px;
 }
 table tr
 {
