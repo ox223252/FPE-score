@@ -5,26 +5,26 @@
 		<%- include("partials/nav.html") -%>
 		<section>
 			<form>
-				<span>
+				<div>
 					<label for="voie">Nom de voies existantes</label>
 					<select id="voie"></select>
-				</span>
+				</div>
 			</form>
 			<form>
-				<span>
+				<div>
 					<label for="newVoie">Nom de la nouvelle voie</label>
 					<input id="newVoie" type="text">
-				</span>
-				<span>
+				</div>
+				<div>
 					<label for="type">Type de voie</label>
 					<select id="type"></select>
-				</span>
+				</div>
 				<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
-				<span>
+				<div>
 					<label for="scores">Score</label>
 					<input id="scores"></input>
 					<span>Les differents scores doivent être separé par un point, une virgule ou un espace</span>
-				</span>
+				</div>
 				<% } %>
 				<textarea id="comments"></textarea>
 				<p id="serverMsg"></p>

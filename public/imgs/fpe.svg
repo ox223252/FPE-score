@@ -5,7 +5,7 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      width="23.6111in" height="23.6111in"
      viewBox="0 0 1700 1700">
-  <path id="Sélection #1"
+  <path id="gecko"
         fill="white" stroke="none" stroke-width="1"
         d="M 594.00,166.00
            C 591.75,180.55 582.51,192.25 568.00,196.08
@@ -970,7 +970,7 @@
              814.27,1557.80 830.58,1565.42 832.12,1571.15
              833.38,1575.88 826.88,1575.98 824.00,1576.95
              824.00,1576.95 795.00,1590.00 795.00,1590.00 Z" />
-  <path id="Sélection #2"
+  <path id="rafters"
         fill="red" stroke="none" stroke-width="1"
         d="M 381.00,920.00
            C 381.00,920.00 376.16,880.00 376.16,880.00

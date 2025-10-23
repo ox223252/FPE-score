@@ -1,6 +1,8 @@
 <nav>
 	<style>
 		nav {
+			display: flex;
+			margin: 5px;
 			font-size: 25px;
 			max-width: 100%;
 			overflow-x: auto;
@@ -10,8 +12,19 @@
 		nav::-webkit-scrollbar {
 			display: none;
 		}
+		svg {
+			max-width: 30px;
+			max-height: 30px;
+		}
+
+		#gecko {
+			fill: black !important;
+		}
+		#rafters {
+			fille: red;
+		}
 	</style>
-	<img src="/imgs/fpe.svg"/>
+	<%- include( "../../public/imgs/fpe.svg" ) %>
 	<a href="/">            <i class="fa-solid fa-home"></i></a>
 	<a href="/login">       <i class="fa-solid fa-lock-open"></i></a>
 	<!-- <a href="/statistiques"><i class="fa-solid fa-chart-pie"></i></a> -->

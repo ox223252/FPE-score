@@ -13,18 +13,6 @@ body
 	flex-direction: column;
 }
 
-nav
-{
-	display: flex;
-	flex-shrink: space-between;
-	margin: 5px;
-}
-
-nav > img
-{
-	width: 2cm;
-}
-
 section
 {
 	flex: 1;
@@ -41,6 +29,7 @@ div {
 }
 form {
 	max-width: 100%;
+	min-width: 300px;
 }
 div, form {
 	overflow: auto;
@@ -75,7 +64,7 @@ input, select, button
 
 input
 {
-	max-width: calc( 100% - 10px );
+	width: calc( 100% - 10px );
 }
 select
 {
