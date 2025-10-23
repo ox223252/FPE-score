@@ -3,8 +3,31 @@
 	<%- include("partials/head.html") -%>
 	<body>
 		<%- include("partials/nav.html") -%>
+		<style>
+			html {
+				background: black;
+			}
+			section {
+				background: url( /imgs/fpe.svg ) center center;
+				background-size: 100% 100%;
+			}
+			a {
+				color: white;
+			}
+			form {
+				padding: 15px;
+				background: rgba( 255, 255, 255, 0.8 );
+				border-radius: 18px;
+			}
+			#serverMsg {
+				background: #fff;
+				padding: 5px;
+				border-radius: 5px;
+				border: 1px solid black;
+			}
+		</style>
 		<section>
-			<div>
+			<form>
 				<div>
 					<input id="user" type="text" placeholder="user"/>
 				</div>
@@ -17,7 +40,7 @@
 				<div>
 					<p id="serverMsg"></p>
 				</div>
-			</div>
+			</form>
 		</section>
 		<script type="text/javascript"  nonce="<%- locals.nonce %>"> // password
 
@@ -75,7 +98,8 @@
 				}
 			}
 
-			domEls.button.onclick = ()=>{
+			domEls.button.onclick = (ev)=>{
+				ev.preventDefault ( );
 				return log ( {
 						user: domEls.user.value,
 						password: domEls.password.value,
