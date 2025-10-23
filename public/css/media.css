@@ -17,6 +17,10 @@
 		min-width: initial;
 	}
 
+	nav > img {
+		width: 30px;
+	}
+
 	#table, #graphs {
 		display: none;
 	}
