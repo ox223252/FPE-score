@@ -74,8 +74,16 @@ ajax.express.all ( "/login", function ( req, res )
 			res.end ( );
 		}
 	}
-	else if ( ajax.params?.db?.login?.[ req.body?.user ] )
+	else if ( ajax.params?.db?.login?.[ req.body?.user ]
+		|| 0 == Object.keys ( ajax.params?.db?.login || {} ).length )
 	{
+		if ( 0 == Object.keys ( ajax.params?.db?.login || {} ).length )
+		{
+			ajax.params.db.login[ req.body.user ] = {
+				pass: crypto.createHash ( 'sha512' ).update ( req.body.password ).digest ( 'hex' ),
+			};
+		}
+
 		let dbU = ajax.params?.db?.login?.[ req.body?.user ];
 
 		if ( dbU.error > ajax.params.maxTry )
