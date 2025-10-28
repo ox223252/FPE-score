@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js -p 6680",
+    "start": "node server.js -p 80",
     "test": "nodemon server.js -p 6680"
   },
   "author": "ox223252",
