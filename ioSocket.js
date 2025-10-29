@@ -1,4 +1,5 @@
 import fs from 'fs'; // read / write files
+import crypto from 'crypto'; // sha512
 import { Server as ServerIO } from "socket.io";
 import {calcAll} from "./calc.js"
 
@@ -156,6 +157,12 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "uValue", async (msg)=>{
+			if ( !socket.request.session?.logged )
+			{
+				io.emit ( "msg", "un utilisateur inconnue tente de modifier des scores" );
+				return;
+			}
+
 			params.db.score[ msg.name ][ msg.voie ][ msg.index ] = msg.value;
 			await calcAll ( params );
 			fs.writeFileSync ( params.db.path.score, JSON.stringify ( params.db.score, null, 4 ), 'utf8' );
@@ -167,6 +174,12 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "newVoie", (msg)=>{
+			if ( !socket.request.session?.logged )
+			{
+				io.emit ( "msg", "un utilisateur inconnue tente d'ajouter des voies" );
+				return;
+			}
+
 			if ( !params.type.includes ( msg.type ) )
 			{
 				socket.emit ( "error", "type "+msg.type+"invalide, accepté : "+params.type );
@@ -254,39 +267,77 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "setUser", (msg)=>{
-			if ( undefined == msg.name )
+			console.log ( msg )
+			switch ( msg.group )
 			{
-				socket.emit ( "error", "il manque le nom" );
-				return;
-			}
-			if ( undefined == msg.categorie )
-			{
-				socket.emit ( "error", "il manque la categorie" );
-				return;
-			}
-			if ( undefined == msg.genre )
-			{
-				socket.emit ( "error", "il manque le genre" );
-				return;
-			}
-			if ( undefined == msg.club )
-			{
-				socket.emit ( "error", "il manque le club" );
-				return;
-			}
+				case "admin":
+				case "juge":
+				{
+					if ( "admin" != socket.request.session?.logged )
+					{
+						io.emit ( "msg", "un juge tente tente de faire une action admin" );
+						socket.emit ( "error", "droits insufisants" );
+						return;
+					}
 
-			let index = params.db.users.map ( u=>u.name ).indexOf ( msg.name );
-			if ( 0 <= index )
-			{
-				Object.assign ( params.db.users[ index ], msg );
-			}
-			else
-			{
-				params.db.users.push ( msg );
-			}
+					for ( let key of [ "name", "pass" ] )
+					{
+						if ( !msg[ key ] )
+						{
+							socket.emit ( "error", "il manque une info : "+key );
+							return;
+						}
+					}
 
-			fs.writeFileSync ( params.args?.users, JSON.stringify ( params.db.users, null, 4 ) );
+					params.db.login[ msg.name ] = {
+						pass: crypto.createHash ( 'sha512' ).update ( msg.pass ).digest ( 'hex' ),
+						status: msg.group,
+						error: 0,
+						date: undefined,
+					};
 
+					fs.writeFileSync ( params.args.login, JSON.stringify ( params.db.login, null, 4 ), "utf8" )
+
+					break;
+				}
+				case "competitor":
+				{
+					if ( !socket.request.session?.logged )
+					{
+						io.emit ( "msg", "un utilisateur inconnue tente d'ajouter des competiteurs" );
+						socket.emit ( "error", "droits insufisants" );
+						return;
+					}
+
+					for ( let key of [ "name", "categorie", "genre", "club" ] )
+					{
+						if ( !msg[ key ] )
+						{
+							socket.emit ( "error", "il manque une info : "+key );
+							return;
+						}
+					}
+
+					let index = params.db.users.map ( u=>u.name ).indexOf ( msg.name );
+					if ( 0 <= index )
+					{
+						Object.assign ( params.db.users[ index ], msg );
+					}
+					else
+					{
+						params.db.users.push ( msg );
+					}
+
+					fs.writeFileSync ( params.args?.users, JSON.stringify ( params.db.users, null, 4 ) );
+
+					break;
+				}
+				default:
+				{
+					socket.emit ( "error", "group invalide" );
+					return;
+				}
+			}
 			socket.emit ( "ok" );
 		});
 	});
