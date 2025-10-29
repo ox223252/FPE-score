@@ -27,7 +27,7 @@ const args = yargs(process.argv)
 	.option('port', {
 		alias: 'p',
 		describe: 'connection port',
-		default: 80
+		default: undefined
 	})
 	.option('mode',{
 		alias: 'm',

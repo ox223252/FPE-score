@@ -26,11 +26,21 @@ let main = {
 		{
 			case "http":
 			{
+				if ( !main.params.args.port )
+				{
+					main.params.args.port = 80;
+				}
+
 				main.server = http.createServer ( main.express );
 				break;
 			}
 			case "https":
 			{
+				if ( !main.params.args.port )
+				{
+					main.params.args.port = 443;
+				}
+
 				let options = {
 				  key: main.params?.args.key,
 				  cert: main.params?.args.cert,
