@@ -103,7 +103,8 @@ main.express.use ( function ( req, res, next )
 	res.locals.nonce  = crypto.randomBytes ( 16 ).toString ( "hex" );
 	res.locals.logged = req.session?.logged || false;
 	res.locals.page   = req.originalUrl;
-	res.locals.mode    = main.params.args.mode;
+	res.locals.mode   = main.params.args.mode;
+	res.locals.halt   = main.params.args.halt;
 	next ( );
 } );
 

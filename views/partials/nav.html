@@ -34,4 +34,17 @@
 		<a href="/edit">            <i class="fa-solid fa-pen-to-square"></i></a>
 		<a href="/road">            <i class="fa-solid fa-road"></i></a>
 	<% } %>
+	<% if ( "admin" == locals.logged
+		&& locals.halt ) { %>
+	<a id="navHalt" href="#"><i class="fa-solid fa-power-off"></i></a>
+	<script nonce="<%- locals.nonce %>">
+		document.getElementById ( "navHalt" ).addEventListener ( "click", ()=>{
+			fetch("/ajax/halt",{
+					method:"POST"
+				})
+				.then ( console.log )
+				.catch ( console.log )
+		})
+	</script>
+	<% } %>
 </nav>

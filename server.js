@@ -1,5 +1,4 @@
 let params = {
-	rebootPending: false,
 	db:{
 		path:{
 			score: './private/score',
@@ -80,6 +79,11 @@ const args = yargs(process.argv)
 	.option("cert",{
 		describe: "private key",
 		default: "res/certificate.pem",
+	})
+	.option("halt",{
+		type: 'boolean',
+		describe: "allow halt button on HMI",
+		default: false,
 	})
 	.argv;
 

@@ -20,12 +20,11 @@ let ajax = {
 	express: express.Router ( ),
 }
 
-
 ajax.express.use ( function ( req, res, next )
 {
 	let url = req.originalUrl.replace ( "/ajax", "" );
 
-	if ( true == req.session.logged )
+	if ( req.session.logged )
 	{
 		next ( );
 	}
@@ -40,6 +39,7 @@ ajax.express.use ( function ( req, res, next )
 	else
 	{
 		res.writeHead ( 403 );
+		res.end ( );
 	}
 })
 
@@ -55,13 +55,13 @@ ajax.express.all ( "/login", function ( req, res )
 		{
 			if ( ajax.params?.db?.login?.[ user ]?.token == req.body.token )
 			{
-				req.session.logged = true;
+				req.session.logged = ajax.params?.db?.login?.[ user ].status || true;
 				req.session.name = user;
 				break;
 			}
 		}
 
-		if ( true == req.session.logged )
+		if ( req.session.logged )
 		{
 			res.status ( 200 );
 			res.json ( {target:req.session.target || "/"} );
@@ -81,6 +81,7 @@ ajax.express.all ( "/login", function ( req, res )
 		{
 			ajax.params.db.login[ req.body.user ] = {
 				pass: crypto.createHash ( 'sha512' ).update ( req.body.password ).digest ( 'hex' ),
+				status: "admin",
 			};
 		}
 
@@ -91,7 +92,7 @@ ajax.express.all ( "/login", function ( req, res )
 		}
 		else if ( dbU?.pass == crypto.createHash ( 'sha512' ).update ( req.body?.password ).digest ( 'hex' ) )
 		{
-			req.session.logged = true;
+			req.session.logged = ajax.params?.db?.login?.[ req.body.user ].status || true;
 			req.session.name = req.body?.user;
 
 			if ( !dbU.token )
@@ -121,6 +122,26 @@ ajax.express.all ( "/login", function ( req, res )
 	{
 		res.status ( 403 );
 		res.json ( {} );
+		res.end ( );
+	}
+})
+
+ajax.express.all ( "/halt", async function ( req, res )
+{
+	if ( !ajax?.params?.args?.halt )
+	{
+		res.writeHead ( 403 );
+		res.end ( );
+	}
+	else if ( "admin" == ajax?.params?.args?.logged )
+	{
+		await exec ( 'halt' );
+		res.writeHead ( 200 );
+		res.end ( );
+	}
+	else
+	{
+		res.writeHead ( 403 );
 		res.end ( );
 	}
 })
