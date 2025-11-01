@@ -274,6 +274,7 @@ export default function socketIO ( server, params )
 			switch ( msg.group )
 			{
 				case "admin":
+				case "editor":
 				case "juge":
 				{
 					if ( "admin" != socket.request.session?.logged )

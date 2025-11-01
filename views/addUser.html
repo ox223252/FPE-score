@@ -16,6 +16,9 @@
 			#admin:checked ~ div.admin {
 				display: initial;
 			}
+			#editor:checked ~ div.editor {
+				display: initial;
+			}
 			#competitor:checked ~ div.competitor {
 				display: initial;
 			}
@@ -24,6 +27,9 @@
 				background-color: grey;
 			}
 			#admin:checked ~ label.admin {
+				background-color: grey;
+			}
+			#editor:checked ~ label.editor {
 				background-color: grey;
 			}
 			#competitor:checked ~ label.competitor {
@@ -35,18 +41,20 @@
 				<% if ( "admin" == locals.logged ) {%>
 				<input type="radio" name="userType" id="admin">
 				<label class="admin" for="admin">Admin</label>
+				<input type="radio" name="userType" id="editor">
+				<label class="editor" for="editor">Configurateur de competition</label>
 				<input type="radio" name="userType" id="juge">
 				<label class="juge" for="juge">Juge</label>
 				<% } %>
 				<input type="radio" name="userType" id="competitor" checked>
 				<label class="competitor" for="competitor">Competiteur</label>
 				<hr style="width: 90%;">
-				<div class="juge admin competitor">
+				<div class="juge admin competitor editor">
 					<label>Nom Prenom :</label>
 					<input id="name" list="nameList" type="text" placeholder="Nom Prenom">
 					<datalist id="nameList"></datalist>
 				</div>
-				<div class="juge admin">
+				<div class="juge admin editor">
 					<label>Password :</label>
 					<input id="pass" list="nameList" type="password" placeholder="Password">
 				</div>
@@ -186,6 +194,7 @@
 					break;
 				}
 				case "admin":
+				case "editor":
 				case "juge":
 				{
 					msg.pass = domEls.pass.value;
