@@ -252,9 +252,14 @@ export default function socketIO ( server, params )
 
 
 			let keys = Object.keys ( params.db.voies );
-			let tmp = JSON.parse ( JSON.stringify ( params.db.voies ) );
+			let tmp = structuredClone ( params.db.voies );
 
-			keys.map ( k=>delete tmp[ k ].meta );
+			keys.map ( k=>{
+				if ( tmp[ k ]?.meta )
+				{
+					delete tmp[ k ].meta;
+				}
+			});
 			fs.writeFileSync ( params.args?.voies, JSON.stringify ( tmp, null, 4 ) );
 		});
 

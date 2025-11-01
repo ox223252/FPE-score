@@ -7,7 +7,7 @@ let params = {
 			login: './private/login',
 		},
 		score: {},
-		voies: [],
+		voies: {},
 		users: [],
 		login: {},
 	},
