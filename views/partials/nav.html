@@ -23,28 +23,32 @@
 		#rafters {
 			fille: red;
 		}
+		#climber_body,
+		#climber_legs,
+		#climber_head,
+		#climber_rope {
+			fill: black;
+		}
 	</style>
-	<%- include( "../../public/imgs/fpe.svg" ) %>
-	<a href="/">                    <i class="fa-solid fa-home"></i></a>
-	<a href="/login" class="login" ><i class="fa-solid fa-lock-open"></i></a>
+	<span            style="order:0"><%- include( "../../public/imgs/fpe.svg" ) %></span>
+	<a href="/"      style="order:1"><i class="fa-solid fa-home"></i><a>
+	<a href="/login" style="order:2" class="login" ><i class="fa-solid fa-lock-open"></i></a>
 	<!-- <a href="/statistiques"><i class="fa-solid fa-chart-pie"></i></a> -->
-	<% if ( locals.logged ) { %>
-		<a href="/set">             <i class="fa-solid fa-sliders"></i></a>
-		<a href="/addUser">         <i class="fa-solid fa-user-plus"></i></a>
-		<a href="/edit">            <i class="fa-solid fa-pen-to-square"></i></a>
-		<a href="/road">            <i class="fa-solid fa-road"></i></a>
-	<% } %>
-	<% if ( "admin" == locals.logged
-		&& locals.halt ) { %>
-	<a id="navHalt" href="#"><i class="fa-solid fa-power-off"></i></a>
-	<script nonce="<%- locals.nonce %>">
-		document.getElementById ( "navHalt" ).addEventListener ( "click", ()=>{
-			fetch("/ajax/halt",{
-					method:"POST"
-				})
-				.then ( console.log )
-				.catch ( console.log )
-		})
-	</script>
-	<% } %>
+	<%
+		switch ( locals.logged )
+		{
+			case "admin": { %>
+				<a href="/startStop" style="order:7"><i class="fa-solid fa-power-off"></i></a>
+	<% 		}
+			case "editor": { %>
+				<a href="/addUser" style="order:6"><i class="fa-solid fa-user-plus"></i></a>
+				<a href="/road"    style="order:5"><i class="fa-solid fa-road"></i></a>
+				<a href="/edit"    style="order:4"><i class="fa-solid fa-pen-to-square"></i></a>
+	<%		}
+			case true: 
+			case "juge": { %>
+					<a href="/set"     style="order:3"><%- include( "../../public/imgs/climber.svg" ) %></a>
+	<% 		}
+		}
+	%>
 </nav>
