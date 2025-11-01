@@ -11,6 +11,8 @@ export default function socketIO ( server, params )
 	io.engine.use ( params.sessionMiddleware );
 	console.log ( " - Socket.io server start")
 
+	let interval = undefined;
+
 	params.io = io;
 
 	io.on ( 'connection', function( socket )
@@ -343,6 +345,54 @@ export default function socketIO ( server, params )
 				}
 			}
 			socket.emit ( "ok" );
+		});
+
+		socket.on ( "start", (msg)=>{
+			if ( interval )
+			{
+				return;
+			}
+
+			function getTime ( value )
+			{
+				let t = Math.floor ( value / 1000 );
+				let str = "";
+
+				if ( t > 3600 )
+				{
+					str = Math.floor ( t / 3600 ) + "h";
+					t %= 3600;
+				}
+
+				if ( t > 60 )
+				{
+					str = Math.floor ( t / 60 ) + "m";
+					t %= 60;
+				}
+
+				str += t + "s";
+
+				return str;
+			}
+
+			let remainingTime = 60*1000;
+
+			interval = setInterval ( ()=>{
+				remainingTime -= 1000;
+				io.emit ( "timer", getTime ( remainingTime ) );
+			},1000);
+
+			setTimeout ( ()=>{
+				clearInterval ( interval );
+				io.emit ( "timer",  0 );
+				interval = undefined;
+			},remainingTime );
+		});
+
+		socket.on ( "stop", (msg)=>{
+			clearInterval ( interval );
+			io.emit ( "timer",  "" );
+			interval = undefined;
 		});
 	});
 }

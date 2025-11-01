@@ -197,4 +197,9 @@ main.express.all ( "/addUser", function ( req, res )
 	res.render ( 'addUser.html' );
 });
 
+main.express.all ( "/startStop", function ( req, res )
+{
+	res.render ( 'startStop.html' );
+});
+
 export default main;

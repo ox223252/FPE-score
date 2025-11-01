@@ -51,4 +51,15 @@
 	<% 		}
 		}
 	%>
+	<span id="timer" style="order:100;flex-grow:1;text-align: right;"></span>
+	<script nonce="<%- locals.nonce %>">
+		(()=>{
+			let socket = io ( );
+			let timer = document.getElementById ( "timer" );
+
+			socket.on ( "timer", (msg)=>{
+				timer.innerText = msg;
+			});
+		})();
+	</script>
 </nav>

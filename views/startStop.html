@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+	<%- include("partials/head.html") -%>
+	<body>
+		<%- include("partials/nav.html") -%>
+		<section>
+			<form>
+				<button id="start">Start</button>
+				<span>
+					<label for="time">Durée de la cometition en minutes</label>
+					<input id="time" type="number" value="60" placeholder="temps en minutes"/>
+				</span>
+				<button id="stop">Stop</button>
+				<button id="halt">Halt</button>
+				<p id="serverMsg"></p>
+			</form>
+		</section>
+		<script nonce="<%- locals.nonce %>">
+
+			let socket = io ( );
+
+			socket.on ( "error", (msg)=>{
+				domEls.serverMsg.display = "";
+				domEls.serverMsg.innerText = msg;
+
+				document.body.style.backgroundColor = "red";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
+			});
+
+			socket.on ( "ok", ()=>{
+				domEls.scores.value = "";
+				domEls.newVoie.value = "";
+				domEls.comments.value = "";
+				domEls.img.value = "";
+
+				document.body.style.backgroundColor = "green";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
+			});
+
+			document.getElementById ( "start" ).addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+				socket.emit ( "start", Number ( document.getElementById ( "time").value ) );
+			});
+
+			document.getElementById ( "stop" ).addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+				socket.emit ( "stop" );
+			});
+
+			document.getElementById ( "halt" ).addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+				fetch("/ajax/halt",{
+						method:"POST"
+					})
+					.then ( console.log )
+					.catch ( console.log )
+			})
+		</script>
+	</body>
+</html>
