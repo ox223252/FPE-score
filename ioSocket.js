@@ -206,11 +206,6 @@ export default function socketIO ( server, params )
 
 			if ( msg.img )
 			{
-				// let path = params.args?.voies?.split ( "/" )
-				// 	.reverse ( )
-				// 	.slice ( 1 )
-				// 	.reverse ( )
-				// 	.join ( "/" );
 				let path = "./public/imgs";
 
 				if ( !fs.existsSync ( path ) )
@@ -261,6 +256,9 @@ export default function socketIO ( server, params )
 				}
 			});
 			fs.writeFileSync ( params.args?.voies, JSON.stringify ( tmp, null, 4 ) );
+			socket.emit ( "ok" );
+
+			io.emit ( "setVoies", keys );
 		});
 
 		socket.on ( "getClubsList", ()=>{

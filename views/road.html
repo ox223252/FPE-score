@@ -26,7 +26,7 @@
 					<span>Les differents scores doivent être separé par un point, une virgule ou un espace</span>
 				</div>
 				<% } %>
-				<textarea id="comments"></textarea>
+				<textarea id="comments" placeholder="commentaires"></textarea>
 				<p id="serverMsg"></p>
 				<input id="img" type="file" accept="image/*" capture="environement">
 				<button id="validate">Sauver</button>
@@ -75,8 +75,10 @@
 			});
 
 			socket.on ( "ok", ()=>{
-				domEls.score.diff.value = "";
-				domEls.score.bloc.options[ 0 ].selected = true;
+				domEls.scores.value = "";
+				domEls.newVoie.value = "";
+				domEls.comments.value = "";
+				domEls.img.value = "";
 
 				document.body.style.backgroundColor = "green";
 
