@@ -17,20 +17,17 @@ export default function socketIO ( server, params )
 
 	io.on ( 'connection', function( socket )
 	{
-		socket.on ( 'msg', function ( msg )
-		{
-			// prepare next id
-			// io.emit ( 'id', id + 1 );
+		socket.on ( "getUCCG", (msg)=>{
+			let out = params.db.users
+				.filter ( u=>{
+					if ( params.categories )
+					{
+						return params.categories?.includes ( u.categorie );
+					}
 
-			// fs.writeFileSync ( args.msg, JSON.stringify ( msgs ), 'utf8' );
-			// socket.emit ( 'act', id );
-
-			// socket.broadcast.emit ( 'msg', data);
-		});
-
-		socket.on ( "getUCCG", function ( msg )
-		{
-			let out = params.db.users.filter ( u=>{
+					return true;
+				})
+				.filter ( u=>{
 					for ( let key in msg?.filters )
 					{
 						if ( u[ key ] != msg.filters[ key ] )
@@ -48,6 +45,8 @@ export default function socketIO ( server, params )
 					return u;
 				})
 				.distinct ( );
+			
+
 			socket.emit ( "setUCCG", out );
 		});
 
@@ -60,30 +59,32 @@ export default function socketIO ( server, params )
 			socket.emit ( "setListOfAllCategories", params.args.categories );
 		});
 
-		socket.on ( "getVoies", function ( msg )
-		{
-			let out = Object.keys ( params.db.voies );
-			out = out.filter ( v=>{
-					if ( undefined == msg.filters )
+		socket.on ( "getVoies", (msg)=>{
+			let voies = Object.keys ( params.db.voies );
+			voies = voies.filter ( v=>{
+					if ( undefined == msg?.filters )
 					{
 						return true;
 					}
-					else if ( msg.filters?.includes ( params.db.voies[ v ].type ) )
+					else
 					{
-						return true;
+						return msg?.filters?.includes ( params.db.voies[ v ].type );
 					}
-					return false;
 				});
 
-			socket.emit ( "setVoies", out );
-		})
+			if ( params.categories )
+			{
+				voies = voies.filter ( k=>params.db.voies[ k ].categories.some( cat=> params.categories.includes(cat) ) )
+			}
 
-		socket.on ( "getVoie", function ( msg )
-		{
+			socket.emit ( "setVoies", voies );
+		});
+
+		socket.on ( "getVoie", (msg)=>{
 			let out = params.db.voies[ msg ];
 
 			socket.emit ( "setVoie", out );
-		})
+		});
 
 		socket.on ( "setScore", async (msg)=>{
 			if ( !socket.request.session?.logged )
@@ -244,13 +245,16 @@ export default function socketIO ( server, params )
 
 			msg.categories = Object.keys ( msg.categories ).filter ( k=> msg.categories[ k ] );
 
-			if ( !params.db.voies[ msg.voie ] )
+			let voie = msg.voie;
+			delete msg.voie;
+
+			if ( !params.db.voies[ voie ] )
 			{
-				params.db.voies[ msg.voie ] = msg;
+				params.db.voies[ voie ] = msg;
 			}
 			else
 			{
-				Object.assign ( params.db.voies[ msg.voie ], msg );
+				Object.assign ( params.db.voies[ voie ], msg );
 			}
 
 			let keys = Object.keys ( params.db.voies );
@@ -273,7 +277,16 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "getUsersList", (msg)=>{
-			socket.emit ( "setUsersList", params.db.users.map ( u=>u.name ) );
+			let list = params.db.users
+				.filter ( u=>{
+					if ( !params?.categories )
+					{
+						return true;
+					}
+					return params.categories.includes ( u.categorie )
+				})
+				.map ( u=>u.name );
+			socket.emit ( "setUsersList",  );
 		});
 
 		socket.on ( "setUser", (msg)=>{
@@ -379,22 +392,29 @@ export default function socketIO ( server, params )
 				return str;
 			}
 
-			if ( isNaN ( msg ) )
+			if ( isNaN ( msg?.time ) )
 			{
 				socket.emit ( "error", "temps invalide" );
 			}
 
-			let remainingTime = Number ( msg ) * 60 * 1000;
+			let remainingTime = Number ( msg.time ) * 60 * 1000;
+
+			params.categories = Object.keys ( msg.categories ).filter ( k=> msg.categories[ k ] );
 
 			params.interval = setInterval ( ()=>{
 				remainingTime -= 1000;
 				io.emit ( "timer", getTime ( remainingTime ) );
 			},1000);
 
+			console.log ( "start competition for" )
+			console.log ( "  - ", params.categories.join ( "/" ) )
+
 			setTimeout ( ()=>{
 				clearInterval ( params.interval );
 				io.emit ( "timer",  0 );
 				params.interval = undefined;
+
+				console.log ( "normal end" )
 			},remainingTime );
 
 			io.emit ( "updateNav", false );
@@ -404,6 +424,9 @@ export default function socketIO ( server, params )
 			clearInterval ( params.interval );
 			io.emit ( "timer",  "" );
 			params.interval = undefined;
+
+			params.categories = params.args.categories;
+			console.log ( "user stop" )
 
 			io.emit ( "updateNav", true );
 		});

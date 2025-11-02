@@ -5,19 +5,19 @@
 		<%- include("partials/nav.html") -%>
 		<section>
 			<form>
-				<span>
+				<span id="divGenre">
 					<label for="genre">Genre</label>
 					<select id="genre"></select>
 				</span>
-				<span>
+				<span id="divCategorie">
 					<label for="categorie">Categorie</label>
 					<select id="categorie"></select>
 				</span>
-				<span>
+				<span id="divClub">
 					<label for="club">Club</label>
 					<select id="club"></select>
 				</span>
-				<span>
+				<span id="divUser">
 					<label for="user">Utilisateur</label>
 					<select id="user"></select>
 				</span>
@@ -76,6 +76,12 @@
 				},
 				serverMsg: document.getElementById ( "serverMsg" ),
 				comments: document.getElementById ( "comments" ),
+				div:{
+					genre: document.getElementById ( "divGenre"),
+					categorie: document.getElementById ( "divCategorie"),
+					club: document.getElementById ( "divClub"),
+					user: document.getElementById ( "divUser"),
+				},
 			};
 
 			domEls.score.bloc.style.display = "none";
@@ -88,22 +94,46 @@
 
 			let socket = io ( );
 			let filters = {
-				user:{},
-				voie:{},
+				user:undefined,
+				voie:undefined,
 			};
 
 			socket.on ( "setUCCG", (msg)=>{
-				uOneSlector ( {default:"genre", selector:domEls.genre, list:msg.map ( u2=>u2.genre ).distinct ( )} )
-				uOneSlector ( {default:"categorie", selector:domEls.categorie, list:msg.map ( u2=>u2.categorie ).distinct ( )} )
-				uOneSlector ( {default:"club", selector:domEls.club, list:msg.map ( u2=>u2.club ).distinct ( )} )
-				uOneSlector ( {default:"user", selector:domEls.user, list:msg.map ( u2=>u2.name ).distinct ( )} )
+				uOneSlector ({
+					default:"genre",
+					selector:domEls.genre,
+					list:msg.map ( u2=>u2.genre ).distinct ( ),
+					parentDiv:domEls.div.genre
+				})
+				uOneSlector ({
+					default:"categorie",
+					selector:domEls.categorie,
+					list:msg.map ( u2=>u2.categorie ).distinct ( ),
+					parentDiv:domEls.div.categorie
+				})
+				uOneSlector ({
+					default:"club",
+					selector:domEls.club,
+					list:msg.map ( u2=>u2.club ).distinct ( ),
+					parentDiv:domEls.div.club
+				})
+				uOneSlector ({
+					default:"user",
+					selector:domEls.user,
+					list:msg.map ( u2=>u2.name ).distinct ( ),
+					parentDiv:domEls.div.user
+				})
 			} );
+
+			socket.on ( "updateNav", ()=>{
+				window.location.reload ( );
+			});
 
 			socket.on ( "setVoies", (msg)=>{
 				uOneSlector ( {default:"voie", selector:domEls.voie, list:msg} )
 
 				domEls.voie.options[ 0 ].disabled = true;
-			})
+			});
 
 			socket.on ( "setVoie", (msg)=>{
 				if ( msg.comments )

@@ -6,18 +6,34 @@
 		<section>
 			<form>
 				<button id="start">Start</button>
-				<span>
-					<label for="time">Durée de la cometition en minutes</label>
+				<div>
+					<label for="time">Durée de la competition en minutes</label>
 					<input id="time" type="number" value="60" placeholder="temps en minutes"/>
-				</span>
+				</div>
+
+				<div>
+					<label>Quelles categories</label>
+					<ul id="categories"></ul>
+				</div>
 				<button id="stop">Stop</button>
 				<button id="halt">Halt</button>
 				<p id="serverMsg"></p>
 			</form>
 		</section>
 		<script nonce="<%- locals.nonce %>">
+			let domEls = {
+				serverMsg: document.getElementById ( "serverMsg" ),
+				categories: document.getElementById ( "categories" ),
+			};
 
 			let socket = io ( );
+			let categories = {};
+			
+			socket.on ( "connect", ()=>{
+				socket.emit ( "getListOfAllTypes" );
+				socket.emit ( "getVoies", {} );
+				socket.emit ( "getListOfAllCategories" );
+			});
 
 			socket.on ( "error", (msg)=>{
 				domEls.serverMsg.display = "";
@@ -31,11 +47,6 @@
 			});
 
 			socket.on ( "ok", ()=>{
-				domEls.scores.value = "";
-				domEls.newVoie.value = "";
-				domEls.comments.value = "";
-				domEls.img.value = "";
-
 				document.body.style.backgroundColor = "green";
 
 				setTimeout ( ()=>{
@@ -43,9 +54,46 @@
 				}, 1000 );
 			});
 
+			socket.on ( "setListOfAllCategories", (msg)=>
+			{
+				while ( domEls.categories.firstChild )
+				{
+					domEls.categories.removeChild ( domEls.categories.lastChild );
+				}
+
+				categories = {};
+
+				for ( let cat of msg )
+				{
+					let div = document.createElement( "li" );
+					domEls.categories.appendChild ( div );
+
+					let input = document.createElement ( "input" );
+					div.appendChild ( input );
+					input.type = "checkbox",
+					input.id = "cat_"+cat;
+					input.checked = true;
+					categories[ cat ] = true;
+
+					let label = document.createElement ( "label" );
+					div.appendChild ( label );
+					label.htmlFor = "cat_"+cat;;
+					label.innerText = " "+cat;
+
+					input.addEventListener ( "change", (ev)=>{
+						categories[ cat ] = ev.target.checked;
+					});
+				}
+			});
+
+
 			document.getElementById ( "start" ).addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
-				socket.emit ( "start", Number ( document.getElementById ( "time").value ) );
+				let msg = {
+					time: Number ( document.getElementById ( "time").value ),
+					categories: categories,
+				};
+				socket.emit ( "start", msg );
 			});
 
 			document.getElementById ( "stop" ).addEventListener ( "click", (ev)=>{

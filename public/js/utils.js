@@ -276,6 +276,18 @@ function uOneSlector ( params = {} )
 			params.selector.options[ i + 1 ].selected = true;
 		}
 	}
+
+	if ( params.parentDiv )
+	{
+		if ( params.list.length == 1 )
+		{
+			params.parentDiv.style.display = "none";
+		}
+		else
+		{
+			params.parentDiv.style.display = "";
+		}
+	}
 }
 
 /// params : {

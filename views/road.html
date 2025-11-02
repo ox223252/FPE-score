@@ -52,9 +52,7 @@
 
 			let socket = io ( );
 
-			let categories = {
-
-			};
+			let categories = {};
 			
 			socket.on ( "connect", ()=>{
 				socket.emit ( "getListOfAllTypes" );
@@ -127,7 +125,7 @@
 						categories[ cat ] = ev.target.checked;
 					});
 				}
-			})
+			});
 
 			domEls.validate.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
