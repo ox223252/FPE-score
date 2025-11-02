@@ -11,9 +11,9 @@ export default function socketIO ( server, params )
 	io.engine.use ( params.sessionMiddleware );
 	console.log ( " - Socket.io server start")
 
-	let interval = undefined;
 
 	params.io = io;
+	params.interval = undefined;
 
 	io.on ( 'connection', function( socket )
 	{
@@ -272,7 +272,6 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "setUser", (msg)=>{
-			console.log ( msg )
 			switch ( msg.group )
 			{
 				case "admin":
@@ -348,7 +347,7 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "start", (msg)=>{
-			if ( interval )
+			if ( params.interval )
 			{
 				return;
 			}
@@ -375,24 +374,29 @@ export default function socketIO ( server, params )
 				return str;
 			}
 
-			let remainingTime = 60*1000;
+			if ( isNaN ( msg ) )
+			{
+				socket.emit ( "error", "temps invalide" );
+			}
 
-			interval = setInterval ( ()=>{
+			let remainingTime = Number ( msg ) * 60 * 1000;
+
+			params.interval = setInterval ( ()=>{
 				remainingTime -= 1000;
 				io.emit ( "timer", getTime ( remainingTime ) );
 			},1000);
 
 			setTimeout ( ()=>{
-				clearInterval ( interval );
+				clearInterval ( params.interval );
 				io.emit ( "timer",  0 );
-				interval = undefined;
+				params.interval = undefined;
 			},remainingTime );
 		});
 
 		socket.on ( "stop", (msg)=>{
-			clearInterval ( interval );
+			clearInterval ( params.interval );
 			io.emit ( "timer",  "" );
-			interval = undefined;
+			params.interval = undefined;
 		});
 	});
 }

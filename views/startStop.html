@@ -55,6 +55,7 @@
 
 			document.getElementById ( "halt" ).addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
+				
 				fetch("/ajax/halt",{
 						method:"POST"
 					})

@@ -111,17 +111,45 @@ main.express.use ( sessionMiddleware );
 main.express.use ( function ( req, res, next )
 {
 	res.locals.nonce  = crypto.randomBytes ( 16 ).toString ( "hex" );
-	res.locals.logged = req.session?.logged || false;
 	res.locals.page   = req.originalUrl;
 	res.locals.mode   = main.params.args.mode;
 	res.locals.halt   = main.params.args.halt;
+
+	switch ( req.session.logged )
+	{
+		case "admin":
+		case "juge":
+		{
+			res.locals.logged = req.session?.logged;
+			break;
+		}
+		default:
+		{
+			res.locals.logged = false;
+			break;
+		}
+		case "editor":
+		{
+			// during the competition editor are down classed to juge only
+			// reduce nav barre
+			if ( main.params.interval )
+			{
+				res.locals.logged = "juge";
+			}
+			else
+			{
+				res.locals.logged = "editor";
+			}
+			break;
+		}
+	}
+
 	next ( );
 } );
 
 main.express.use ( function ( req, res, next )
 {
-	if ( req.session.logged
-		|| [ "/", "/login", "/statistiques", "/results", "/favicon.ico" ].includes ( req.originalUrl ) )
+	if ( [ "/", "/login", "/favicon.ico" ].includes ( req.originalUrl ) )
 	{
 		next ( );
 	}
@@ -129,10 +157,37 @@ main.express.use ( function ( req, res, next )
 	{
 		next ( );
 	}
-	else
+	else switch ( res.locals.logged )
 	{
-		req.session.target = req.originalUrl;
-		res.redirect ( "/login" );
+		case "admin":
+		{ // admin can edit addUser event during competition
+			if ( [ "/startStop" ].includes ( req.originalUrl ) )
+			{
+				next ( );
+				break;
+			}
+		}
+		case "editor":
+		{
+			if ( [ "/addUser", "/road", "/edit" ].includes ( req.originalUrl ) )
+			{
+				next ( );
+				break;
+			}
+		}
+		case "juge":
+		{
+			if ( [ "/set" ].includes ( req.originalUrl ) )
+			{
+				next ( );
+				break;
+			}
+		}
+		default:
+		{
+			req.session.target = req.originalUrl;
+			res.redirect ( "/login" );
+		}
 	}
 });
 
@@ -194,6 +249,12 @@ main.express.all ( "/road", function ( req, res )
 
 main.express.all ( "/addUser", function ( req, res )
 {
+	if ( main.params?.interval
+		&& "admin" != req.session?.logged )
+	{
+		res.redirect ( "/" );
+	}
+
 	res.render ( 'addUser.html' );
 });
 
