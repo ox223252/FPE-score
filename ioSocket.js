@@ -56,6 +56,10 @@ export default function socketIO ( server, params )
 			socket.emit ( "setListOfType", out.map ( k=>params.db.voies[ k ].type ).distinct ( ) )
 		});
 
+		socket.on ( "getListOfAllCategories", ()=>{
+			socket.emit ( "setListOfAllCategories", params.args.categories );
+		});
+
 		socket.on ( "getVoies", function ( msg )
 		{
 			let out = Object.keys ( params.db.voies );
@@ -238,6 +242,8 @@ export default function socketIO ( server, params )
 				while ( true );
 			}
 
+			msg.categories = Object.keys ( msg.categories ).filter ( k=> msg.categories[ k ] );
+
 			if ( !params.db.voies[ msg.voie ] )
 			{
 				params.db.voies[ msg.voie ] = msg;
@@ -246,7 +252,6 @@ export default function socketIO ( server, params )
 			{
 				Object.assign ( params.db.voies[ msg.voie ], msg );
 			}
-
 
 			let keys = Object.keys ( params.db.voies );
 			let tmp = structuredClone ( params.db.voies );

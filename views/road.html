@@ -19,6 +19,10 @@
 					<label for="type">Type de voie</label>
 					<select id="type"></select>
 				</div>
+				<div>
+					<label>Pour quelles categories</label>
+					<ul id="categories"></ul>
+				</div>
 				<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
 				<div>
 					<label for="scores">Score</label>
@@ -43,13 +47,19 @@
 				img: document.getElementById ( "img" ),
 				comments: document.getElementById ( "comments" ),
 				serverMsg: document.getElementById ( "serverMsg" ),
+				categories: document.getElementById ( "categories" ),
 			};
 
 			let socket = io ( );
+
+			let categories = {
+
+			};
 			
 			socket.on ( "connect", ()=>{
 				socket.emit ( "getListOfAllTypes" );
 				socket.emit ( "getVoies", {} );
+				socket.emit ( "getListOfAllCategories" );
 			});
 
 			socket.on ( "setVoies", (msg)=>{
@@ -87,6 +97,38 @@
 				}, 1000 );
 			});
 
+			socket.on ( "setListOfAllCategories", (msg)=>
+			{
+				while ( domEls.categories.firstChild )
+				{
+					domEls.categories.removeChild ( domEls.categories.lastChild );
+				}
+
+				categories = {};
+
+				for ( let cat of msg )
+				{
+					let div = document.createElement( "li" );
+					domEls.categories.appendChild ( div );
+
+					let input = document.createElement ( "input" );
+					div.appendChild ( input );
+					input.type = "checkbox",
+					input.id = "cat_"+cat;
+					input.checked = true;
+					categories[ cat ] = true;
+
+					let label = document.createElement ( "label" );
+					div.appendChild ( label );
+					label.htmlFor = "cat_"+cat;;
+					label.innerText = " "+cat;
+
+					input.addEventListener ( "change", (ev)=>{
+						categories[ cat ] = ev.target.checked;
+					});
+				}
+			})
+
 			domEls.validate.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
 
@@ -94,6 +136,7 @@
 					voie: domEls.newVoie.value,
 					type: domEls.type.value,
 					comments: domEls.comments.value,
+					categories: categories,
 				};
 
 				if ( domEls.scores )

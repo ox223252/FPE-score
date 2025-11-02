@@ -35,6 +35,12 @@ const args = yargs(process.argv)
 		choices: [ "a", "b", "c", "d", "v", "autre", "block", "contest", "dif", "vitesse" ],
 		default: 'a'
 	})
+	.option('categories', {
+		alias: "c",
+		type: "array",
+		describe: "competitor available categorie",
+		default: [ "U8", "U10", "U12", "U14", "U16", "U18", "senior", "veteran" ],
+	})
 	.option('voies',{
 		alias: 'v',
 		describe: '/path/to/file',
