@@ -18,7 +18,7 @@
 		}
 
 		#gecko {
-			fill: black !important;
+			fill:  var( --color-text );
 		}
 		#rafters {
 			fille: red;
@@ -27,10 +27,13 @@
 		#climber_legs,
 		#climber_head,
 		#climber_rope {
-			fill: black;
+			fill: var( --color-text );
+		}
+		a {
+			color: var( --color-text );
 		}
 	</style>
-	<span            style="order:0"><%- include( "../../public/imgs/fpe.svg" ) %></span>
+	<span            style="order:0" class="login" ><%- include( "../../public/imgs/fpe.svg" ) %></span>
 	<a href="/"      style="order:1"><i class="fa-solid fa-home"></i><a>
 	<a href="/login" style="order:2" class="login" ><i class="fa-solid fa-lock-open"></i></a>
 	<!-- <a href="/statistiques"><i class="fa-solid fa-chart-pie"></i></a> -->

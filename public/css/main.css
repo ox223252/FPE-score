@@ -5,6 +5,9 @@ html
 
 body
 {
+	background-color: var( --color-back );
+	color: var( --color-text );
+
 	font: normal 10pt Consolas, Monaco, monospace;
 	height: calc( 100% - 20px );
 	margin: 0;
@@ -74,4 +77,10 @@ select
 td
 {
 	min-width:50px;
+}
+
+:root {
+	color-scheme: light dark;
+	--color-back: light-dark( white, black );
+	--color-text: light-dark( black, white );
 }
