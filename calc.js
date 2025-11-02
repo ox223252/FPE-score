@@ -30,7 +30,14 @@ export function calcAll ( params )
 						{
 							continue;
 						}
+
 						params.db.score[ user.name ].total += Math.max ( ...params.db.score[ user.name ][ voie ] );
+
+						if ( !params.db.voies[ voie ] )
+						{
+							continue;
+						}
+
 						params.db.voies[ voie ].meta.users++;
 
 						params.db.score[ user.name ][ voie ].map ( v=>{
