@@ -126,7 +126,9 @@
 			} );
 
 			socket.on ( "updateNav", ()=>{
-				window.location.reload ( );
+				socket.emit ( "getUCCG", filters.user );
+				socket.emit ( "getVoies", filters.voie );
+				socket.emit ( "getListOfType" );
 			});
 
 			socket.on ( "setVoies", (msg)=>{
