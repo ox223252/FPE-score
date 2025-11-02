@@ -1,5 +1,9 @@
 @media (max-width: 1280px)
 {
+	section
+	{
+		flex-direction: row;
+	}
 	select, input, button, label
 	{
 		font-size: 2em;
