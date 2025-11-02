@@ -58,21 +58,37 @@ export function calcAll ( params )
 			}
 		}
 
+		let users = Object.keys ( params.db.score );
+
 		// calc rank
 		switch ( params.args.mode )
 		{
 			case "a":
 			case "autre":
 			{
-				let users = Object.keys ( params.db.score )
 				users.sort ( (a,b)=>{ return params.db.score[ b ].total - params.db.score[ a ].total })
 					.map ( (user,i)=>{
 						params.db.score[ user ].rank = (i+1);
+						return user;
 					})
 				break;
 			}
 		}
 
+		// manage ex aequo
+		users.map ( (user,i,array)=>{
+				if ( 0 == i )
+				{
+					return user;
+				}
+
+				if ( params.db.score[ user ].total == params.db.score[ array[ i - 1 ] ].total )
+				{
+					params.db.score[ user ].rank = params.db.score[ array[ i - 1 ] ].rank;
+				}
+
+				return user;
+			})
 		ok ( );
 	})
 }
