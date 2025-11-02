@@ -59,6 +59,27 @@
 
 			socket.on ( "timer", (msg)=>{
 				timer.innerText = msg;
+
+				if ( Number ( msg ) == 0 )
+				{
+					document.body.style.backgroundColor = "blue";
+
+					setTimeout ( ()=>{
+						document.body.style.backgroundColor = "";
+					}, 1000 );
+				}
+			});
+
+			socket.on ( "updateNav", (msg)=>{
+				<% if ( "editor" == locals.logged )	{ %>
+					window.location.reload ( );
+				<% } else { %>
+					document.body.style.backgroundColor = "blue";
+
+					setTimeout ( ()=>{
+						document.body.style.backgroundColor = "";
+					}, 1000 );
+				<% } %>
 			});
 		})();
 	</script>

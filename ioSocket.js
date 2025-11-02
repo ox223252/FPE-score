@@ -391,12 +391,16 @@ export default function socketIO ( server, params )
 				io.emit ( "timer",  0 );
 				params.interval = undefined;
 			},remainingTime );
+
+			io.emit ( "updateNav", false );
 		});
 
 		socket.on ( "stop", (msg)=>{
 			clearInterval ( params.interval );
 			io.emit ( "timer",  "" );
 			params.interval = undefined;
+
+			io.emit ( "updateNav", true );
 		});
 	});
 }
