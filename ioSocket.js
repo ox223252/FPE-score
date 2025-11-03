@@ -164,7 +164,7 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "uValue", async (msg)=>{
-			if ( !socket.request.session?.logged )
+			if ( ![ "admin","editor" ].includes ( socket.request.session?.logged ) )
 			{
 				io.emit ( "msg", "un utilisateur inconnue tente de modifier des scores" );
 				return;
