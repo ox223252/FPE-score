@@ -31,8 +31,8 @@ const args = yargs(process.argv)
 	})
 	.option('mode',{
 		alias: 'm',
-		describe: 'a/b/c/d/v autre/block/combiné/dif/vitesse',
-		choices: [ "a", "b", "c", "d", "v", "autre", "block", "contest", "dif", "vitesse" ],
+		describe: 'a/b/c/d/v autre/bloc/combiné/dif/vitesse',
+		choices: [ "a", "b", "c", "d", "v", "autre", "bloc", "contest", "dif", "vitesse" ],
 		default: 'a'
 	})
 	.option('categories', {
@@ -106,13 +106,13 @@ switch ( params.args.mode )
 	case "b":
 	case "bloc":
 	{
-		params.type = [ "block" ];
+		params.type = [ "bloc" ];
 		break;
 	}
 	case "c":
 	case "contest":
 	{
-		params.type = [  "diff","block","vitesse" ];
+		params.type = [  "diff","bloc","vitesse" ];
 		break;
 	}
 	case "d":
