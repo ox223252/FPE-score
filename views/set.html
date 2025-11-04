@@ -22,7 +22,7 @@
 					<select id="user"></select>
 				</span>
 				<hr>
-				<span>
+				<span id="divType">
 					<label for=type>Type de voie</label>
 					<select id="type">
 						<option value="all" diseabled selected>--</option>
@@ -31,7 +31,7 @@
 						<option value="autre">Autre</option>
 					</select>
 				</span>
-				<span>
+				<span id="divVoie">
 					<label for=voie>Voie</label>
 					<select id="voie"></select>
 				</span>
@@ -81,6 +81,8 @@
 					categorie: document.getElementById ( "divCategorie"),
 					club: document.getElementById ( "divClub"),
 					user: document.getElementById ( "divUser"),
+					type: document.getElementById ( "divType" ),
+					voie: document.getElementById ( "divVoie" ),
 				},
 			};
 
@@ -132,7 +134,12 @@
 			});
 
 			socket.on ( "setVoies", (msg)=>{
-				uOneSlector ( {default:"voie", selector:domEls.voie, list:msg} )
+				uOneSlector ({
+					default:"voie",
+					selector:domEls.voie,
+					list:msg,
+					parentDiv:domEls.div.voie
+				})
 
 				domEls.voie.options[ 0 ].disabled = true;
 			});
@@ -223,7 +230,12 @@
 			});
 
 			socket.on ( "setListOfType", (msg)=>{
-				uOneSlector ( {default:"--", selector:domEls.type, list:msg} )
+				uOneSlector ({
+					default:"--",
+					selector:domEls.type,
+					list:msg,
+					parentDiv:domEls.div.type
+				})
 				domEls.type.options[ 0 ].disabled = true;
 				domEls.voie.options[ 0 ].disabled = true;
 			});

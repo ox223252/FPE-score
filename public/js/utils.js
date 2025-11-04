@@ -370,9 +370,28 @@ function printTable ( params = {} )
 		params.tbody.appendChild ( createLine ( [
 			user,
 			...voies.filter ( v=>!["partialRank","rank","total"].includes ( v ) ).map ( v=>{
-				if ( params.scores[ user ][ v ] )
+				if ( params.scores?.[ user ]?.[ v ] )
 				{
-					return Math.max( ...params.scores[ user ][ v ] )
+					if ( params.scores?.[ user ]?.[ v ]?.some( v=>!isNaN(v) ) )
+					{
+						return Math.max( ...params.scores[ user ][ v ] )
+					}
+					else if ( params.scores?.[ user ]?.[ v ]?.some( v=>v=="top" ) )
+					{
+						return "top";
+					}
+					else if ( params.scores?.[ user ]?.[ v ]?.some( v=>v=="zone" ) )
+					{
+						return "zone";
+					}
+					else if ( params.scores?.[ user ]?.[ v ]?.some( v=>v=="echec" ) )
+					{
+						return "echec";
+					}
+					else
+					{
+						return "";
+					}
 				}
 				else
 				{
