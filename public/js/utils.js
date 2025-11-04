@@ -328,6 +328,7 @@ function printTable ( params = {} )
 
 	let sU = params.selectedUsers.map ( u=>u.name );
 	let users = Object.keys ( params.scores ).filter ( u=>sU.includes ( u ) );
+	let lastRank = -1;
 
 	while ( params.thead.firstChild )
 	{
@@ -338,19 +339,37 @@ function printTable ( params = {} )
 		params.tbody.removeChild ( params.tbody.lastChild );
 	}
 
+	// sort users by rank, and define partial rank for the displayed user only
 	users.sort ( (a,b)=>{
-		return params.scores[ a ].rank - params.scores[ b ].rank;
-	})
+			return params.scores[ a ].rank - params.scores[ b ].rank;
+		})
+		.map ( (user,i)=>{
+			params.scores[ user ].partialRank = (i+1);
+			return user;
+		})
+		.map ( (user,i,array)=>{
+			if ( 0 == i )
+			{
+				return user;
+			}
+
+			if ( params.scores[ user ].rank == params.scores[ array[ i - 1 ] ].rank )
+			{
+				params.scores[ user ].partialRank = params.scores[ array[ i - 1 ] ].partialRank;
+			}
+
+			return user;
+		})
 
 	let voies = users.map ( u=>Object.keys ( params.scores[ u ] ) ).flat ( Infinity ).distinct ( ).sort ( );
 
-	params.thead.appendChild ( createLine ( [ "Nom", ...voies.filter ( v=>!["rank","total"].includes ( v ) ), "total", "rank" ] ) );
+	params.thead.appendChild ( createLine ( [ "Nom", ...voies.filter ( v=>!["partialRank","rank","total"].includes ( v ) ), "total", "rank" ] ) );
 
 	for ( let user of users )
 	{
 		params.tbody.appendChild ( createLine ( [
 			user,
-			...voies.filter ( v=>!["rank","total"].includes ( v ) ).map ( v=>{
+			...voies.filter ( v=>!["partialRank","rank","total"].includes ( v ) ).map ( v=>{
 				if ( params.scores[ user ][ v ] )
 				{
 					return Math.max( ...params.scores[ user ][ v ] )
@@ -361,7 +380,7 @@ function printTable ( params = {} )
 				}
 			}),
 			params.scores[ user ].total,
-			params.scores[ user ].rank
+			params.scores[ user ].partialRank
 		] ) );
 	}
 }
