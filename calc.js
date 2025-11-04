@@ -71,24 +71,23 @@ export function calcAll ( params )
 						params.db.score[ user ].rank = (i+1);
 						return user;
 					})
+					.map ( (user,i,array)=>{ // manage ex aequo
+						if ( 0 == i )
+						{
+							return user;
+						}
+
+						if ( params.db.score[ user ].total == params.db.score[ array[ i - 1 ] ].total )
+						{
+							params.db.score[ user ].rank = params.db.score[ array[ i - 1 ] ].rank;
+						}
+
+						return user;
+					})
 				break;
 			}
 		}
 
-		// manage ex aequo
-		users.map ( (user,i,array)=>{
-				if ( 0 == i )
-				{
-					return user;
-				}
-
-				if ( params.db.score[ user ].total == params.db.score[ array[ i - 1 ] ].total )
-				{
-					params.db.score[ user ].rank = params.db.score[ array[ i - 1 ] ].rank;
-				}
-
-				return user;
-			})
 		ok ( );
 	})
 }
