@@ -122,6 +122,70 @@ export function calcAll ( params )
 				})
 				break;
 			}
+			case "d":
+			case "diff":
+			{
+				let full = {};
+
+				let voies = Object.keys ( params.db.voies );
+				let uS = Object.keys ( params.db.score );
+
+				uS.map ( k=>{
+					voies.map ( v=>{
+						if ( !full[ v ] )
+						{
+							full[ v ] = [];
+						}
+
+						if ( "Array" == params.db.score?.[ k ]?.[ v ]?.constructor.name )
+						{
+							full[ v ].push ( Math.max ( params.db.score?.[ k ]?.[ v ] ) );
+						}
+					});
+					
+					params.db.score[ k ].total = 0;
+				})
+
+				for ( let v in full )
+				{
+					if ( !full[ v ].length )
+					{
+						delete full[ v ];
+						continue;
+					}
+
+					full[ v ].sort ( (a,b)=>b-a )
+				}
+
+				voies = Object.keys ( full );
+
+				uS.map ( k=>{
+					voies.map ( v=>{
+						let value = undefined;
+						if ( "Array" == params.db.score?.[ k ]?.[ v ]?.constructor.name )
+						{
+							value = Math.max ( params.db.score?.[ k ]?.[ v ] );
+						}
+						else
+						{
+							value = params.db.score?.[ k ]?.[ v ];
+						}
+
+						let t = full[ v ].indexOf ( value );
+
+						if ( 0 > t )
+						{
+							t = uS.length;
+						}
+						t++;
+
+						params.db.score[ k ].total += t * t;
+					});
+
+					params.db.score[ k ].total = Math.sqrt ( params.db.score[ k ].total );
+				});
+				break;
+			}
 		}
 
 		let users = Object.keys ( params.db.score );
@@ -135,19 +199,6 @@ export function calcAll ( params )
 				users.sort ( (a,b)=>{ return params.db.score[ b ].total - params.db.score[ a ].total })
 					.map ( (user,i)=>{
 						params.db.score[ user ].rank = (i+1);
-						return user;
-					})
-					.map ( (user,i,array)=>{ // manage ex aequo
-						if ( 0 == i )
-						{
-							return user;
-						}
-
-						if ( params.db.score[ user ].total == params.db.score[ array[ i - 1 ] ].total )
-						{
-							params.db.score[ user ].rank = params.db.score[ array[ i - 1 ] ].rank;
-						}
-
 						return user;
 					})
 				break;
@@ -196,22 +247,36 @@ export function calcAll ( params )
 
 						return user;
 					})
-					.map ( (user,i,array)=>{ // manage ex aequo
-						if ( 0 == i )
-						{
-							return user;
-						}
-
-						if ( params.db.score[ user ].total == params.db.score[ array[ i - 1 ] ].total )
-						{
-							params.db.score[ user ].rank = params.db.score[ array[ i - 1 ] ].rank;
-						}
-
+				break;
+			}
+			case "d":
+			case "diff":
+			{
+				users.sort ( (a,b)=>{
+						return params.db.score[ a ].total-params.db.score[ b ].total
+					})
+					.map ( (user,i)=>{
+						params.db.score[ user ].rank = (i+1);
 						return user;
 					})
+
 				break;
 			}
 		}
+
+		users.map ( (user,i,array)=>{ // manage ex aequo
+				if ( 0 == i )
+				{
+					return user;
+				}
+
+				if ( params.db.score[ user ].total == params.db.score[ array[ i - 1 ] ].total )
+				{
+					params.db.score[ user ].rank = params.db.score[ array[ i - 1 ] ].rank;
+				}
+
+				return user;
+			})
 
 		ok ( );
 	})
