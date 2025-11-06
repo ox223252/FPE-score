@@ -9,6 +9,10 @@ import bodyParser from 'body-parser'; // parsing data from request
 import readline from "readline"; // read text line from input
 import ejs from "ejs";
 import http from "http";
+import util from 'util';
+import childProcess from 'child_process';
+
+const exec = util.promisify ( childProcess.exec );
 
 Array.prototype.distinct = function () { return Array.from ( new Set ( this ) ); };
 
@@ -133,7 +137,7 @@ ajax.express.all ( "/halt", async function ( req, res )
 		res.writeHead ( 403 );
 		res.end ( );
 	}
-	else if ( "admin" == ajax?.params?.args?.logged )
+	else if ( "admin" == res.locals?.logged )
 	{
 		await exec ( 'halt' );
 		res.writeHead ( 200 );
