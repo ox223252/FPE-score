@@ -196,7 +196,11 @@
 				domEls.graphs.legend.style.display = "none";
 			}
 
-			let socket = io ( );
+			if ( !socket )
+			{
+				var socket = io ( );
+			}
+
 			let filters = {};
 			let selectedUsers = {};
 			let scores = {};

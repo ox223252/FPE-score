@@ -105,7 +105,11 @@
 			serverMsg: document.getElementById ( "serverMsg" ),
 		};
 
-		let socket = io ( );
+		if ( !socket )
+		{
+			var socket = io ( );
+		}
+
 		let users = [];
 
 		socket.on ( "connect", ()=>{

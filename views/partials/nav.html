@@ -1,4 +1,4 @@
-<nav>
+<nav id="navBarre">
 	<style>
 		nav {
 			display: flex;
@@ -15,6 +15,10 @@
 		nav svg {
 			max-width: 30px;
 			max-height: 30px;
+		}
+
+		nav.disconnected > a {
+			display: none;
 		}
 
 		#gecko {
@@ -56,34 +60,55 @@
 	%>
 	<span id="timer" style="order:100;flex-grow:1;text-align: right;"></span>
 	<script nonce="<%- locals.nonce %>">
-		(()=>{
-			let socket = io ( );
-			let timer = document.getElementById ( "timer" );
+		var socket = io ( window.location.origin ,{
+			reconnection: true,
+			reconnectionAttempts: 50,
+			reconnectionDelay: 5000,
+			reconnectionDelayMax: 25000,
+		});
 
-			socket.on ( "timer", (msg)=>{
-				timer.innerText = msg;
+		let timer = document.getElementById ( "timer" );
 
-				if ( Number ( msg ) == 0 )
-				{
-					document.body.style.backgroundColor = "blue";
 
-					setTimeout ( ()=>{
-						document.body.style.backgroundColor = "";
-					}, 1000 );
-				}
-			});
+		socket.on ( "connect", ()=>{
+			document.getElementById ( "navBarre" ).classList.remove ( "disconnected" );
+			timer.innerText = "";
+			timer.style.color = "";
+		});
 
-			socket.on ( "updateNav", (msg)=>{
-				<% if ( "editor" == locals.logged )	{ %>
-					window.location.reload ( );
-				<% } else { %>
-					document.body.style.backgroundColor = "blue";
+		socket.on ( "timer", (msg)=>{
+			timer.innerText = msg;
 
-					setTimeout ( ()=>{
-						document.body.style.backgroundColor = "";
-					}, 1000 );
-				<% } %>
-			});
-		})();
+			if ( Number ( msg ) == 0 )
+			{
+				document.body.style.backgroundColor = "blue";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
+			}
+		});
+
+		socket.on ( "updateNav", (msg)=>{
+			<% if ( "editor" == locals.logged )	{ %>
+				window.location.reload ( );
+			<% } else { %>
+				document.body.style.backgroundColor = "blue";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
+			<% } %>
+		});
+
+		socket.on ( "halt", (msg)=>{
+			alert ( "systeme eteint veillez attendre le redemarage" );
+		});
+
+		socket.on ( "disconnect", ()=>{
+			document.getElementById ( "navBarre" ).classList.add ( "disconnected" );
+			timer.innerText = "disconnected";
+			timer.style.color = "red";
+		});
 	</script>
 </nav>

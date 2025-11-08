@@ -93,8 +93,11 @@
 			domEls.serverMsg.display = "none";
 			domEls.img.style.display = "none";
 
+			if ( !socket )
+			{
+				var socket = io ( );
+			}
 
-			let socket = io ( );
 			let filters = {
 				user:undefined,
 				voie:undefined,

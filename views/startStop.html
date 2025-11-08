@@ -26,7 +26,11 @@
 				categories: document.getElementById ( "categories" ),
 			};
 
-			let socket = io ( );
+			if ( !socket )
+			{
+				var socket = io ( );
+			}
+
 			let categories = {};
 			
 			socket.on ( "connect", ()=>{
