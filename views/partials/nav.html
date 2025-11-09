@@ -60,6 +60,8 @@
 	%>
 	<span id="timer" style="order:100;flex-grow:1;text-align: right;"></span>
 	<script nonce="<%- locals.nonce %>">
+		Array.prototype.distinct = function () { return Array.from ( new Set ( this ) ); };
+
 		var socket = io ( window.location.origin ,{
 			reconnection: true,
 			reconnectionAttempts: 50,

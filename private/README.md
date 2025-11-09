@@ -39,14 +39,14 @@
 
 ## voie:
 ```javascript
-{
-    <Track Name>: {
-        "voie": <Track Name>,
+[
+    {
+        "name": <Track Name>,
         "type": "bloc", // bloc, diff, vitesse 
         "comments": "",
         "score": ""
     }
-}
+]
 ```
 
 ## score:

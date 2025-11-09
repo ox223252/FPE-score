@@ -52,7 +52,7 @@ export default function socketIO ( server, params )
 
 		socket.on ( "getListOfType", ()=>{
 			let out = Object.keys ( params.db.voies );
-			socket.emit ( "setListOfType", out.map ( k=>params.db.voies[ k ].type ).distinct ( ) )
+			socket.emit ( "setListOfType", params.db.voies.map ( v=>v.type ).distinct ( ) )
 		});
 
 		socket.on ( "getListOfAllCategories", ()=>{
@@ -60,30 +60,33 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "getVoies", (msg)=>{
-			let voies = Object.keys ( params.db.voies );
-			voies = voies.filter ( v=>{
+			let voies = params.db.voies.filter ( v=>{
 					if ( undefined == msg?.filters )
 					{
 						return true;
 					}
 					else
 					{
-						return msg?.filters?.includes ( params.db.voies[ v ].type );
+						return msg?.filters?.includes ( v.type );
 					}
-				});
-
-			if ( params.categories )
-			{
-				voies = voies.filter ( k=>params.db.voies[ k ].categories.some( cat=> params.categories.includes(cat) ) )
-			}
+				})
+				.filter ( v=>{
+					if ( params.categories )
+					{
+						return v.categories.some( cat=> params.categories.includes ( cat ) )
+					}
+					else
+					{
+						return true;
+					}
+				})
+				.map ( v=>v.name );
 
 			socket.emit ( "setVoies", voies );
 		});
 
 		socket.on ( "getVoie", (msg)=>{
-			let out = params.db.voies[ msg ];
-
-			socket.emit ( "setVoie", out );
+			socket.emit ( "setVoie", params.db.voies.map ( v=>v.name ).indexOf ( msg ) );
 		});
 
 		socket.on ( "setScore", async (msg)=>{
@@ -181,18 +184,34 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "newVoie", (msg)=>{
+			// check l'utilisateur qui veut créer une voie
 			if ( !socket.request.session?.logged )
 			{
 				io.emit ( "msg", "un utilisateur inconnue tente d'ajouter des voies" );
 				return;
 			}
+			else if ( ![ "admin", "juge" ].includes ( socket.request.session?.logged ) )
+			{
+				socket.emit ( "msg", "vous n'etes pas habilité pour cette opération" );
+				return;
+			}
 
+			// vérifie que le type de voie est valide 
 			if ( !params.type.includes ( msg.type ) )
 			{
 				socket.emit ( "error", "type "+msg.type+"invalide, accepté : "+params.type );
 				return;
 			}
 
+			// nettoyage des trucs non initialisés
+			Object.keys ( msg ).map ( k=>{
+				if ( !msg[ k ] )
+				{
+					delete msg[ k ];
+				}
+			})
+
+			// sauvegarde du score
 			if ( msg.score )
 			{
 				msg.score = msg.score.replace ( /[ .]/g, "," ).split ( "," );
@@ -200,7 +219,7 @@ export default function socketIO ( server, params )
 				{
 					if ( 2 != msg.score.length )
 					{
-						socket.emit ( "error", "pour le bloc seul un score de zone et de top sont requis" );
+						socket.emit ( "error", "pour le bloc seul un score de ZONE et de TOP sont requis" );
 						return;
 					}
 
@@ -211,6 +230,7 @@ export default function socketIO ( server, params )
 				}
 			}
 
+			// convertion d'une image
 			if ( msg.img )
 			{
 				let path = "./public/imgs";
@@ -243,29 +263,25 @@ export default function socketIO ( server, params )
 				while ( true );
 			}
 
-			msg.categories = Object.keys ( msg.categories ).filter ( k=> msg.categories[ k ] );
-
-			let voie = msg.voie;
-			delete msg.voie;
-
-			if ( !params.db.voies[ voie ] )
+			// correct categories
+			if ( msg.categories )
 			{
-				params.db.voies[ voie ] = msg;
+				msg.categories = Object.keys ( msg.categories ).filter ( k=>{
+					return msg.categories[ k ];
+				});
+			}
+
+			let index = params.db.voies.map ( v=>v.name ).indexOf ( msg.name );
+
+			if ( index == -1 )
+			{
+				params.db.voies.push ( msg );
 			}
 			else
 			{
-				Object.assign ( params.db.voies[ voie ], msg );
+				params.db.voies[ index ] = msg;
 			}
 
-			let keys = Object.keys ( params.db.voies );
-			let tmp = structuredClone ( params.db.voies );
-
-			keys.map ( k=>{
-				if ( tmp[ k ]?.meta )
-				{
-					delete tmp[ k ].meta;
-				}
-			});
 			fs.writeFileSync ( params.args?.voies, JSON.stringify ( tmp, null, 4 ) );
 			socket.emit ( "ok" );
 

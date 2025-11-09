@@ -2,14 +2,14 @@ let params = {
 	db:{
 		path:{
 			score: './private/score',
-			voies: './private/voie',
+			voies: './private/voies',
 			users: './private/users',
 			login: './private/login',
 		},
 		score: {},
-		voies: {},
+		voies: [],
 		users: [],
-		login: {},
+		login: [],
 	},
 };
 
