@@ -127,7 +127,7 @@ ajax.express.all ( "/login", function ( req, res )
 		fs.writeFileSync ( ajax.params.args.login, JSON.stringify ( ajax.params.db.login, null, 4 ), "utf8" );
 
 		res.status ( 200 );
-		res.json ( {target:req.session.target || "/"} );
+		res.json ( out );
 		res.end ( );
 	}
 	catch ( e )
