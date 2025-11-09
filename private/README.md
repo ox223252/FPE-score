@@ -2,23 +2,26 @@
 
 ## login:
 ```javascript
-{
-    "admin": {
+[
+   {
+        "name": <userName>,
         "pass": <sha512>,
         "status": "admin",
         "error": 0,
     },
-    "editor": {
+    {
+        "name": <userName>,
         "pass": <sha512>,
         "status": "editor",
         "error": 0,
     },
-    "juge": {
+    {
+        "name": <userName>,
         "pass": <sha512>,
         "status": "juge",
         "error": 0
     }
-}
+]
 ```
 
 ## users:

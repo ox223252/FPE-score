@@ -53,79 +53,88 @@ ajax.express.use ( function ( req, res, next )
 // ajax part
 ajax.express.all ( "/login", function ( req, res )
 {
-	if ( req.body.token )
+	try
 	{
-		for ( let user in ajax.params?.db?.login )
-		{
-			if ( ajax.params?.db?.login?.[ user ]?.token == req.body.token )
+		let index = 0;
+
+		if ( req.body.token )
+		{ // token connection
+			index = ajax.params?.db?.login.map ( u=>u.token ).indexOf ( req.body.token );
+
+			if ( index == -1 )
 			{
-				req.session.logged = ajax.params?.db?.login?.[ user ].status || true;
-				req.session.name = user;
-				break;
+				throw undefined;
 			}
 		}
+		else if ( !req.body?.password
+			|| !req.body?.user )
+		{
+			throw {error:"nom ou pass manquant"};
+		}
+		else if ( !ajax.params?.db?.login?.length )
+		{ // first connection
+			index = 0;
 
-		if ( req.session.logged )
-		{
-			res.status ( 200 );
-			res.json ( {target:req.session.target || "/"} );
-			res.end ( );
-		}
-		else
-		{
-			res.status ( 403 );
-			res.json ( {} );
-			res.end ( );
-		}
-	}
-	else if ( ajax.params?.db?.login?.[ req.body?.user ]
-		|| 0 == Object.keys ( ajax.params?.db?.login || {} ).length )
-	{
-		if ( 0 == Object.keys ( ajax.params?.db?.login || {} ).length )
-		{
-			ajax.params.db.login[ req.body.user ] = {
+			ajax.params.db.login = [];
+			ajax.params.db.login.push ({
+				name: req.body.user,
 				pass: crypto.createHash ( 'sha512' ).update ( req.body.password ).digest ( 'hex' ),
 				status: "admin",
-			};
-		}
-
-		let dbU = ajax.params?.db?.login?.[ req.body?.user ];
-
-		if ( dbU.error > ajax.params.maxTry )
-		{
-		}
-		else if ( dbU?.pass == crypto.createHash ( 'sha512' ).update ( req.body?.password ).digest ( 'hex' ) )
-		{
-			req.session.logged = ajax.params?.db?.login?.[ req.body.user ].status || true;
-			req.session.name = req.body?.user;
-
-			if ( !dbU.token )
-			{
-				dbU.token = crypto.createHash ( 'sha512' ).update ( Math.random ( ).toString ( ) ).digest ( 'hex' );
-			}
-
-			dbU.date = new Date ( ).getTime ( );
-			dbU.error = 0;
-
-			fs.writeFileSync ( ajax.params.args.login, JSON.stringify ( ajax.params?.db?.login, null, 4 ), "utf8" )
-			res.json ( {token: dbU.token,target:req.session.target || "/"} );
-			res.status ( 200 );
-			res.end ( );
-			return;
+				error: 0,
+			});
 		}
 		else
 		{
-			dbU.error++;
+			index = ajax.params.db.login.map ( u=>u.name ).indexOf ( req.body?.user );
+
+			if ( index == -1 )
+			{
+				throw {error:"utilisateur invalide"};
+			}
+
+			if ( ajax.params.db.login[ index ].error > ajax.params.maxTry )
+			{
+				throw {error:"trop d'erreur avec ce nom"};
+			}
+
+			if ( ajax.params.db.login[ index ].pass != crypto.createHash ( 'sha512' ).update ( req.body?.password ).digest ( 'hex' ) )
+			{
+				ajax.params.db.login[ index ].error++;
+				throw {
+					error: "mavais mot de passe",
+					try: ajax.params.maxTry-ajax.params.db.login[ index ].error
+				};
+			}
 		}
 
-		res.status ( 403 );
-		res.json ( {try: ajax.params?.args?.try - dbU.error } );
+		let out = {
+			target: req.session.target || "/",
+			token: ajax.params.db.login[ index ].token,
+		};
+
+		if ( !ajax.params.db.login[ index ].token )
+		{
+			ajax.params.db.login[ index ].token = crypto.createHash ( 'sha512' ).update ( Math.random ( ).toString ( ) ).digest ( 'hex' );
+		}
+
+		ajax.params.db.login[ index ].test = "AAA";
+		ajax.params.db.login[ index ].date = new Date ( ).getTime ( );
+		ajax.params.db.login[ index ].error = 0;
+
+		req.session.logged = ajax.params.db.login[ index ].status || true;
+		req.session.name = ajax.params.db.login[ index ].name;
+
+		fs.writeFileSync ( ajax.params.args.login, JSON.stringify ( ajax.params.db.login, null, 4 ), "utf8" );
+
+		res.status ( 200 );
+		res.json ( {target:req.session.target || "/"} );
 		res.end ( );
 	}
-	else
+	catch ( e )
 	{
+		console.log ( e )
 		res.status ( 403 );
-		res.json ( {} );
+		res.json ( e || {} );
 		res.end ( );
 	}
 })

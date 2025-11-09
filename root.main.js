@@ -219,7 +219,12 @@ main.express.all ( '/login', function ( req, res )
 {
 	if ( req.session.logged )
 	{ // logout requested
-		delete main.params?.db?.login?.[ req.session?.name ].token;
+		let index = main.params?.db?.login.map ( l=>l.name ).indexOf ( req.session.name );
+
+		if ( 1 != index.length )
+		{
+			delete main.params.db.login[ index ].token;
+		}
 
 		fs.writeFileSync ( main.params.args.login, JSON.stringify ( main.params?.db?.login, null, 1 ).replace ( / /g, "\t" ), "utf8" )
 	}
