@@ -282,10 +282,10 @@ export default function socketIO ( server, params )
 				params.db.voies[ index ] = msg;
 			}
 
-			fs.writeFileSync ( params.args?.voies, JSON.stringify ( tmp, null, 4 ) );
+			fs.writeFileSync ( params.args?.voies, JSON.stringify ( params.db.voies, null, 4 ) );
 			socket.emit ( "ok" );
 
-			io.emit ( "setVoies", keys );
+			io.emit ( "setVoies", params.db.voies.map ( v=>v.name ) );
 		});
 
 		socket.on ( "getClubsList", ()=>{
@@ -445,6 +445,81 @@ export default function socketIO ( server, params )
 			console.log ( "user stop" )
 
 			io.emit ( "updateNav", true );
+		});
+
+		socket.on ( "cmd", (msg)=>{
+			try
+			{
+				if ( "admin" != socket.request.session?.logged )
+				{
+					throw "droits manquants";
+				}
+
+				console.log ( msg )
+
+				if ( !params?.args?.[ msg?.arg ] )
+				{
+					throw "fichier manquant";
+				}
+
+				switch ( msg.cmd )
+				{
+					case "delete":
+					{
+						fs.unlink ( params.args[ msg?.arg ],
+							(err => {
+								if (err)
+								{
+									throw err;
+								}
+								else
+								{
+									socket.emit ( "ok" );
+									return;
+								}
+							}))
+						break;
+					}
+					case "export":
+					{
+						socket.emit ( "export", {file:msg?.arg,data:params.db[ msg?.arg ]} );
+						break;
+					}
+					case "set":
+					{
+						switch ( msg?.arg )
+						{
+							case "voies":
+							{
+								console.log ( msg.data )
+								break;
+							}
+							case "users":
+							{
+								params.db[ msg?.arg ] = msg.data.map ( d=>{
+									d.group="competitor"
+									return d;
+								});
+								break;
+							}
+						}
+
+						fs.writeFileSync ( params.args?.[ msg?.arg ], JSON.stringify ( params.db[ msg?.arg ], null, 4 ) );
+						break;
+					}
+					default:
+					{
+						throw "unknow cmds";
+					}
+				}
+
+				socket.emit ( "ok" );
+			}
+			catch ( e )
+			{
+				console.log ( e );
+				socket.emit ( "error", e );
+			}
 		});
 	});
 }
