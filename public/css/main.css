@@ -33,6 +33,7 @@ div {
 form {
 	max-width: 100%;
 	min-width: 300px;
+	padding: 5px;
 }
 div, form {
 	overflow: auto;
@@ -40,6 +41,9 @@ div, form {
 	flex-direction: column;
 }
 
+div.row {
+	flex-direction: row;
+}
 
 table
 {

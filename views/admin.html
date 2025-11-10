@@ -3,6 +3,20 @@
 	<%- include("partials/head.html") -%>
 	<body>
 		<%- include("partials/nav.html") -%>
+		<style>
+			div.row > button {
+				margin-right:10px;
+			}
+			button.fa-solid {
+				min-width: 2em;
+				min-height: 1.5em;
+				text-align: center;
+			}
+
+			form > div{
+				margin-bottom: 2em;
+			}
+		</style>
 		<section>
 			<form>
 				<button id="start">Start</button>
@@ -22,21 +36,32 @@
 				<div>
 					<label for="usersFiles">CSV contenant les competiteurs</label>
 					<input id="usersFiles" type="file"/>
-					<button id="usersClean">Effacer utilisateurs</button>
-					<button id="usersExport">Exporter utilisateurs</button>
+					<div class="row">
+						<button id="usersClean" class="fa-solid fa-trash"></button>
+						<button id="usersExport" class="fa-solid fa-download"></button>
+					</div>
 				</div>
 				<div>
 					<label for="voiesFiles">CSV contenant les voies</label>
 					<input id="voiesFiles" type="file"/>
-					<button id="voiesClean">Effacer voies</button>
-					<button id="voiesExport">Exporter voies</button>
+					<div class="row">
+						<button id="voiesClean" class="fa-solid fa-trash"></button>
+						<button id="voiesExport" class="fa-solid fa-download"></button>
+					</div>
 				</div>
 				<div>
 					<label>Fichier scores</label>
-					<button id="scoreClean">Effacer scores</button>
-					<button id="scoreExport">Exporter scores</button>
+					<div class="row">
+						<button id="scoreClean" class="fa-solid fa-trash"></button>
+						<button id="scoreExport" class="fa-solid fa-download"></button>
+					</div>
 				</div>
-				<button id="halt">Halt</button>
+				<div>
+					<label for="halt">Eteindre le systeme</label>
+					<div class="row">
+						<button id="halt" class="fa-solid fa-power-off" style="color:red"></button>
+					</div>
+				</div>
 				<p id="serverMsg"></p>
 			</form>
 		</section>
