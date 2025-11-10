@@ -161,7 +161,7 @@ main.express.use ( function ( req, res, next )
 	{
 		case "admin":
 		{ // admin can edit addUser event during competition
-			if ( [ "/startStop" ].includes ( req.originalUrl ) )
+			if ( [ "/admin" ].includes ( req.originalUrl ) )
 			{
 				next ( );
 				break;
@@ -263,9 +263,9 @@ main.express.all ( "/addUser", function ( req, res )
 	res.render ( 'addUser.html' );
 });
 
-main.express.all ( "/startStop", function ( req, res )
+main.express.all ( "/admin", function ( req, res )
 {
-	res.render ( 'startStop.html' );
+	res.render ( 'admin.html' );
 });
 
 export default main;
