@@ -149,6 +149,7 @@ main.express.use ( function ( req, res, next )
 
 main.express.use ( function ( req, res, next )
 {
+	req.originalUrl = req.originalUrl.replace ( /%3F$/, "" );
 	if ( [ "/", "/login", "/favicon.ico" ].includes ( req.originalUrl ) )
 	{
 		next ( );
