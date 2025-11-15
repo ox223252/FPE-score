@@ -148,7 +148,11 @@ ajax.express.all ( "/halt", async function ( req, res )
 	}
 	else if ( "admin" == res.locals?.logged )
 	{
+		ajax.params.io.emit ( "halt" );
+		ajax.params.io.engine.close ( );
+
 		await exec ( 'halt' );
+
 		res.writeHead ( 200 );
 		res.end ( );
 	}
