@@ -44,7 +44,7 @@
 				<div class="marged">
 					<input id="scoreDiff"></input>
 					<select id="scoreBloc">
-						<option diseabled selected>--</option>
+						<option disabled selected>--</option>
 						<option value="echec">Echec</option>
 						<option value="zone">Zone</option>
 						<option value="top">Top</option>
@@ -161,6 +161,10 @@
 			});
 
 			socket.on ( "setVoies", (msg)=>{
+				domEls.score.bloc.style.display = "none";
+				domEls.score.diff.style.display = "none";
+				domEls.div.chrono.style.display = "none";
+
 				uOneSlector ({
 					default:"voie",
 					selector:domEls.voie,
@@ -191,7 +195,7 @@
 				{
 					domEls.img.style.display = "none";
 				}
-				
+
 				domEls.score.bloc.style.display = "none";
 				domEls.score.diff.style.display = "none";
 				domEls.div.chrono.style.display = "none";
@@ -206,6 +210,45 @@
 					case "diff":
 					{
 						domEls.score.diff.style.display = "";
+						if ( msg.score )
+						{
+							if ( "select" != domEls.score.diff.nodeName.toLowerCase ( ) )
+							{
+								let s = document.createElement ( "select" );
+								s.id = domEls.score.diff.id;
+
+								domEls.score.diff.replaceWith ( s );
+								domEls.score.diff = s;
+							}
+
+							let tableS = [];
+							tableS.push ( {text:"Echec",value:0} );
+
+							msg.score.map ( (score,i)=>tableS.push ({text:"Degaine "+i,value:score}) )
+
+							uOneSlector ({
+								default:"score",
+								selector:domEls.score.diff,
+								obj:{
+									valueId:"value",
+									textId:"text",
+									list:tableS,
+								},
+								parentDiv:domEls.div.user
+							})
+							domEls.score.diff.options[ 0 ].disabled = true;
+						}
+						else
+						{
+							if ( "input" != domEls.score.diff.nodeName.toLowerCase ( ) )
+							{
+								let i = document.createElement ( "input" );
+								i.id = domEls.score.diff.id;
+								
+								domEls.score.diff.replaceWith ( i );
+								domEls.score.diff = i;
+							}
+						}
 						break;
 					}
 					case "vitesse":
