@@ -146,6 +146,7 @@ export default function socketIO ( server, params )
 				}
 				case "vitesse":
 				{
+					points = msg.score.vitesse;
 					break;
 				}
 				case "endurance":

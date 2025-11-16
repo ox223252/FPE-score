@@ -93,3 +93,8 @@ td
 	--color-back: light-dark( white, black );
 	--color-text: light-dark( black, white );
 }
+
+.marged {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}

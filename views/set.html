@@ -41,16 +41,19 @@
 					<label for=voie>Voie</label>
 					<select id="voie"></select>
 				</span>
-				<input id="scoreDiff"></input>
-				<select id="scoreBloc">
-					<option diseabled selected>--</option>
-					<option value="echec">Echec</option>
-					<option value="zone">Zone</option>
-					<option value="top">Top</option>
-				</select>
-				<div id="chrono">
-					<button id="chronoStart">Start</button>
-					<button id="chronoStop">Stop</button>
+				<div class="marged">
+					<input id="scoreDiff"></input>
+					<select id="scoreBloc">
+						<option diseabled selected>--</option>
+						<option value="echec">Echec</option>
+						<option value="zone">Zone</option>
+						<option value="top">Top</option>
+					</select>
+					<div id="divChrono" class="row">
+						<button id="chronoStart">Start</button>
+						<input id="chronoTime" type="time" step="0.001"/>
+						<button id="chronoStop">Stop</button>
+					</div>
 				</div>
 				<div>
 					<button id="validate">Valider</button>
@@ -75,11 +78,11 @@
 				start: document.getElementById ( "chronoStart" ),
 				stop:  document.getElementById ( "chronoStop" ),
 				validate: document.getElementById ( "validate" ),
-				chrono: document.getElementById ( "chrono" ),
 				img: document.getElementById ( "img" ),
 				score: {
 					diff: document.getElementById ( "scoreDiff" ),
 					bloc: document.getElementById ( "scoreBloc" ),
+					chrono: document.getElementById ( "chronoTime" ),
 				},
 				serverMsg: document.getElementById ( "serverMsg" ),
 				comments: document.getElementById ( "comments" ),
@@ -90,12 +93,13 @@
 					user: document.getElementById ( "divUser"),
 					type: document.getElementById ( "divType" ),
 					voie: document.getElementById ( "divVoie" ),
+					chrono: document.getElementById ( "divChrono" ),
 				},
 			};
 
 			domEls.score.bloc.style.display = "none";
 			domEls.score.diff.style.display = "none";
-			domEls.chrono.style.display = "none";
+			domEls.div.chrono.style.display = "none";
 			domEls.comments.display = "none";
 			domEls.serverMsg.display = "none";
 			domEls.img.style.display = "none";
@@ -190,7 +194,7 @@
 				
 				domEls.score.bloc.style.display = "none";
 				domEls.score.diff.style.display = "none";
-				domEls.chrono.style.display = "none";
+				domEls.div.chrono.style.display = "none";
 
 				switch ( msg.type )
 				{
@@ -207,7 +211,7 @@
 					case "vitesse":
 					case "endurance":
 					{
-						domEls.chrono.style.display = "";
+						domEls.div.chrono.style.display = "";
 						break;
 					}
 					case "slack":
@@ -335,15 +339,52 @@
 					domEls.user.classList.remove ( "err" )
 				}
 
+
 				socket.emit ( "setScore", {
 					user: domEls.user.value,
 					voie: domEls.voie.value,
 					score:{
 						diff: domEls.score.diff.value,
 						bloc: domEls.score.bloc.value,
-						vitesse: 12,
+						vitesse: domEls.score.chrono.value.split ( ":" ).reduce ( (a,v,i)=>{
+								return ( 2 == i )
+									? ( a + v.split ( "." )[ 0 ] ) * 1000 + Number ( v.split ( "." )[ 1 ] )
+									: a * 60 + v;
+							},0 ),
 					}
 				})
+			});
+
+			let startTime = 0;
+			let interval = undefined;
+			domEls.start.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+
+				if ( interval )
+				{
+					return;
+				}
+
+				startTime = new Date ( ).getTime ( );
+
+				interval = setInterval ( ()=>{
+					domEls.score.chrono.value = new Date ( new Date ( ).getTime ( ) - startTime ).toISOString().substring(11,23)
+				}, 13 );
+			});
+
+			domEls.stop.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+
+				if ( !interval )
+				{
+					return;
+				}
+				stopTime = new Date ( ).getTime ( );
+
+				domEls.score.chrono.value = new Date ( stopTime - startTime ).toISOString().substring(11,23)
+
+				clearInterval ( interval );
+				interval = undefined;
 			});
 
 			domEls.dossard.addEventListener ( "change", (ev)=>{

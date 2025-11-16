@@ -45,4 +45,8 @@
 		width: 100%;
 		min-width: initial;
 	}
+
+	div.row {
+		flex-direction: column;
+	}
 }
