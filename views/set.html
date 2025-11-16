@@ -17,10 +17,16 @@
 					<label for="club">Club</label>
 					<select id="club"></select>
 				</span>
-				<span id="divUser">
-					<label for="user">Utilisateur</label>
-					<select id="user"></select>
-				</span>
+				<div  id="divUser" class="row">
+					<span>
+						<label for="user">Utilisateur</label>
+						<select id="user"></select>
+					</span>
+					<span>
+						<label for="dossard">Dossard</label>
+						<select id="dossard"></select>
+					</span>
+				</div>
 				<hr>
 				<span id="divType">
 					<label for=type>Type de voie</label>
@@ -63,6 +69,7 @@
 				genre: document.getElementById ( "genre" ),
 				categorie: document.getElementById ( "categorie" ),
 				user:  document.getElementById ( "user" ),
+				dossard:  document.getElementById ( "dossard" ),
 				type:  document.getElementById ( "type" ),
 				voie:  document.getElementById ( "voie" ),
 				start: document.getElementById ( "chronoStart" ),
@@ -107,25 +114,38 @@
 				uOneSlector ({
 					default:"genre",
 					selector:domEls.genre,
-					list:msg.map ( u2=>u2.genre ).distinct ( ),
+					list:msg.map ( u2=>u2.genre ).distinct ( ).sort ( ),
 					parentDiv:domEls.div.genre
 				})
 				uOneSlector ({
 					default:"categorie",
 					selector:domEls.categorie,
-					list:msg.map ( u2=>u2.categorie ).distinct ( ),
+					list:msg.map ( u2=>u2.categorie ).distinct ( ).sort ( ),
 					parentDiv:domEls.div.categorie
 				})
 				uOneSlector ({
 					default:"club",
 					selector:domEls.club,
-					list:msg.map ( u2=>u2.club ).distinct ( ),
+					list:msg.map ( u2=>u2.club ).distinct ( ).sort ( ),
 					parentDiv:domEls.div.club
 				})
 				uOneSlector ({
 					default:"user",
 					selector:domEls.user,
-					list:msg.map ( u2=>u2.name ).distinct ( ),
+					list:msg.map ( u2=>u2.name ).distinct ( ).sort ( ),
+					parentDiv:domEls.div.user
+				})
+
+				uOneSlector ({
+					default:"dossard",
+					selector:domEls.dossard,
+					obj:{
+						valueId:"name",
+						textId:"dossard",
+						list:msg.distinct ( ).sort ( (a,b)=>{
+							return a.dossard - b.dossard;
+						}),
+					},
 					parentDiv:domEls.div.user
 				})
 			} );
@@ -324,7 +344,15 @@
 						vitesse: 12,
 					}
 				})
-			})
+			});
+
+			domEls.dossard.addEventListener ( "change", (ev)=>{
+				domEls.user.value = ev.target.value;
+			});
+
+			domEls.user.addEventListener ( "change", (ev)=>{
+				domEls.dossard.value = ev.target.value;
+			});
 		</script>
 	</body>
 </html>

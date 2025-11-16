@@ -4,13 +4,14 @@ Array.prototype.distinct = function () { return Array.from ( new Set ( this ) );
 
 /// params : {
 /// 	value	
-/// 	list	
+/// 	list or obj { list, valueId, textId }
 /// 	selector
 /// 	default	
 /// }
 function uOneSlector ( params = {} )
 {
-	if ( !params.list )
+	if ( !params.list
+		&& !params.obj )
 	{
 		return "error";
 	}
@@ -29,20 +30,42 @@ function uOneSlector ( params = {} )
 	params.selector.options.add ( new Option ( params.default, 0 ) );
 	params.selector.options[ 0 ].value = "all";
 
-	for ( let i = 0; i < params.list.length; i++ )
-	{
-		params.selector.options.add ( new Option ( params.list[ i ], i + 1 ) );
-		params.selector.options[ i + 1 ].value = params.list[ i ];
+	let length = 0;
 
-		if ( params.value == params.selector.options[ i + 1 ].value )
+	if ( params.list?.length )
+	{
+		for ( let i = 0; i < params.list.length; i++ )
 		{
-			params.selector.options[ i + 1 ].selected = true;
+			params.selector.options.add ( new Option ( params.list[ i ], i + 1 ) );
+			params.selector.options[ i + 1 ].value = params.list[ i ];
+
+			if ( params.value == params.selector.options[ i + 1 ].value )
+			{
+				params.selector.options[ i + 1 ].selected = true;
+			}
 		}
+
+		length = params.list.length;
+	}
+	else if ( "Object" == params.obj?.constructor.name )
+	{
+		for ( let i = 0; i < params.obj.list.length; i++ )
+		{
+			params.selector.options.add ( new Option ( params.obj.list[ i ][ params.obj.textId ], i + 1 ) );
+			params.selector.options[ i + 1 ].value = params.obj.list[ i ][ params.obj.valueId ];
+
+			if ( params.value == params.selector.options[ i + 1 ].value )
+			{
+				params.selector.options[ i + 1 ].selected = true;
+			}
+		}
+
+		length = params.obj.list.length;
 	}
 
 	if ( params.parentDiv )
 	{
-		if ( params.list.length == 1 )
+		if ( length == 1 )
 		{
 			params.parentDiv.style.display = "none";
 		}
