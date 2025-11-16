@@ -87,7 +87,7 @@ export default function socketIO ( server, params )
 		});
 
 		socket.on ( "getVoie", (msg)=>{
-			socket.emit ( "setVoie", params.db.voies.map ( v=>v.name ).indexOf ( msg ) );
+			socket.emit ( "setVoie", params.db.voies[ params.db.voies.map ( v=>v.name ).indexOf ( msg ) ] );
 		});
 
 		socket.on ( "setScore", async (msg)=>{
@@ -103,7 +103,7 @@ export default function socketIO ( server, params )
 				return;
 			}
 
-			if ( -1 >= Object.keys ( params?.db?.voies ).indexOf ( msg.voie ) )
+			if ( -1 >= params?.db?.voies?.map ( v=>v.name ).indexOf ( msg.voie ) )
 			{
 				socket.emit ( "error", "voie inconnu" );
 				return;
@@ -114,14 +114,14 @@ export default function socketIO ( server, params )
 				params.db.score[ msg.user ] = {};
 			}
 
-			let score = params?.db?.score[ msg.user ]
+			let score = params.db.score[ msg.user ]
 
 			if ( !score[ msg.voie ] )
 			{
 				score[ msg.voie ] = [];
 			}
 
-			let voie = params.db.voies[ msg.voie ];
+			let voie = params.db.voies [ params.db.voies.map ( v=>v.name ).indexOf ( msg.voie ) ];
 			
 			let points = 0;
 
