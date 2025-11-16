@@ -68,6 +68,8 @@ function uOneSlector ( params = {} )
 		if ( length == 1 )
 		{
 			params.parentDiv.style.display = "none";
+			params.selector.options[ 1 ].selected = true;
+			params.selector.dispatchEvent ( new Event ( "change" ) )
 		}
 		else
 		{
