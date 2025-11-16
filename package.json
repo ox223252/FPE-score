@@ -19,6 +19,7 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
+    "json5": "^2.2.3",
     "serve-favicon": "^2.5.1",
     "socket.io": "^4.8.1",
     "yargs": "^18.0.0"

@@ -2,6 +2,8 @@ import fs from 'fs'; // read / write files
 import crypto from 'crypto'; // sha512
 import { Server as ServerIO } from "socket.io";
 import {calcAll} from "./calc.js"
+import {checkId} from "./fnct.js"
+
 
 Array.prototype.distinct = function () { return Array.from ( new Set ( this ) ); };
 
@@ -46,7 +48,6 @@ export default function socketIO ( server, params )
 				})
 				.distinct ( );
 			
-
 			socket.emit ( "setUCCG", out );
 		});
 
@@ -367,6 +368,8 @@ export default function socketIO ( server, params )
 						params.db.users.push ( msg );
 					}
 
+
+					checkId ( params.db.users, "dossard" );
 					fs.writeFileSync ( params.args?.users, JSON.stringify ( params.db.users, null, 4 ) );
 
 					break;
