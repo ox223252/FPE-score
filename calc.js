@@ -94,18 +94,20 @@ export function calcAll ( params )
 
 						currentVoie.meta.users++;
 
-						params.db.score[ user.name ][ voie ].map ( v=>{
-							currentVoie.meta.tryed++;
-							currentVoie.meta.total += v;
-							if ( !currentVoie.meta.results[ v ] )
-							{
-								currentVoie.meta.results[ v ] = 1;
-							}
-							else
-							{
-								currentVoie.meta.results[ v ]++;
-							}
-						})
+						// params.db.score[ user.name ][ voie ].map ( v=>{
+						// 	currentVoie.meta.tryed++;
+						// 	currentVoie.meta.total += v;
+						// 	console.log ( currentVoie.meta.results[ v ] )
+						// 	if ( !currentVoie.meta.results[ v ] )
+						// 	{
+						// 		currentVoie.meta.results[ v ] = 1;
+						// 	}
+						// 	else
+						// 	{
+						// 		currentVoie.meta.results[ v ]++;
+						// 	}
+						// 	console.log ( currentVoie.meta.results[ v ] )
+						// })
 					}
 				})
 				break;
