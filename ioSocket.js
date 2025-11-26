@@ -81,7 +81,8 @@ export default function socketIO ( server, params )
 						return true;
 					}
 				})
-				.map ( v=>v.name );
+				.map ( v=>v.name )
+				.sort ( );
 
 			socket.emit ( "setVoies", voies );
 		});
