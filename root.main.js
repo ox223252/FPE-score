@@ -158,7 +158,7 @@ main.express.use ( function ( req, res, next )
 	{
 		next ( );
 	}
-	else switch ( res.locals.logged )
+	else switch ( req.session.logged )
 	{
 		case "admin":
 		{ // admin can edit addUser event during competition
