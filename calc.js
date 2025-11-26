@@ -2,13 +2,43 @@ export function calcAll ( params )
 {
 	for ( let voie in params.db.voies )
 	{
-		params.db.voies[ voie ].meta = {
-			total: 0, // totals de points
-			tryed: 0, // nombre dessais
-			users: 0, // nombre d'utilisateur ayant tentés
-			results: [], // repartition des resultas,
-		}
+		params.db.voies.map ( v=>{
+			v.meta = {
+				total: 0, // totals de points
+				tryed: 0, // nombre dessais
+				users: 0, // nombre d'utilisateur ayant tentés
+				results: [], // repartition des resultas,
+			}
+		});
 	}
+
+	let local = {
+		speed: {}
+	};
+
+	params.db.voies.filter ( v=>{
+			return "vitesse" == v.type;
+		})
+		.map ( v=>{
+			local.speed[ v.name ] = [];
+			return v.name;
+		});
+
+	// recuperation du meilleur chrono de chaque grimpeur sur chaque voie de vitesse
+	Object.keys ( params.db.score ).map ( u=>{
+			Object.keys ( params.db.score[ u ] ).map ( v=>{
+				if ( !local.speed[ v ] )
+				{
+					return;
+				}
+				local.speed[ v ].push ( Math.min ( ...params.db.score[ u ][ v ] ) )
+			})
+		})
+
+	// reordonne les resultat dans l'ordre decroissant (plus rapide au debut)
+	Object.keys ( local.speed ).map ( v=>{
+			local.speed[ v ] = local.speed[ v ].sort ( (a,b)=>a-b);
+		})
 
 	return new Promise ( (ok,ko)=>{
 		// calc total of points
@@ -31,25 +61,49 @@ export function calcAll ( params )
 							continue;
 						}
 
-						params.db.score[ user.name ].total += Math.max ( ...params.db.score[ user.name ][ voie ] );
+						let currentVoie = params.db.voies.filter ( v=>v.name == voie )?.[ 0 ];
 
-						if ( !params.db.voies[ voie ] )
+						if ( !currentVoie )
 						{
 							continue;
 						}
 
-						params.db.voies[ voie ].meta.users++;
+						switch ( currentVoie.type )
+						{
+							case "vitesse":
+							{
+								let index = local.speed[ voie ]?.indexOf ( Math.min ( ...params.db.score[ user.name ]?.[ voie ] ) );
+
+								if ( ( undefined == index )
+									|| ( 0 > index )
+									|| ( index > 50 ) )
+								{
+								}
+								else
+								{
+									params.db.score[ user.name ].total += 50 - index;
+								}
+								break;
+							}
+							default:
+							{
+								params.db.score[ user.name ].total += Math.max ( ...params.db.score[ user.name ][ voie ] );
+								break;
+							}
+						}
+
+						currentVoie.meta.users++;
 
 						params.db.score[ user.name ][ voie ].map ( v=>{
-							params.db.voies[ voie ].meta.tryed++;
-							params.db.voies[ voie ].meta.total += v;
-							if ( !params.db.voies[ voie ].meta.results[ v ] )
+							currentVoie.meta.tryed++;
+							currentVoie.meta.total += v;
+							if ( !currentVoie.meta.results[ v ] )
 							{
-								params.db.voies[ voie ].meta.results[ v ] = 1;
+								currentVoie.meta.results[ v ] = 1;
 							}
 							else
 							{
-								params.db.voies[ voie ].meta.results[ v ]++;
+								currentVoie.meta.results[ v ]++;
 							}
 						})
 					}
@@ -83,9 +137,16 @@ export function calcAll ( params )
 							continue;
 						}
 
-						if ( !params.db.voies[ voie ]?.meta?.results )
+						let currentVoie = params.db.voies.filter ( v=>v.name == voie )?.[ 0 ];
+
+						if ( !currentVoie )
 						{
-							params.db.voies[ voie ].meta = {
+							continue;
+						}
+
+						if ( !currentVoie?.meta?.results )
+						{
+							currentVoie.meta = {
 								tryed: 0,
 								results: {
 									top: 0,
@@ -95,23 +156,23 @@ export function calcAll ( params )
 							}
 						}
 
-						params.db.voies[ voie ].meta.tryed++;
+						currentVoie.meta.tryed++;
 
 						if ( params.db.score[ user.name ][ voie ].some ( v=>v=="top" ) )
 						{
-							params.db.voies[ voie ].meta.results.top++;
+							currentVoie.meta.results.top++;
 							top++;
 						}
 						
 						let z = params.db.score[ user.name ][ voie ].filter ( v=>v=="zone" ).length;
 						zone += z;
-						params.db.voies[ voie ].meta.results.zone += z;
+						currentVoie.meta.results.zone += z;
 
 						let e = params.db.score[ user.name ][ voie ].filter ( v=>v=="echec" ).length;
 						echec += e;
-						params.db.voies[ voie ].meta.results.zone += e;
+						currentVoie.meta.results.zone += e;
 
-						params.db.voies[ voie ].meta.users++;
+						currentVoie.meta.users++;
 					}
 
 					params.db.score[ user.name ].total = {
