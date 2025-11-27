@@ -460,8 +460,6 @@ export default function socketIO ( server, params )
 					throw "droits manquants";
 				}
 
-				console.log ( msg )
-
 				if ( !params?.args?.[ msg?.arg ] )
 				{
 					throw "fichier manquant";
@@ -501,10 +499,21 @@ export default function socketIO ( server, params )
 							}
 							case "users":
 							{
-								params.db[ msg?.arg ] = msg.data.map ( d=>{
+								let dossard = msg.data.map ( d=>d.dossard )
+									.filter ( d=>!isNaN(d) )
+									.distinct ( );
+
+								params.db.users = msg.data.map ( d=>{
 									d.group="competitor"
 									return d;
 								});
+
+								// attribue un dossard a ceux qui n'en ont pas
+								params.db.users.filter ( u=>isNaN ( u.dossard ) )
+									.map ( u=>{
+										u.dossard = Math.max ( ...dossard ) + 1;
+										dossard.push ( u.dossard );
+									})
 								break;
 							}
 						}
