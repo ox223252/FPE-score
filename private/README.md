@@ -30,7 +30,7 @@
     {
         "name": <User name>,
         "group": "competitor",
-        "categorie": "U8", // U8, U10, U12, U14, U16, U18, senior, veteran
+        "categorie": "U9", // U9, U11, U13, U16, U17, U19, senior, veteran
         "genre": "M", // M, F
         "club": <Club name>
     }
