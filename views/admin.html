@@ -347,7 +347,7 @@
 
 													try
 													{
-														out[ k ] = JSON.parse ( r[ sI[ k ] ] );
+														out[ k ] = JSON.parse ( r[ sI[ k ] ].replace ( /'/g, '"' ) );
 													}
 													catch ( e )
 													{

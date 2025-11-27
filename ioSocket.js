@@ -496,7 +496,7 @@ export default function socketIO ( server, params )
 						{
 							case "voies":
 							{
-								console.log ( msg.data )
+								params.db[ msg?.arg ] = msg.data;
 								break;
 							}
 							case "users":
