@@ -331,15 +331,24 @@ export default function socketIO ( server, params )
 						}
 					}
 
-					params.db.login[ msg.name ] = {
+					let index = params.db.login.map ( u=>u.name ).indexOf ( msg.name );
+
+					let obj = {
 						pass: crypto.createHash ( 'sha512' ).update ( msg.pass ).digest ( 'hex' ),
 						status: msg.group,
 						error: 0,
-						date: undefined,
 					};
 
-					fs.writeFileSync ( params.args.login, JSON.stringify ( params.db.login, null, 4 ), "utf8" )
+					if ( 0 <= index )
+					{
+						Object.assign ( params.db.login[ index ], obj );
+					}
+					else
+					{
+						params.db.login.push ( obj );
+					}
 
+					fs.writeFileSync ( params.args.login, JSON.stringify ( params.db.login, null, 4 ), "utf8" );
 					break;
 				}
 				case "competitor":
