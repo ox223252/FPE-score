@@ -34,8 +34,12 @@
 		width: 30px;
 	}
 
-	#table, #graphs {
+	#graphs {
 		display: none;
+	}
+
+	div.mobiles {
+		display: block;
 	}
 }
 
@@ -48,5 +52,17 @@
 
 	div.row {
 		flex-direction: column;
+	}
+
+	input.mobiles[type=radio] + * {
+		display: none;
+	}
+
+	input.mobiles[type=radio]:checked + * {
+		display: unset;
+	}
+
+	input.mobiles[type=radio]:checked + table {
+		display: table;
 	}
 }
