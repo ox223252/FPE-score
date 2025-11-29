@@ -41,6 +41,10 @@
 	div.mobiles {
 		display: block;
 	}
+
+	table {
+		overflow: auto;
+	}
 }
 
 @media (max-width: 600px)
@@ -60,9 +64,5 @@
 
 	input.mobiles[type=radio]:checked + * {
 		display: unset;
-	}
-
-	input.mobiles[type=radio]:checked + table {
-		display: table;
 	}
 }
