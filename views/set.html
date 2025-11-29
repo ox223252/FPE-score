@@ -110,34 +110,36 @@
 			}
 
 			let filters = {
-				user:undefined,
+				user:{},
 				voie:undefined,
 			};
+
+			let users = [];
 
 			socket.on ( "setUCCG", (msg)=>{
 				uOneSlector ({
 					default:"genre",
 					selector:domEls.genre,
 					list:msg.map ( u2=>u2.genre ).distinct ( ).sort ( ),
-					parentDiv:domEls.div.genre
+					// parentDiv:domEls.div.genre
 				})
 				uOneSlector ({
 					default:"categorie",
 					selector:domEls.categorie,
 					list:msg.map ( u2=>u2.categorie ).distinct ( ).sort ( ),
-					parentDiv:domEls.div.categorie
+					// parentDiv:domEls.div.categorie
 				})
 				uOneSlector ({
 					default:"club",
 					selector:domEls.club,
 					list:msg.map ( u2=>u2.club ).distinct ( ).sort ( ),
-					parentDiv:domEls.div.club
+					// parentDiv:domEls.div.club
 				})
 				uOneSlector ({
 					default:"user",
 					selector:domEls.user,
 					list:msg.map ( u2=>u2.name ).distinct ( ).sort ( ),
-					parentDiv:domEls.div.user
+					// parentDiv:domEls.div.user
 				})
 
 				uOneSlector ({
