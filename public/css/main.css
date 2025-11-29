@@ -23,7 +23,6 @@ section
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	flex-wrap: wrap;
 	overflow:auto;
 }
 
@@ -47,6 +46,8 @@ div.row {
 
 table
 {
+	display: unset;
+	overflow: auto;
 	border-collapse: collapse;
 	border: solid 1px;
 	max-width: 100%;
