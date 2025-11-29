@@ -224,7 +224,7 @@
 							let tableS = [];
 							tableS.push ( {text:"Echec",value:0} );
 
-							msg.score.map ( (score,i)=>tableS.push ({text:"Degaine "+i,value:score}) )
+							msg.score.map ( (score,i)=>tableS.push ({text:"Degaine "+(i+1),value:score}) )
 
 							uOneSlector ({
 								default:"score",
