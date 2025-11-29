@@ -222,7 +222,11 @@
 					tbody: domEls.table.tbody,
 					scores: scores,
 					selectedUsers: selectedUsers,
+					callback: (ev)=>{
+						socket.emit ( "getVoie", ev.target.innerText.trim ( ) );
+					}
 				});
+
 			} );
 
 			socket.on ( "connect", ()=>{
@@ -238,8 +242,24 @@
 					tbody: domEls.table.tbody,
 					scores: scores,
 					selectedUsers: selectedUsers,
+					callback: (ev)=>{
+						socket.emit ( "getVoie", ev.target.innerText.trim ( ) );
+					}
 				});
 			});
+
+			socket.on ( "setVoie", (msg)=>{
+				printTable ({
+					thead: domEls.table.thead,
+					tbody: domEls.table.tbody,
+					scores: scores,
+					selectedUsers: selectedUsers,
+					callback: (ev)=>{
+						socket.emit ( "getVoie", ev.target.innerText.trim ( ) );
+					}
+				},
+				msg );
+			})
 
 			for ( let key in domEls.input )
 			{

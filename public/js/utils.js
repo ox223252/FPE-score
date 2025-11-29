@@ -84,7 +84,7 @@ function uOneSlector ( params = {} )
 /// 	tbody
 /// 	scores
 /// }
-function printTable ( params = {} )
+function printTable ( params = {}, voie = undefined )
 {
 	function createLine ( array )
 	{
@@ -109,6 +109,11 @@ function printTable ( params = {} )
 					params.event.dispatchEvent ( e );
 				};
 			}
+
+			if ( params.callback )
+			{
+				td.onclick = params.callback;
+			}
 		})
 
 		return line;
@@ -127,27 +132,70 @@ function printTable ( params = {} )
 		params.tbody.removeChild ( params.tbody.lastChild );
 	}
 
-	// sort users by rank, and define partial rank for the displayed user only
-	users.sort ( (a,b)=>{
-			return params.scores[ a ].rank - params.scores[ b ].rank;
-		})
-		.map ( (user,i)=>{
-			params.scores[ user ].partialRank = (i+1);
-			return user;
-		})
-		.map ( (user,i,array)=>{
-			if ( 0 == i )
-			{
+	if ( voie )
+	{
+		// sort users by rank, and define partial rank for the displayed user only
+		users = users.filter ( u=>{
+				console.log ( u, params.scores[ u ][ voie.name ], !!params.scores[ u ][ voie.name ] )
+				return !!params.scores[ u ][ voie.name ]
+			})
+			.sort ( (a,b)=>{
+				switch ( voie.type )
+				{
+					case "vitesse":
+					{
+						return Math.min ( ...[ params.scores[ a ][ voie.name ] ].flat ( Infinity ) ) - Math.min ( ...[ params.scores[ b ][ voie.name ] ].flat ( Infinity ) );
+					}
+					default:
+					{
+						return Math.max ( ...[ params.scores[ b ][ voie.name ] ].flat ( Infinity ) ) - Math.max ( ...[ params.scores[ a ][ voie.name ] ].flat ( Infinity ) );
+					}
+				}
+			})
+			.map ( (user,i)=>{
+				console.log ( user )
+				params.scores[ user ].partialRank = (i+1);
 				return user;
-			}
+			})
+			.map ( (user,i,array)=>{
+				if ( 0 == i )
+				{
+					return user;
+				}
 
-			if ( params.scores[ user ].rank == params.scores[ array[ i - 1 ] ].rank )
-			{
-				params.scores[ user ].partialRank = params.scores[ array[ i - 1 ] ].partialRank;
-			}
+				if ( params.scores[ user ][ voie.name ] == params.scores[ array[ i - 1 ] ][ voie.name ] )
+				{
+					params.scores[ user ].partialRank = params.scores[ array[ i - 1 ] ].partialRank;
+				}
 
-			return user;
-		})
+				return user;
+			})
+	}
+	else
+	{
+		// sort users by rank, and define partial rank for the displayed user only
+		users.sort ( (a,b)=>{
+				return params.scores[ a ].rank - params.scores[ b ].rank;
+			})
+			.map ( (user,i)=>{
+				console.log ( user )
+				params.scores[ user ].partialRank = (i+1);
+				return user;
+			})
+			.map ( (user,i,array)=>{
+				if ( 0 == i )
+				{
+					return user;
+				}
+
+				if ( params.scores[ user ].rank == params.scores[ array[ i - 1 ] ].rank )
+				{
+					params.scores[ user ].partialRank = params.scores[ array[ i - 1 ] ].partialRank;
+				}
+
+				return user;
+			})
+	}
 
 	let voies = users.map ( u=>Object.keys ( params.scores[ u ] ) ).flat ( Infinity ).distinct ( ).sort ( );
 
