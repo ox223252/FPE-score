@@ -147,6 +147,7 @@ export default function socketIO ( server, params )
 				}
 				case "vitesse":
 				{
+					score[ msg.voie ] = [];
 					points = msg.score.vitesse;
 					break;
 				}
