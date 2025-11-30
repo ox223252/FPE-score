@@ -56,20 +56,11 @@
 				</div>
 				<div class="juge admin editor">
 					<label>Password :</label>
-					<input id="pass" list="nameList" type="password" placeholder="Password">
+					<input id="pass" type="password" placeholder="Password">
 				</div>
 				<div class="competitor">
 					<label for="categorie">Categorie</label>
 					<select id="categorie">
-						<option disabled selected>--</option>
-						<option value="U9">U9</option>
-						<option value="U11">U11</option>
-						<option value="U13">U13</option>
-						<option value="U15">U15</option>
-						<option value="U17">U17</option>
-						<option value="U19">U19</option>
-						<option value="senior">senior</option>
-						<option value="veterant">vétéran</option>
 					</select>
 				</div>
 				<div class="competitor">
@@ -98,6 +89,7 @@
 			pass: document.getElementById ( "pass" ),
 			nameList: document.getElementById ( "nameList" ),
 			categorie: document.getElementById ( "categorie" ),
+			categorieList: document.getElementById ( "categorie" ),
 			genre: document.getElementById ( "genre" ),
 			club: document.getElementById ( "club" ),
 			clubList: document.getElementById ( "clubList" ),
@@ -115,19 +107,20 @@
 		socket.on ( "connect", ()=>{
 			socket.emit ( "getUsersList" );
 			socket.emit ( "getClubsList" );
+			socket.emit ( "getListOfAllCategories" );
 		})
 
 		socket.on ( "setClubsList", (msg)=>{
-			while ( clubList.options.length )
+			while ( domEls.clubList.options.length )
 			{
-				clubList.removeChild ( clubList.firstChild );
+				domEls.clubList.removeChild ( domEls.clubList.firstChild );
 			}
 
 			for ( let opt of msg )
 			{
 				let option = document.createElement ( 'option' );
 				option.value = opt;
-				clubList.appendChild ( option );
+				domEls.clubList.appendChild ( option );
 			}
 		});
 
@@ -144,6 +137,10 @@
 				option.value = opt;
 				nameList.appendChild ( option );
 			}
+		});
+
+		socket.on ( "setListOfAllCategories", (msg)=>{
+			uOneSlector ( {default:"categorie", selector:domEls.categorie, list:msg} )
 		});
 
 		socket.on ( "error", (msg)=>{

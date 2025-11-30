@@ -38,7 +38,7 @@ const args = yargs(process.argv)
 		alias: "c",
 		type: "array",
 		describe: "competitor available categorie",
-		default: [ "U9", "U11", "U13", "U15", "U17", "U19", "senior", "veteran" ],
+		default: [ "U9", "U11", "U13", "U15", "U17", "U19", "U21", "senior", "veteran" ],
 	})
 	.option('voies',{
 		alias: 'v',

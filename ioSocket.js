@@ -306,7 +306,7 @@ export default function socketIO ( server, params )
 					return params.categories.includes ( u.categorie )
 				})
 				.map ( u=>u.name );
-			socket.emit ( "setUsersList",  );
+			socket.emit ( "setUsersList", list );
 		});
 
 		socket.on ( "setUser", (msg)=>{
