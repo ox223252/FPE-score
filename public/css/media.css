@@ -62,3 +62,9 @@
 		display: unset;
 	}
 }
+
+@media print {
+	table .data {
+		display: none;
+	}
+}

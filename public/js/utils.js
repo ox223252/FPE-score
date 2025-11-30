@@ -86,7 +86,7 @@ function uOneSlector ( params = {} )
 /// }
 function printTable ( params = {}, voie = undefined )
 {
-	function createLine ( array )
+	function createLine ( array, headerArray = [] )
 	{
 		let line = document.createElement ( "tr" );
 		array.map ( (item,index)=>{
@@ -97,6 +97,15 @@ function printTable ( params = {}, voie = undefined )
 			td.appendChild ( span );
 
 			span.innerText = item;
+
+			if ( headerArray.includes ( index ) )
+			{
+				td.classList.add ( "header" );
+			}
+			else
+			{
+				td.classList.add ( "data" );
+			}
 
 			if ( params.event )
 			{
@@ -199,13 +208,16 @@ function printTable ( params = {}, voie = undefined )
 
 	let voies = users.map ( u=>Object.keys ( params.scores[ u ] ) ).flat ( Infinity ).distinct ( ).sort ( );
 
-	params.thead.appendChild ( createLine ( [ "Nom", ...voies.filter ( v=>!["partialRank","rank","total"].includes ( v ) ), "total", "rank" ] ) );
+	let voiesFiltered = voies.filter ( v=>!["partialRank","rank","total"].includes ( v ) );
+	let headerArray = [ 0 , voiesFiltered.length + 1, voiesFiltered.length + 2 ]
+
+	params.thead.appendChild ( createLine ( [ "Nom", ...voiesFiltered, "total", "rank" ], headerArray ) );
 
 	for ( let user of users )
 	{
 		params.tbody.appendChild ( createLine ( [
 			user,
-			...voies.filter ( v=>!["partialRank","rank","total"].includes ( v ) ).map ( v=>{
+			...voiesFiltered.map ( v=>{
 				if ( params.scores?.[ user ]?.[ v ] )
 				{
 					if ( params.scores?.[ user ]?.[ v ]?.some( v=>!isNaN(v) ) )
@@ -236,7 +248,8 @@ function printTable ( params = {}, voie = undefined )
 			}),
 			params.scores[ user ].total,
 			params.scores[ user ].partialRank
-		] ) );
+		],
+		headerArray ) );
 	}
 }
 
