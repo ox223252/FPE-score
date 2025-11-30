@@ -53,6 +53,7 @@
 						<button id="chronoStart">Start</button>
 						<input id="chronoTime" type="time" step="0.001"/>
 						<button id="chronoStop">Stop</button>
+						<button id="chronoAbandon">Abandon</button>
 					</div>
 				</div>
 				<div>
@@ -77,6 +78,7 @@
 				voie:  document.getElementById ( "voie" ),
 				start: document.getElementById ( "chronoStart" ),
 				stop:  document.getElementById ( "chronoStop" ),
+				abandon: document.getElementById ( "chronoAbandon" ),
 				validate: document.getElementById ( "validate" ),
 				img: document.getElementById ( "img" ),
 				score: {
@@ -398,6 +400,8 @@
 							},0 ),
 					}
 				})
+				
+				domEls.validate.disabled = true;
 			});
 
 			let startTime = 0;
@@ -415,6 +419,8 @@
 				interval = setInterval ( ()=>{
 					domEls.score.chrono.value = new Date ( new Date ( ).getTime ( ) - startTime ).toISOString().substring(11,23)
 				}, 13 );
+			
+				domEls.validate.disabled = true;
 			});
 
 			domEls.stop.addEventListener ( "click", (ev)=>{
@@ -430,6 +436,19 @@
 
 				clearInterval ( interval );
 				interval = undefined;
+
+				domEls.validate.disabled = false;
+			});
+
+			domEls.abandon.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+
+				startTime = 0;
+
+				clearInterval ( interval );
+				interval = undefined;
+
+				domEls.validate.disabled = true;
 			});
 
 			domEls.dossard.addEventListener ( "change", (ev)=>{
@@ -438,6 +457,14 @@
 
 			domEls.user.addEventListener ( "change", (ev)=>{
 				domEls.dossard.value = ev.target.value;
+			});
+
+
+			domEls.score.diff.addEventListener ( "change", (ev)=>{
+				domEls.validate.disabled = false;
+			});
+			domEls.score.bloc.addEventListener ( "change", (ev)=>{
+				domEls.validate.disabled = false;
 			});
 		</script>
 	</body>
