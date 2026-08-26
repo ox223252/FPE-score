@@ -28,7 +28,7 @@ export default function ( params )
 			}
 			case "juge":
 			{
-				route.push ( "/ajax/set/score" );
+				route.push ( "/set/score" );
 			}
 			default:
 			{
@@ -121,7 +121,7 @@ export default function ( params )
 		res.end ( );
 	}); // get route
 
-	params.express.post ( "/set/route/", function ( req, res )
+	params.express.post ( "/set/route", function ( req, res )
 	{
 		// vérifie que le type de route est valide 
 		if ( !params.types.includes ( req.body.type ) )
@@ -219,7 +219,7 @@ export default function ( params )
 		res.end ( );
 	}); // set route
 
-	params.express.post ( "/ajax/set/score/", function ( req, res )
+	params.express.post ( "/set/score", function ( req, res )
 	{
 		if ( -1 >= params?.db?.users?.map ( u=>u.name ).indexOf ( req.body.user ) )
 		{
@@ -301,7 +301,25 @@ export default function ( params )
 
 		res.status ( 200 );
 		res.end ( );
-	});
+	}); // set score
+
+	params.express.post ( "/set/value", function ( req, res )
+	{
+		if ( undefined != params.db.scores?.[ req.body.name ]?.[ req.body.route ]?.[ req.body.index ] )
+		{
+			params.db.scores[ req.body.name ][ req.body.route ][ req.body.index ] = Number ( req.body.value );
+
+			let r = fs.writeFileSync ( params.args.db.scores, JSON.stringify ( params.db.scores, null, 4 ), 'utf8' );
+
+			res.writeHead ( 200 );
+			res.end ( );
+		}
+		else
+		{
+			res.writeHead ( 500 );
+			res.end ( );
+		}
+	}); // set value
 
 	return params;
 }

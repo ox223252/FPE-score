@@ -149,6 +149,10 @@ export default function ( params )
 
 	params.express.all ( "/edit", function ( req, res )
 	{
+		res.locals.users = params.db.users;
+		res.locals.scores = params.db.scores;
+		res.locals.routes = params.db.routes.filter ( r1=>r1.categories.some ( r2=>params.categories.includes ( r2 ) ) );
+
 		res.render ( 'edit.html' );
 	});
 
