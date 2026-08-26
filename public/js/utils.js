@@ -21,9 +21,9 @@ function uOneSlector ( params = {} )
 		params.value = params.selector.value;
 	}
 
-	while ( params.selector.options.length )
+	while ( params.selector.firstChild )
 	{ // remove all options from selector
-		params.selector.options.remove ( 0 );
+		params.selector.removeChild ( params.selector.lastChild );
 	}
 
 	// set first option to everything
@@ -131,14 +131,14 @@ function uOneCheckList ( params = {} )
 }
 
 /// params : {
-/// 	selectedUsers
+/// 	users
 /// 	thead
 /// 	tbody
 /// 	scores
 /// }
 function printTable ( params = {}, route )
 {
-	function createLine ( array, headerArray = [] )
+	function createLine ( array, headerArray = [], isHeader = false )
 	{
 		let line = document.createElement ( "tr" );
 
@@ -160,14 +160,29 @@ function printTable ( params = {}, route )
 				td.classList.add ( "data" );
 			}
 
-			td.onclick = (ev)=>{
-				ev.preventDefault ( );
-				let e = new Event ( "click" );
-				e.value = item;
-				e.column = index;
-				e.firstCell = array[ 0 ];
-				tableEvent.dispatchEvent ( e );
-			};
+			if ( !params.event )
+			{
+			}
+			if ( isHeader )
+			{
+				td.onclick = (ev)=>{
+					ev.preventDefault ( );
+					let e = new Event ( "route" );
+					e.value = item;
+					e.params = params;
+					params.event.dispatchEvent ( e );
+				};
+			}
+			else if ( 0 == index )
+			{
+				td.onclick = (ev)=>{
+					ev.preventDefault ( );
+					let e = new Event ( "name" );
+					e.value = item;
+					e.params = params;
+					params.event.dispatchEvent ( e );
+				};
+			}
 
 			if ( params.callback )
 			{
@@ -202,7 +217,12 @@ function printTable ( params = {}, route )
 		}
 	}
 
-	let tableEvent = new EventTarget ( );
+	if ( !( params.event instanceof EventTarget ) )
+	{
+		console.log ( "create event" )
+		params.event = new EventTarget ( );
+	}
+
 	let users = getUsersList ( params.users, params.filters )
 		.filter ( name=>{
 			if ( !params?.scores[ name ] )
@@ -248,10 +268,15 @@ function printTable ( params = {}, route )
 			return user;
 		})
 
+	if ( "Nom" == route?.name )
+	{
+		users.sort ( );
+	}
+
 	let routes = users.map ( u=>Object.keys ( params.scores[ u ] ) )
 		.flat ( Infinity )
 		.distinct ( )
-		.filter ( f=>params.routes.includes ( f ) )
+		.filter ( f=>params?.routes?.includes ( f ) ?? true )
 		.filter ( v=>!["partialRank","rank","total"].includes ( v ) )
 		.sort ( );
 
@@ -265,7 +290,7 @@ function printTable ( params = {}, route )
 		params.tbody.removeChild ( params.tbody.lastChild );
 	}
 
-	params.thead.appendChild ( createLine ( [ "Nom", "rank", "total", ...routes ], [ 0 ,1, 2 ] ) );
+	params.thead.appendChild ( createLine ( [ "Nom", "rank", "total", ...routes ], [ 0 ,1, 2 ], true ) );
 
 	for ( let user of users )
 	{
@@ -278,21 +303,25 @@ function printTable ( params = {}, route )
 		[ 0, 1, 2 ] ) );
 	}
 
-	tableEvent.addEventListener ( "click", ( ev )=>{
-		printTable (params,{
-				name: ev.value,
-			});
-	})
+	params.event.removeEventListener ( "route", pTW );
+	params.event.addEventListener ( "route", pTW );
+}
+
+function pTW ( ev )
+{
+	printTable ( ev.params,{
+			name: ev.value,
+		});
 }
 
 /// params : {
-/// 	selectedUsers
+/// 	users
 /// 	thead
 /// 	tbody
 /// 	scores
 /// 	socket
 /// }
-function printTableOne ( params = {} )
+function printTableOneUser ( params = {} )
 {
 	while ( params.thead.firstChild )
 	{
@@ -303,7 +332,7 @@ function printTableOne ( params = {} )
 		params.tbody.removeChild ( params.tbody.lastChild );
 	}
 
-	let score = params.scores[ params.selectedUsers[ 0 ].name ]
+	let score = params.scores[ params.users ]
 	
 	for ( let route in score )
 	{
@@ -313,19 +342,9 @@ function printTableOne ( params = {} )
 		}
 		let line = document.createElement ( "tr" );
 
-		let th = document.createElement ( "th" );
+		let th = document.createElement ( "td" );
 		line.appendChild ( th );
 		th.innerText = route;
-
-		if ( params.event )
-		{
-			th.onclick = (ev)=>{
-				ev.preventDefault ( );
-				let e = new Event ( "click" );
-				e.firstCell = route;
-				params.event.dispatchEvent ( e );
-			};
-		}
 
 		score[ route ].map ( (v,i)=>{
 			let td = document.createElement ( "td" );
@@ -339,12 +358,17 @@ function printTableOne ( params = {} )
 			input.dataset.id = route;
 
 			input.addEventListener ( "change", (ev)=>{
-				params.socket.emit ( "uValue", {
-					index:i,
-					route:route,
-					name:params.selectedUsers[ 0 ].name,
-					value: Number ( ev.target.value ),
-				} )
+				let data = {
+					name: params.users,
+					index: i,
+					route: route,
+					value: ev.target.value,
+				};
+
+				let e = new  Event ( "value" );
+				e.data = data;
+
+				params.event.dispatchEvent ( e );
 			})
 		});
 

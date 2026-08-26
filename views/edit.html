@@ -40,93 +40,60 @@
 					categorie: document.getElementById ( "categorie" ),
 					club: document.getElementById ( "club" ),
 					name: document.getElementById ( "name" ),
+					nameList: document.getElementById ( "nameList" ),
 				},
 				table: {
 					tbody: document.getElementById ( "tbody" ),
 					thead: document.getElementById ( "thead" ),
 				},
 			};
-
-			window.onload = function ( )
-			{
-			}
-
-			if ( !socket )
-			{
-				var socket = io ( );
-			}
 		
+			let scores = <%- JSON.stringify ( locals.scores ) %>;
+			let routes = <%- JSON.stringify ( locals.routes ) %>;
+			let users = <%- JSON.stringify ( locals.users ) %>;
 			let filters = {};
-			let selectedUsers = {};
-			let scores = {};
+			let event = new EventTarget ( );
 
-			let tableClickEvent = new EventTarget ( );
-
-			socket.on ( "setUCCG", (msg)=>{
-				selectedUsers = msg;
-
-				uOneSlector ( {default:"genre", selector:domEls.input.genre, list:msg.map ( u2=>u2.genre ).distinct ( ) })
-				uOneSlector ( {default:"categorie", selector:domEls.input.categorie, list:msg.map ( u2=>u2.categorie ).distinct ( )} )
-				uOneSlector ( {default:"club", selector:domEls.input.club, list:msg.map ( u2=>u2.club ).distinct ( )} )
-				
-				uOneSlector ( {default:"name", selector:domEls.input.name, list:msg.map ( u2=>u2.name ).distinct ( )} )
-
-				if ( 1 == selectedUsers.length )
-				{
-					printTableOne ({
-						thead: domEls.table.thead,
-						tbody: domEls.table.tbody,
-						scores: scores,
-						selectedUsers: selectedUsers,
-						socket: socket,
-						event: tableClickEvent,
-					});
-				}
-				else
-				{
-					printTable ({
-						thead: domEls.table.thead,
-						tbody: domEls.table.tbody,
-						scores: scores,
-						selectedUsers: selectedUsers,
-						event: tableClickEvent,
-					});
-				}
-			} );
-
-			socket.on ( "connect", ()=>{
-				socket.emit ( "getUCCG", filters );
-				socket.emit ( "getScores", filters );
-			});
-
-			socket.on ( "scores", (msg)=>{
-				scores = msg;
-
-				if ( 1 == selectedUsers.length )
-				{
-					printTableOne ({
-						thead: domEls.table.thead,
-						tbody: domEls.table.tbody,
-						scores: scores,
-						selectedUsers: selectedUsers,
-						socket: socket,
-						event: tableClickEvent,
-					});
-				}
-				else
-				{
-					printTable ({
-						thead: domEls.table.thead,
-						tbody: domEls.table.tbody,
-						scores: scores,
-						selectedUsers: selectedUsers,
-						event: tableClickEvent,
-					});
-				}
-			});
-
-			for ( let key in domEls.input )
+			function initUsersSelector ( array )
 			{
+				uOneSlector ({
+						default:"genre",
+						selector:domEls.input.genre,
+						list:array.map ( u2=>u2.genre ).distinct ( )
+					});
+				uOneSlector ({
+						default:"categorie",
+						selector:domEls.input.categorie,
+						list:array.map ( u2=>u2.categorie ).distinct ( )
+					});
+				uOneSlector ({
+						default:"club",
+						selector:domEls.input.club,
+						list:array.map ( u2=>u2.club ).distinct ( )
+					});
+				uOneSlector ({
+						default:"--",
+						selector:domEls.input.nameList,
+						list:array.map ( u2=>u2.name ).distinct ( )
+					});
+
+				domEls.input.nameList.options[ 0 ].disabled = true;
+			}
+
+
+			printTable ({
+					thead: domEls.table.thead,
+					tbody: domEls.table.tbody,
+					scores: scores,
+					filters: filters,
+					routes: routes.map ( r=>r.name ),
+					users: users,
+					event: event,
+				});
+
+			initUsersSelector ( users );
+
+			[ "genre", "categorie", "club" ].map ( key=>{
 				domEls.input[ key ].addEventListener ( "change", (ev)=>{
 					if ( "all" == ev.target.value )
 					{
@@ -136,14 +103,71 @@
 					{
 						filters[ key ] = ev.target.value;
 					}
-					socket.emit ( "getUCCG", {filters} );
-				} )
-			}
 
-			tableClickEvent.addEventListener ( "click", (ev)=>{
+
+					let filteredUsers = users;
+
+					for ( let key in filters )
+					{
+						filteredUsers = filteredUsers.filter ( u=>u[ key ] == filters[ key ] );
+					}
+
+					printTable ({
+							thead: domEls.table.thead,
+							tbody: domEls.table.tbody,
+							scores: scores,
+							filters: filters,
+							routes: routes.map ( r=>r.name ),
+							users: users,
+							event: event,
+						});
+				})
+			});
+
+			socket.on ( "scores", (msg)=>{
+				scores = msg;
+
+				domEls.input.name.dispatchEvent ( new Event ( "change" ) );
+			});
+
+			socket.on ( "users", (msg)=>{
+				users = msg;
+
+				initUsersSelector ( users );
+			})
+
+
+			domEls.input.name.addEventListener ( "change",  ( ev )=>{
+				console.log ( ev.target )
+				if ( users.map ( u=>u.name ).includes ( ev.target.value ) )
+				{
+					printTableOneUser ({
+							thead: domEls.table.thead,
+							tbody: domEls.table.tbody,
+							scores: scores,
+							routes: routes.map ( r=>r.name ),
+							users: ev.target.value,
+							event: event,
+						});
+				}
+				else
+				{
+					printTable ({
+							thead: domEls.table.thead,
+							tbody: domEls.table.tbody,
+							scores: scores,
+							filters: filters,
+							routes: routes.map ( r=>r.name ),
+							users: users,
+							event: event,
+						});
+				}
+			});
+
+			event.addEventListener ( "name", ( ev )=>{
 				if ( "all" == domEls.input.name.value )
 				{
-					domEls.input.name.value = ev.firstCell;
+					domEls.input.name.value = ev.value;
 				}
 				else
 				{
@@ -151,7 +175,31 @@
 				}
 
 				domEls.input.name.dispatchEvent ( new Event ( "change" ) );
-			})
+			});
+
+			event.addEventListener ( "value", ( ev )=>{
+				fetch ( "/ajax/set/value", {
+						method: "POST",
+						body: JSON.stringify ( ev.data ),
+						headers: { "Content-Type": "application/json" }
+					})
+					.then ( r=>{
+						if ( r.ok )
+						{
+							return 0
+						}
+						else
+						{
+							throw "invalid";
+						}
+					})
+					.then ( r=>{
+
+					})
+					.catch ( e=>{
+
+					});
+			});
 		</script>
 	</body>
 </html>
