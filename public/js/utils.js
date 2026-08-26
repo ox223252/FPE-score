@@ -130,6 +130,24 @@ function uOneCheckList ( params = {} )
 	return inputs;
 }
 
+function getChecked ( obj )
+{
+	let r = [];
+	for ( let c in obj )
+	{
+		if ( "main" == c )
+		{
+			continue;
+		}
+
+		if ( obj[ c ].checked )
+		{
+			r.push ( c );
+		}
+	}
+	return r;
+}
+
 /// params : {
 /// 	users
 /// 	thead
@@ -409,4 +427,142 @@ function getUsersList ( userArray, filters )
 			return true;
 		})
 		.map ( user=>user.name );
+}
+
+function exportFile ( data, file )
+{
+	function getKeys ( objArray )
+	{
+		return objArray.map ( (d)=>Object.keys ( d ) )
+			.flat ( Infinity )
+			.distinct ( );
+	}
+	
+	function manageOneElement ( cell )
+	{
+		switch ( cell?.constructor.name )
+		{
+			case "Number":
+			case "String":
+			{
+				return cell;
+			}
+			case "Array":
+			{
+				return cell.join ( ", " );
+			}
+			case "Object":
+			{
+				if ( cell.zone
+					|| cell.top )
+				{
+					return `${cell.zone ?? 0}, ${cell.top ?? 0}`;
+				}
+			}
+			default:
+			{
+				console.log ( cell );
+				return "";
+			}
+		}
+	}
+
+	switch ( data.constructor.name )
+	{
+		case "Array":
+		{
+			let keys = getKeys ( data ).filter ( k=>"meta"!=k );
+
+
+			data = keys.join ( " ; " ) + "\n" + data.map ( line=>{
+					return keys.map ( k=>{
+							return line[ k ] ?? "";
+						})
+						.map ( manageOneElement )
+						.join ( " ; " )
+				})
+				.join ( "\n" );
+
+			break;
+		}
+		case "Object":
+		{
+			let keys = getKeys ( Object.values ( data ) );
+
+			data = "Name ; " + keys.join ( " ; " ) + "\n" + Object.keys ( data ).map ( key=>{
+					return [ key, ...keys.map ( k=>{
+							return data[ key ][ k ] ?? ""
+						}) ]
+						.map ( manageOneElement )
+						.join ( " ; " )
+				})
+				.join ( "\n" );
+
+			break;
+		}
+	}
+
+	// let sI = undefined;
+	// switch ( msg.file )
+	// {
+	// 	case "voies":
+	// 	case "users":
+	// 	{
+	// 		sI = getKeys ( msg.data );
+	// 		data = msg.data.map ( (d,i)=>{
+	// 				let out = [];
+
+	// 				for ( let k of sI )
+	// 				{
+	// 					switch ( d[ k ]?.constructor.name )
+	// 					{
+	// 						case "Object":
+	// 						{
+	// 							out.push ( JSON.stringify ( d[ k ] ) );
+	// 							break;
+	// 						}
+	// 						case "Array":
+	// 						{
+	// 							out.push ( d[ k ].join ( "," ) );
+	// 							break;
+	// 						}
+	// 						case undefined:
+	// 						{
+	// 							out.push ( "" );
+	// 							break;
+	// 						}
+	// 						default:
+	// 						{
+	// 							out.push ( d[ k ] );
+	// 							break;
+	// 						}
+	// 					}
+	// 				}
+
+	// 				return out.join ( ";" );
+	// 			})
+			
+	// 		data.unshift ( sI.join ( ";" ) );
+	// 		data = data.join ( "\n" );
+
+	// 		break;
+	// 	}
+	// 	case "score":
+	// 	{
+	// 		data = JSON.stringify ( msg.data, null, 4 );
+	// 		break;
+	// 	}
+	// 	default:
+	// 	{
+	// 		return;
+	// 	}
+	// }
+
+	const downloadLink = document.createElement('a');
+	downloadLink.href = URL.createObjectURL ( new Blob ( [ data ], { type: 'text/plain' } ) );
+	downloadLink.download = file + ".csv";
+
+	document.body.appendChild ( downloadLink );
+	downloadLink.click();
+	document.body.removeChild ( downloadLink );
 }

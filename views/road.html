@@ -72,17 +72,17 @@
 				list: categories,
 			});
 			
-			function getCategories ( )
+			function getChecked ( obj )
 			{
 				let r = [];
-				for ( let c in domEls.input.categories )
+				for ( let c in obj )
 				{
 					if ( "main" == c )
 					{
 						continue;
 					}
 
-					if ( domEls.input.categories[ c ].checked )
+					if ( obj[ c ].checked )
 					{
 						r.push ( c );
 					}
@@ -101,7 +101,7 @@
 							name: domEls.route.value,
 							type: domEls.type.value,
 							comments: domEls.comments.value,
-							categories: getCategories ( ),
+							categories: getChecked ( domEls.input.categories ),
 						};
 
 						if ( domEls.scores )

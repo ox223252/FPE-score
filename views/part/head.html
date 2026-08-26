@@ -59,6 +59,8 @@
 					window.location.href = window.location.origin;
 				})
 		}
+
+		firstConnection = false;
 	});
 
 	socket.on ( "disconnect", ()=>{
@@ -66,4 +68,17 @@
 				n.classList.add ( "disconnected" );
 			});
 	});
+
+	let domTimer = undefined;
+
+	socket.on ( "timer", (msg)=>{
+		if ( domTimer )
+		{
+			domTimer.innerText = msg;
+		}
+	});
+
+	window.addEventListener ( "load", ()=>{
+		domTimer = document.getElementById ( "timer" );
+	})
 </script>

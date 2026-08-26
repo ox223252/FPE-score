@@ -10,6 +10,13 @@
 	--aside-padding: 20px;
 
 	--font-size: 30px;
+
+	--dark-background: rgb( 40,40,40 );
+	--light-background: rgb( 255,255,255 );
+
+	--background-color: light-dark( var( --light-background), var( --dark-background ) );
+	--background-color: revert;
+
 }
 
 html {
@@ -17,6 +24,8 @@ html {
 
 	width: 100%;
 	height: calc( 100% - var( --nav-height ) - 2 * var( --nav-padding ) -  2 * var( --nav-margin ) );
+
+	background-color: var( --background-color );
 	
 	& > body {
 		margin: 0;
@@ -52,6 +61,14 @@ html {
 			&.small {
 				height: 300px;
 				width: 300px;
+			}
+
+			& > * {
+				max-height: calc( 100% - 2 * var( --section-padding ) );
+				max-width: calc( 100% - 2 * var( --section-padding ) );
+				min-width: calc( 100% - 2 * var( --section-padding ) );
+				overflow: auto;
+				padding: var( --section-padding );
 			}
 
 			& > .form {
@@ -233,7 +250,16 @@ html {
 					}
 				}
 			}
+		}
 
+		& button, & .button {
+			padding: 5px;
+			border: solid 1px;
+			border-radius: 5px;
+			margin: 0px;
+			width: min-content !important;
+			background-color: var( --background-color );
+>>>>>>> fe7efe0 (add admin page)
 		}
 	}
 }
