@@ -18,13 +18,15 @@
 					<select id="club"></select>
 				</div>
 				<div  id="divUser" class="row">
-					<div>
+					<div style="flex-grow: 2;">
 						<label for="user">Utilisateur</label>
-						<select id="user"></select>
+						<input id="user" list="listUser"></input>
+						<datalist id="listUser"></datalist>
 					</div>
 					<div>
 						<label for="dossard">Dossard</label>
-						<select id="dossard"></select>
+						<input id="dossard" list="listDossard"></input>
+						<datalist id="listDossard"></datalist>
 					</div>
 				</div>
 				<hr>
@@ -69,6 +71,8 @@
 				categorie: document.getElementById ( "categorie" ),
 				user:  document.getElementById ( "user" ),
 				dossard:  document.getElementById ( "dossard" ),
+				listUser:  document.getElementById ( "listUser" ),
+				listDossard:  document.getElementById ( "listDossard" ),
 				type:  document.getElementById ( "type" ),
 				voie:  document.getElementById ( "voie" ),
 				start: document.getElementById ( "chronoStart" ),
@@ -130,12 +134,12 @@
 				});
 				uOneSlector ({
 					default:"user",
-					selector:domEls.user,
+					selector:domEls.listUser,
 					list:array.map ( u2=>u2.name ).distinct ( ).sort ( ),
 				});
 				uOneSlector ({
 					default:"dossard",
-					selector:domEls.dossard,
+					selector:domEls.listDossard,
 					obj:{
 						valueId:"name",
 						textId:"dossard",
@@ -145,6 +149,9 @@
 					},
 					parentDiv:domEls.div.user,
 				});
+
+				domEls.listUser.options[ 0 ].disabled = true;
+				domEls.listDossard.options[ 0 ].disabled = true;
 			}
 			
 			initUsersSelector ( users );
@@ -420,11 +427,11 @@
 			});
 
 			domEls.dossard.addEventListener ( "change", (ev)=>{
-				domEls.user.value = ev.target.value;
+				domEls.user.value = users.filter ( u=>u.dossard == ev.target.value )?.[ 0 ]?.name ?? "";
 			});
 
 			domEls.user.addEventListener ( "change", (ev)=>{
-				domEls.dossard.value = ev.target.value;
+				domEls.dossard.value = users.filter ( u=>u.name == ev.target.value )?.[ 0 ]?.dossard ?? "";
 			});
 
 
