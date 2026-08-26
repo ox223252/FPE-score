@@ -189,22 +189,18 @@
 					.catch ( console.log );
 			});
 
-			// domEls.halt.addEventListener ( "click", (ev)=>{
-			// 	ev.preventDefault ( );
+			domEls.halt.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
 
-			// 	if ( confirm ( "Vous allez eteindre le systeme etes vous sur ?" ) )
-			// 	{
-			// 		fetch("/ajax/halt",{
-			// 				method:"POST"
-			// 			})
-			// 			.then ( console.log )
-			// 			.catch ( console.log )
-			// 	}
-			// });
+				if ( confirm ( "Vous allez eteindre le systeme etes vous sur ?" ) )
+				{
+					sendCmd ( "/ajax/halt" )
+						.catch ( console.log )
+				}
+			});
 
 			function sendCmd ( path, data = {} )
 			{
-				console.log( "fetch" )
 				return fetch ( path,{
 						method:"POST",
 						body: JSON.stringify ( data ),
@@ -235,114 +231,99 @@
 						evName = "change";
 					}
 
-					console.log ( file, cmd, evName )
 
-					domEls[ file ][ cmd ].addEventListener ( evName, ( ev )=>{
+					domEls[ file ][ cmd ].addEventListener ( evName, async ( ev )=>{
 						ev.preventDefault ( );
 
-						if ( "delete" != cmd )
+						let data = {};
+
+						switch ( cmd )
 						{
-						}
-						else if ( !confirm ( "Vous allez supprimer un base de donnée, c'est irréversible" ) )
-						{
-							return;
+							case "delete":
+							{
+								if ( !confirm ( "Vous allez supprimer un base de donnée, c'est irréversible" ) )
+								{
+									return;
+								}
+
+								break;
+							}
+							case "set":
+							{
+								let newDb = ev.target.files?.[ 0 ];
+
+								if ( !newDb )
+								{
+									return;
+								}
+
+								let reader = new FileReader ( );
+								reader.readAsText ( newDb, "UTF-8" );
+								
+								switch ( [ file ]?.constructor.name )
+								{
+									case "Array":
+									{
+										data = await new Promise ( (ok,ko)=>{
+											reader.onload = (ev)=>{
+												let lines = ev.target.result.split ( "\n" );
+												let keys = lines.shift ( ).split ( ";" );
+
+												lines = lines.map ( line=>{
+													let r = line.split ( ";" )
+														.map ( (cell,index)=>{
+															if ( "" == cell )
+															{
+																return {};
+															}
+
+															if ( "routes" == file )
+															{
+																if ( [ "categories", "scores" ].includes ( keys[ index ] ) )
+																{
+																	return {
+																		[ keys[ index ] ]: cell.split( ',' )
+																	}
+																}
+															}
+															
+															return {
+																[ keys[ index ] ]: cell
+															};
+														})
+														.reduce ( (a,v)=>{
+															return Object.assign ( a, v );
+														}, {})
+
+													if ( "bloc" == r.type )
+													{
+														r.scores = {
+															zone: r.scores[ 0 ],
+															top: r.scores[ 1 ]
+														};
+													}
+
+													return r;
+												});
+
+												ok ( lines );
+											};
+										});
+
+										break;
+									}
+								}
+								break;
+							}
 						}
 
-						sendCmd ( `/ajax/db/${cmd}/${file}`, {} )
+						sendCmd ( `/ajax/db/${cmd}/${file}`, data )
 							.then ( r=>{
 								if ( "export" == cmd )
 								{
 									exportFile ( r, file );
 								}
-							} )
-
-						// switch ( cmd )
-						// {
-						// 	case "delete":
-						// 	{
-						// 		if ( !confirm ( "Vous supprimer le fichier "+arg+" etes vous sur ?" ) )
-						// 		{
-						// 			break;
-						// 		}
-						// 	}
-						// 	case "export":
-						// 	{
-						// 		socket.emit ( "cmd", {cmd,arg} );
-						// 		break;
-						// 	}
-						// 	case "set":
-						// 	{
-						// 		let file = ev.target.files?.[ 0 ];
-
-						// 		if ( !file )
-						// 		{
-						// 			return;
-						// 		}
-
-						// 		let reader = new FileReader ( );
-						// 		reader.readAsText ( file, "UTF-8" );
-
-						// 		let sI = {};
-
-						// 		reader.onload = (ev)=>{
-						// 			let r = ev.target.result.split ( "\n" )
-						// 				.map ( (line,i)=>{
-						// 					if ( 0 == i )
-						// 					{
-						// 						let r = line.split ( ";" );
-
-						// 						for ( let k of r )
-						// 						{
-						// 							sI[ k ] = r.indexOf ( k );
-						// 						}
-
-						// 						return undefined;
-						// 					}
-						// 					else if ( line.trim ( ) == "" )
-						// 					{
-						// 						return undefined;
-						// 					}
-						// 					else
-						// 					{
-						// 						let r = line.split ( ";" );
-						// 						let out = {};
-
-						// 						for ( let k in sI )
-						// 						{
-						// 							if ( !r[ sI[ k ] ] )
-						// 							{
-						// 								continue;
-						// 							}
-
-						// 							try
-						// 							{
-						// 								out[ k ] = JSON.parse ( r[ sI[ k ] ].replace ( /'/g, '"' ) );
-						// 							}
-						// 							catch ( e )
-						// 							{
-						// 								if ( -1 != r[ sI[ k ] ].indexOf ( "," ) )
-						// 								{
-						// 									out[ k ] = r[ sI[ k ] ].split ( "," );
-						// 								}
-						// 								else
-						// 								{
-						// 									out[ k ] = r[ sI[ k ] ];
-						// 								}
-						// 							}
-						// 						}
-
-						// 						return out;
-						// 					}
-						// 				})
-						// 				.filter ( f=>f );
-
-						// 			socket.emit ( "cmd", {cmd,arg,data:r} );
-						// 		}
-
-						// 		reader.onerror = console.log
-						// 		break;
-						// 	}
-						// }
+							});
 					});
 				});
 			});
