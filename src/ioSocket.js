@@ -50,6 +50,17 @@ export default function ( params )
 			};
 		}
 
+		socket.emit ( "timer", "" );
+
+		if ( !params.connected[ id ] )
+		{
+			params.connected[ id ] = {
+				user: "unknow",
+				page: {},
+				id: id,
+			};
+		}
+
 		socket.on ( "identify", ( msg )=>{
 			// la page n'est qu'une information d'affichage : on la borne
 			let page = ( "string" == typeof msg?.page ) ? msg.page.slice ( 0, 256 ) : "";

@@ -113,6 +113,55 @@ export default function ( params )
 			})
 	}); // halt
 
+	params.express.post ( "/start", function ( req, res )
+	{
+		if ( params.interval )
+		{
+			return;
+		}
+
+		let remainingTime = Number ( req.body.time ) * 60 * 1000;
+
+		params.categories = req.body.categories;
+
+		console.log ( "start competition for" )
+		console.log ( `  - ${getTime ( remainingTime )}` )
+		console.log ( `  - ${params.categories.join ( "/" )}` )
+
+		params.interval = setInterval ( ()=>{
+			remainingTime -= 1000;
+			params.io.emit ( "timer", getTime ( remainingTime ) );
+		},1000);
+
+		params.timeout = setTimeout ( ()=>{
+			clearInterval ( params.interval );
+			params.io.emit ( "timer",  "" );
+			params.interval = undefined;
+			params.timeout = undefined;
+
+			console.log ( "normal end" )
+		},remainingTime );
+	}); // start
+
+	params.express.post ( "/stop", function ( req, res )
+	{
+		if ( !params.interval )
+		{
+			return;
+		}
+
+		clearInterval ( params.interval );
+		clearTimeout ( params.timeout );
+
+		params.interval = undefined;
+		params.timeout = undefined;
+	
+		params.io.emit ( "timer",  "" );
+
+		params.categories = params.args.categories;
+		console.log ( "user stop" )
+	}); //stop
+
 	params.express.post ( "/get/route", function ( req, res )
 	{
 		// fetch ( "/ajax/get/route", {method:"POST", body: JSON.stringify ( {route:"A"} ), headers: { "Content-Type": "application/json" } } ).then ( console.log )
@@ -311,15 +360,97 @@ export default function ( params )
 
 			let r = fs.writeFileSync ( params.args.db.scores, JSON.stringify ( params.db.scores, null, 4 ), 'utf8' );
 
-			res.writeHead ( 200 );
+			res.status ( 200 );
 			res.end ( );
 		}
 		else
 		{
-			res.writeHead ( 500 );
+			res.status ( 500 );
 			res.end ( );
 		}
 	}); // set value
 
+	params.express.post ( "/db/:cmd/:file", function ( req, res )
+	{
+		if ( !params.db[ req.params.file ] )
+		{
+			res.status ( 403 );
+			res.end ( );
+		}
+		else switch ( req.params.cmd )
+		{
+			case "export":
+			{
+				res.status ( 200 );
+				res.json ( params.db[ req.params.file ] );
+				res.end ( );
+				break;
+			}
+			case "set":
+			{
+				console.log ( req.body );
+				res.status ( 200 );
+				res.json ({});
+				res.end ( );
+				break;
+			}
+			case "delete":
+			{
+				switch ( params.db[ req.params.file ].constructor.name )
+				{
+					case "Array":
+					{
+						fs.writeFileSync ( params.args.db[ req.params.file ], "[]", 'utf8' );
+						break;
+					}
+					case "Object":
+					{
+						fs.writeFileSync ( params.args.db[ req.params.file ], "{}", 'utf8' );
+						break;
+					}
+					default:
+					{
+						res.status ( 403 );
+						res.end ( );
+						return;
+					}
+				}
+
+				res.status ( 200 );
+				res.json ({});
+				res.end ( );
+				break;
+			}
+			default:
+			{
+				res.status ( 403 );
+				res.end ( );
+				return;
+			}
+		}
+	}); // db
+
 	return params;
+}
+
+function getTime ( value )
+{
+	let t = Math.floor ( value / 1000 );
+	let str = "";
+
+	if ( t > 3600 )
+	{
+		str = Math.floor ( t / 3600 ) + "h";
+		t %= 3600;
+	}
+
+	if ( t > 60 )
+	{
+		str = Math.floor ( t / 60 ) + "m";
+		t %= 60;
+	}
+
+	str += t + "s";
+
+	return str;
 }

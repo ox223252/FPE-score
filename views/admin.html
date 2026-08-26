@@ -1,25 +1,47 @@
 <!DOCTYPE html>
 <html>
-	<%- include("part/head.html") -%>
-	<body>
-		<%- include("part/nav.html") -%>
+	<head>
+		<%- include("part/head.html") -%>
 		<style>
-			div.row > button {
-				margin-right:10px;
-			}
-			button.fa-solid {
-				min-width: 2em;
-				min-height: 1.5em;
-				text-align: center;
+			.transparent {
+				gap: 20px;
 			}
 
-			form > div{
-				margin-bottom: 2em;
+			input[ type=file ] {
+				display: none;
+			}
+
+			.buttonDiv {
+				flex-grow: 0 !important;
+			}
+
+			section {
+				background-color: transparent !important;
+				grap: 10px;
+			}
+
+			.form {
+				flex-shrink: 1;
+
+				background-color: var( --grey );
+				border-radius: 10px;
+
+				&:first-child {
+					flex-shrink: 0;
+				}
 			}
 		</style>
-		<section>
-			<form>
-				<button id="start">Start</button>
+	</head>
+	<body>
+		<%- include("part/nav.html") -%>
+		<section class="transparent">
+			<div class="form">
+				<div style="justify-content: space-between;">
+					<button id="start">Start</button>
+					<button id="stop">Stop</button>
+				</div>
+			</div>
+			<div class="form">
 				<div>
 					<label for="time">Durée de la competition en minutes</label>
 					<input id="time" type="number" value="60" placeholder="temps en minutes"/>
@@ -27,48 +49,62 @@
 
 				<div>
 					<label>Quelles categories</label>
-					<ul id="categories"></ul>
+					<div id="categories"></div>
 				</div>
-				<button id="stop">Stop</button>
 				<p id="serverMsg"></p>
-			</form>
-			<form>
+			</div>
+			<div class="form specific">
 				<div>
-					<label for="usersFiles">CSV contenant les competiteurs</label>
-					<input id="usersFiles" type="file"/>
-					<div class="row">
+					<div>
+						CSV contenant les competiteurs (<%- locals.users?.length %>)
+						<input id="usersFiles" type="file"/>
+					</div>
+					<div class="buttonDiv">
 						<button id="usersClean" class="fa-solid fa-trash"></button>
 						<button id="usersExport" class="fa-solid fa-download"></button>
+						<label for="usersFiles" class="button fa-solid fa-upload"></label>
 					</div>
 				</div>
 				<div>
-					<label for="voiesFiles">CSV contenant les voies</label>
-					<input id="voiesFiles" type="file"/>
-					<div class="row">
-						<button id="voiesClean" class="fa-solid fa-trash"></button>
-						<button id="voiesExport" class="fa-solid fa-download"></button>
+					<div class="buttonDiv">
+						<button id="routesClean" class="fa-solid fa-trash"></button>
+						<button id="routesExport" class="fa-solid fa-download"></button>
+						<label for="routesFiles" class="button fa-solid fa-upload"></label>
+					</div>
+					<div>
+						CSV contenant les routes (<%- locals.routes?.length %>)
+						<input id="routesFiles" type="file"/>
 					</div>
 				</div>
 				<div>
-					<label>Fichier scores</label>
-					<div class="row">
+					<div>
+						Fichier scores
+					</div>
+					<div class="buttonDiv">
 						<button id="scoreClean" class="fa-solid fa-trash"></button>
 						<button id="scoreExport" class="fa-solid fa-download"></button>
 					</div>
 				</div>
 				<div>
-					<label for="halt">Eteindre le systeme</label>
-					<div class="row">
+					<div class="buttonDiv">
 						<button id="halt" class="fa-solid fa-power-off" style="color:red"></button>
+					</div>
+					<div>
+						Eteindre le systeme
 					</div>
 				</div>
 				<p id="serverMsg"></p>
-			</form>
+			</div>
 		</section>
+		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
 		<script nonce="<%- locals.nonce %>">
 			let domEls = {
 				serverMsg: document.getElementById ( "serverMsg" ),
-				categories: document.getElementById ( "categories" ),
+				input:{
+					categories: {
+						main: document.getElementById ( "categories" ),
+					},
+				},
 				start: document.getElementById ( "start" ),
 				stop: document.getElementById ( "stop" ),
 				halt: document.getElementById ( "halt" ),
@@ -77,12 +113,12 @@
 					delete: document.getElementById ( "usersClean" ),
 					export: document.getElementById ( "usersExport" ),
 				},
-				voies: {
-					set: document.getElementById ( "voiesFiles" ),
-					delete: document.getElementById ( "voiesClean" ),
-					export: document.getElementById ( "voiesExport" ),
+				routes: {
+					set: document.getElementById ( "routesFiles" ),
+					delete: document.getElementById ( "routesClean" ),
+					export: document.getElementById ( "routesExport" ),
 				},
-				score: {
+				scores: {
 					delete: document.getElementById ( "scoreClean" ),
 					export: document.getElementById ( "scoreExport" ),
 				},
@@ -93,290 +129,223 @@
 				var socket = io ( );
 			}
 
-			let categories = {};
-			
-			socket.on ( "connect", ()=>{
-				socket.emit ( "getListOfAllTypes" );
-				socket.emit ( "getVoies", {} );
-				socket.emit ( "getListOfAllCategories" );
+			let users = <%- JSON.stringify ( locals.users ) %>;
+			let routes = <%- JSON.stringify ( locals.routes ) %>;
+			let types = <%- JSON.stringify ( locals.types ) %>;
+			let categories = <%- JSON.stringify ( locals.categories ) %>;
+
+			uOneCheckList ({
+				key: "categories",
+				outList: domEls.input,
+				list: categories,
 			});
-
-			socket.on ( "error", (msg)=>{
-				domEls.serverMsg.display = "";
-				domEls.serverMsg.innerText = msg;
-
-				document.body.style.backgroundColor = "red";
-
-				setTimeout ( ()=>{
-					document.body.style.backgroundColor = "";
-				}, 1000 );
-			});
-
-			socket.on ( "ok", ()=>{
-				document.body.style.backgroundColor = "green";
-
-				setTimeout ( ()=>{
-					document.body.style.backgroundColor = "";
-				}, 1000 );
-			});
-
-			socket.on ( "setListOfAllCategories", (msg)=>{
-				while ( domEls.categories.firstChild )
-				{
-					domEls.categories.removeChild ( domEls.categories.lastChild );
-				}
-
-				categories = {};
-
-				for ( let cat of msg )
-				{
-					let div = document.createElement( "li" );
-					domEls.categories.appendChild ( div );
-
-					let input = document.createElement ( "input" );
-					div.appendChild ( input );
-					input.type = "checkbox",
-					input.id = "cat_"+cat;
-					input.checked = true;
-					categories[ cat ] = true;
-
-					let label = document.createElement ( "label" );
-					div.appendChild ( label );
-					label.htmlFor = "cat_"+cat;;
-					label.innerText = " "+cat;
-
-					input.addEventListener ( "change", (ev)=>{
-						categories[ cat ] = ev.target.checked;
-					});
-				}
-			});
-
-			socket.on ( "export", (msg)=>{
-				function getKeys ( objArray, keys = [] )
-				{
-					let sI = keys;
-					objArray.map ( (d,i)=>{
-							sI.push ( Object.keys ( d ) );
-							return d;
-						})
-						.map ( (d,i)=>{
-							if ( 0 == i )
-							{
-								sI = sI.flat ( Infinity ).distinct ( );
-							}
-
-							let out = [];
-
-							for ( let k of sI )
-							{
-								out.push ( d[ k ] );
-							}
-
-							return out.map ( o=>( o==undefined )?"":o )
-								.join ( ";" );
-						})
-
-					return sI.flat ( Infinity ).distinct ( );
-				}
-
-				let data = undefined;
-				let sI = undefined;
-				switch ( msg.file )
-				{
-					case "voies":
-					case "users":
-					{
-						sI = getKeys ( msg.data );
-						data = msg.data.map ( (d,i)=>{
-								let out = [];
-
-								for ( let k of sI )
-								{
-									switch ( d[ k ]?.constructor.name )
-									{
-										case "Object":
-										{
-											out.push ( JSON.stringify ( d[ k ] ) );
-											break;
-										}
-										case "Array":
-										{
-											out.push ( d[ k ].join ( "," ) );
-											break;
-										}
-										case undefined:
-										{
-											out.push ( "" );
-											break;
-										}
-										default:
-										{
-											out.push ( d[ k ] );
-											break;
-										}
-									}
-								}
-
-								return out.join ( ";" );
-							})
-						
-						data.unshift ( sI.join ( ";" ) );
-						data = data.join ( "\n" );
-
-						break;
-					}
-					case "score":
-					{
-						data = JSON.stringify ( msg.data, null, 4 );
-						break;
-					}
-					default:
-					{
-						return;
-					}
-				}
-
-				const downloadLink = document.createElement('a');
-				downloadLink.href = URL.createObjectURL ( new Blob ( [ data ], { type: 'text/plain' } ) );
-				downloadLink.download = msg.file + ".csv";
-
-				document.body.appendChild ( downloadLink );
-				downloadLink.click();
-				document.body.removeChild ( downloadLink );
-			})
 
 			domEls.start.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
-				let msg = {
+
+				let data = {
 					time: Number ( document.getElementById ( "time").value ),
-					categories: categories,
+					categories: getChecked ( domEls.input.categories )
 				};
-				socket.emit ( "start", msg );
+
+				fetch ( "/ajax/start", {
+						method: "POST",
+						body: JSON.stringify ( data ),
+						headers: { "Content-Type": "application/json" }
+					})
+					.then ( r=>{
+						if ( r.ok )
+						{
+							return 0;
+						}
+						else
+						{
+							throw r;
+						}
+					})
+					.then ( )
+					.catch ( console.log );
 			});
 
 			domEls.stop.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
-				socket.emit ( "stop" );
+
+				fetch ( "/ajax/stop", {
+						method: "POST",
+						body: "{}",
+						headers: { "Content-Type": "application/json" }
+					})
+					.then ( r=>{
+						if ( r.ok )
+						{
+							return 0;
+						}
+						else
+						{
+							throw r;
+						}
+					})
+					.then ( )
+					.catch ( console.log );
 			});
 
-			domEls.halt.addEventListener ( "click", (ev)=>{
-				ev.preventDefault ( );
+			// domEls.halt.addEventListener ( "click", (ev)=>{
+			// 	ev.preventDefault ( );
 
-				if ( confirm ( "Vous allez eteindre le systeme etes vous sur ?" ) )
-				{
-					fetch("/ajax/halt",{
-							method:"POST"
-						})
-						.then ( console.log )
-						.catch ( console.log )
-				}
-			});
+			// 	if ( confirm ( "Vous allez eteindre le systeme etes vous sur ?" ) )
+			// 	{
+			// 		fetch("/ajax/halt",{
+			// 				method:"POST"
+			// 			})
+			// 			.then ( console.log )
+			// 			.catch ( console.log )
+			// 	}
+			// });
 
-			for ( let arg of [ "users", "voies", "score" ] )
+			function sendCmd ( path, data = {} )
 			{
-				for ( let cmd of [ "export", "delete", "set" ] )
-				{
-					if ( !domEls?.[ arg ]?.[ cmd ] )
+				console.log( "fetch" )
+				return fetch ( path,{
+						method:"POST",
+						body: JSON.stringify ( data ),
+						headers: { "Content-Type":"application/json" }
+					})
+					.then ( r=>{
+						if ( r.ok )
+						{
+							return r.json ( );
+						}
+						else
+						{
+							throw r;
+						}
+					})
+			}
+
+			[ "users", "routes", "scores" ].map ( file=>{
+				Object.keys ( domEls[ file ] ).map ( cmd=>{
+					let evName = undefined;
+
+					if (  "BUTTON" == domEls[ file ][ cmd ].nodeName )
 					{
-						continue;
+						evName = "click";
+					}
+					else
+					{
+						evName = "change";
 					}
 
-					let evName = ( domEls[ arg ][ cmd ].nodeName.toLowerCase ( ) == "button" )? "click" : "input";
-					console.log ( cmd, arg, evName )
+					console.log ( file, cmd, evName )
 
-					domEls[ arg ][ cmd ].addEventListener ( evName, (ev)=>{
+					domEls[ file ][ cmd ].addEventListener ( evName, ( ev )=>{
 						ev.preventDefault ( );
 
-						switch ( cmd )
+						if ( "delete" != cmd )
 						{
-							case "delete":
-							{
-								if ( !confirm ( "Vous supprimer le fichier "+arg+" etes vous sur ?" ) )
-								{
-									break;
-								}
-							}
-							case "export":
-							{
-								socket.emit ( "cmd", {cmd,arg} );
-								break;
-							}
-							case "set":
-							{
-								let file = ev.target.files?.[ 0 ];
-
-								if ( !file )
-								{
-									return;
-								}
-
-								let reader = new FileReader ( );
-								reader.readAsText ( file, "UTF-8" );
-
-								let sI = {};
-
-								reader.onload = (ev)=>{
-									let r = ev.target.result.split ( "\n" )
-										.map ( (line,i)=>{
-											if ( 0 == i )
-											{
-												let r = line.split ( ";" );
-
-												for ( let k of r )
-												{
-													sI[ k ] = r.indexOf ( k );
-												}
-
-												return undefined;
-											}
-											else if ( line.trim ( ) == "" )
-											{
-												return undefined;
-											}
-											else
-											{
-												let r = line.split ( ";" );
-												let out = {};
-
-												for ( let k in sI )
-												{
-													if ( !r[ sI[ k ] ] )
-													{
-														continue;
-													}
-
-													try
-													{
-														out[ k ] = JSON.parse ( r[ sI[ k ] ].replace ( /'/g, '"' ) );
-													}
-													catch ( e )
-													{
-														if ( -1 != r[ sI[ k ] ].indexOf ( "," ) )
-														{
-															out[ k ] = r[ sI[ k ] ].split ( "," );
-														}
-														else
-														{
-															out[ k ] = r[ sI[ k ] ];
-														}
-													}
-												}
-
-												return out;
-											}
-										})
-										.filter ( f=>f );
-
-									socket.emit ( "cmd", {cmd,arg,data:r} );
-								}
-
-								reader.onerror = console.log
-								break;
-							}
 						}
+						else if ( !confirm ( "Vous allez supprimer un base de donnée, c'est irréversible" ) )
+						{
+							return;
+						}
+
+						sendCmd ( `/ajax/db/${cmd}/${file}`, {} )
+							.then ( r=>{
+								if ( "export" == cmd )
+								{
+									exportFile ( r, file );
+								}
+							} )
+
+						// switch ( cmd )
+						// {
+						// 	case "delete":
+						// 	{
+						// 		if ( !confirm ( "Vous supprimer le fichier "+arg+" etes vous sur ?" ) )
+						// 		{
+						// 			break;
+						// 		}
+						// 	}
+						// 	case "export":
+						// 	{
+						// 		socket.emit ( "cmd", {cmd,arg} );
+						// 		break;
+						// 	}
+						// 	case "set":
+						// 	{
+						// 		let file = ev.target.files?.[ 0 ];
+
+						// 		if ( !file )
+						// 		{
+						// 			return;
+						// 		}
+
+						// 		let reader = new FileReader ( );
+						// 		reader.readAsText ( file, "UTF-8" );
+
+						// 		let sI = {};
+
+						// 		reader.onload = (ev)=>{
+						// 			let r = ev.target.result.split ( "\n" )
+						// 				.map ( (line,i)=>{
+						// 					if ( 0 == i )
+						// 					{
+						// 						let r = line.split ( ";" );
+
+						// 						for ( let k of r )
+						// 						{
+						// 							sI[ k ] = r.indexOf ( k );
+						// 						}
+
+						// 						return undefined;
+						// 					}
+						// 					else if ( line.trim ( ) == "" )
+						// 					{
+						// 						return undefined;
+						// 					}
+						// 					else
+						// 					{
+						// 						let r = line.split ( ";" );
+						// 						let out = {};
+
+						// 						for ( let k in sI )
+						// 						{
+						// 							if ( !r[ sI[ k ] ] )
+						// 							{
+						// 								continue;
+						// 							}
+
+						// 							try
+						// 							{
+						// 								out[ k ] = JSON.parse ( r[ sI[ k ] ].replace ( /'/g, '"' ) );
+						// 							}
+						// 							catch ( e )
+						// 							{
+						// 								if ( -1 != r[ sI[ k ] ].indexOf ( "," ) )
+						// 								{
+						// 									out[ k ] = r[ sI[ k ] ].split ( "," );
+						// 								}
+						// 								else
+						// 								{
+						// 									out[ k ] = r[ sI[ k ] ];
+						// 								}
+						// 							}
+						// 						}
+
+						// 						return out;
+						// 					}
+						// 				})
+						// 				.filter ( f=>f );
+
+						// 			socket.emit ( "cmd", {cmd,arg,data:r} );
+						// 		}
+
+						// 		reader.onerror = console.log
+						// 		break;
+						// 	}
+						// }
 					});
-				}
-			};
+				});
+			});
 		</script>
 	</body>
 </html>
