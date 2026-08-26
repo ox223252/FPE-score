@@ -449,7 +449,7 @@ function exportFile ( data, file )
 			}
 			case "Array":
 			{
-				return cell.join ( ", " );
+				return cell.join ( "," );
 			}
 			case "Object":
 			{
@@ -474,12 +474,12 @@ function exportFile ( data, file )
 			let keys = getKeys ( data ).filter ( k=>"meta"!=k );
 
 
-			data = keys.join ( " ; " ) + "\n" + data.map ( line=>{
+			data = keys.join ( ";" ) + "\n" + data.map ( line=>{
 					return keys.map ( k=>{
 							return line[ k ] ?? "";
 						})
 						.map ( manageOneElement )
-						.join ( " ; " )
+						.join ( ";" )
 				})
 				.join ( "\n" );
 
@@ -489,12 +489,12 @@ function exportFile ( data, file )
 		{
 			let keys = getKeys ( Object.values ( data ) );
 
-			data = "Name ; " + keys.join ( " ; " ) + "\n" + Object.keys ( data ).map ( key=>{
+			data = "Name ; " + keys.join ( ";" ) + "\n" + Object.keys ( data ).map ( key=>{
 					return [ key, ...keys.map ( k=>{
 							return data[ key ][ k ] ?? ""
 						}) ]
 						.map ( manageOneElement )
-						.join ( " ; " )
+						.join ( ";" )
 				})
 				.join ( "\n" );
 

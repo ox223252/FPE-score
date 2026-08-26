@@ -61,11 +61,23 @@ export default function ( params )
 		return tmp;
 	}
 
-	params.db = {}
+	params.db = {
+		empty: {
+			routes:[],
+			users:[],
+			scores:{},
+		}
+	};
 
 	for ( let item of [ "routes","scores","users" ] )
 	{
 		console.log ( " - read db for", item, params.args.db[ item ] );
+
+		if ( !fs.existsSync ( params.args.db[ item ] ) )
+		{
+			params.db[ item ] = JSON.parse ( JSON.stringify ( params.db.empty[ item ] ) );
+			fs.writeFileSync ( params.args.db[ item ], JSON.stringify ( params.db[ item ], null, 4 ), 'utf8' );
+		}
 
 		chokidar.watch ( params.args.db[ item ], {ignored: /^\.+/} )
 			.on ( 'add', ()=>{
@@ -97,7 +109,8 @@ export default function ( params )
 					})
 			})
 			.on ( 'unlink', ()=>{
-				params.db[ item ] = [];
+				params.db[ item ] = JSON.parse ( JSON.stringify ( params.db.empty[ item ] ) );
+				fs.writeFileSync ( params.args.db[ item ], JSON.stringify ( params.db[ item ], null, 4 ), 'utf8' );
 			})
 	}
 

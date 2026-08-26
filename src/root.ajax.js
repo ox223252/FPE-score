@@ -388,7 +388,7 @@ export default function ( params )
 			}
 			case "set":
 			{
-				console.log ( req.body );
+				fs.writeFileSync ( params.args.db[ req.params.file ], JSON.stringify ( req.body, null, 4 ), 'utf8' );
 				res.status ( 200 );
 				res.json ({});
 				res.end ( );
