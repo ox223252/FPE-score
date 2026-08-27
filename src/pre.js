@@ -73,6 +73,12 @@ export default function ( params )
 	{
 		console.log ( " - read db for", item, params.args.db[ item ] );
 
+		let path = params.args.db[ item ].substring ( 0, params.args.db[ item ].lastIndexOf ( "/" ) )
+		if ( !fs.existsSync ( path ) )
+		{
+			fs.mkdirSync ( path, {recursive:true} )
+		}
+
 		if ( !fs.existsSync ( params.args.db[ item ] ) )
 		{
 			params.db[ item ] = JSON.parse ( JSON.stringify ( params.db.empty[ item ] ) );
@@ -85,7 +91,7 @@ export default function ( params )
 
 				calcAll ( params.db, params.args.mode )
 					.then ( ()=>{
-						params.io.to( item ).emit ( item, params?.db?.[ item ] );
+						params.io?.to( item ).emit ( item, params?.db?.[ item ] );
 					})
 					.catch ( e=>{
 						if ( e )
@@ -99,7 +105,7 @@ export default function ( params )
 
 				calcAll ( params.db, params.args.mode )
 					.then ( ()=>{
-						params.io.to( item ).emit ( item, params?.db?.[ item ] );
+						params.io?.to( item ).emit ( item, params?.db?.[ item ] );
 					})
 					.catch ( e=>{
 						if ( e )
