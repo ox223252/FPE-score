@@ -7,59 +7,72 @@
 			input[type=radio] {
 				display: none;
 			}
-			input[type=radio] ~ div {
-				display: none;
+			div:has(input[type=radio]) ~ div {
+				display: none !important;
 			}
-			#juge:checked ~ div.juge {
-				display: initial;
+			div:has(#juge:checked) ~ div.juge {
+				display: inherit !important;
 			}
-			#admin:checked ~ div.admin {
-				display: initial;
+			div:has(#admin:checked) ~ div.admin {
+				display: inherit !important;
 			}
-			#editor:checked ~ div.editor {
-				display: initial;
+			div:has(#staff:checked) ~ div.staff {
+				display: inherit !important;
 			}
-			#competitor:checked ~ div.competitor {
-				display: initial;
+			div:has(#competitor:checked) ~ div.competitor {
+				display: inherit !important;
 			}
 
 			#juge:checked ~ label.juge {
-				background-color: grey;
+				background-color: var( --grey );
 			}
 			#admin:checked ~ label.admin {
-				background-color: grey;
+				background-color: var( --grey );
 			}
-			#editor:checked ~ label.editor {
-				background-color: grey;
+			#staff:checked ~ label.staff {
+				background-color: var( --grey );
 			}
 			#competitor:checked ~ label.competitor {
-				background-color: grey;
+				background-color: var( --grey );
 			}
 		</style>
 		<section>
 			<div class="form">
-				<% if ( "admin" == locals.logged ) {%>
-				<input type="radio" name="userType" id="admin">
-				<label class="admin" for="admin">Admin</label>
-				<input type="radio" name="userType" id="editor">
-				<label class="editor" for="editor">Configurateur de competition</label>
-				<input type="radio" name="userType" id="juge">
-				<label class="juge" for="juge">Juge</label>
-				<% } %>
-				<input type="radio" name="userType" id="competitor" checked>
-				<label class="competitor" for="competitor">Competiteur</label>
+				<div>
+					<% switch ( locals.logged )
+					{
+						case "admin": 
+						{ %>
+							<input type="radio" name="userType" id="admin">
+							<label class="admin button" for="admin">Admin</label>
+							<input type="radio" name="userType" id="staff">
+							<label class="staff button" for="staff">Staff</label>
+						<% }
+						case "staff":
+						{ %>
+							<input type="radio" name="userType" id="juge">
+							<label class="juge button" for="juge">Juge</label>
+							<input type="radio" name="userType" id="competitor" checked>
+							<label class="competitor button" for="competitor">Compétiteur</label>
+						<% } 
+						default:
+						{ %>
+						<% }
+					} %>
+				</div>
+
 				<hr style="width: 90%;">
-				<div class="juge admin competitor editor">
-					<label>Nom Prenom :</label>
+				<div class="juge admin competitor staff">
+					<label>Nom Prénom :</label>
 					<input id="name" list="nameList" type="text" placeholder="Nom Prenom">
 					<datalist id="nameList"></datalist>
 				</div>
-				<div class="juge admin editor">
+				<div class="juge admin staff">
 					<label>Password :</label>
 					<input id="pass" type="password" placeholder="Password">
 				</div>
 				<div class="competitor">
-					<label for="categorie">Categorie</label>
+					<label for="categorie">Catégorie</label>
 					<select id="categorie">
 					</select>
 				</div>
@@ -84,136 +97,124 @@
 		</section>
 		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
 		<script type="text/javascript" nonce="<%- locals.nonce %>">
-		let domEls = {
-			name: document.getElementById ( "name" ),
-			pass: document.getElementById ( "pass" ),
-			nameList: document.getElementById ( "nameList" ),
-			categorie: document.getElementById ( "categorie" ),
-			categorieList: document.getElementById ( "categorie" ),
-			genre: document.getElementById ( "genre" ),
-			club: document.getElementById ( "club" ),
-			clubList: document.getElementById ( "clubList" ),
-			validate: document.getElementById ( "validate" ),
-			serverMsg: document.getElementById ( "serverMsg" ),
-		};
-
-		if ( !socket )
-		{
-			var socket = io ( );
-		}
-
-		let users = [];
-
-		socket.on ( "connect", ()=>{
-			socket.emit ( "getUsersList" );
-			socket.emit ( "getClubsList" );
-			socket.emit ( "getListOfAllCategories" );
-		})
-
-		socket.on ( "setClubsList", (msg)=>{
-			while ( domEls.clubList.options.length )
-			{
-				domEls.clubList.removeChild ( domEls.clubList.firstChild );
-			}
-
-			for ( let opt of msg )
-			{
-				let option = document.createElement ( 'option' );
-				option.value = opt;
-				domEls.clubList.appendChild ( option );
-			}
-		});
-
-		socket.on ( "setUsersList", (msg)=>{
-			users = msg;
-			while ( nameList.options.length )
-			{
-				nameList.removeChild ( nameList.firstChild );
-			}
-
-			for ( let opt of msg )
-			{
-				let option = document.createElement ( 'option' );
-				option.value = opt;
-				nameList.appendChild ( option );
-			}
-		});
-
-		socket.on ( "setListOfAllCategories", (msg)=>{
-			uOneSlector ( {default:"categorie", selector:domEls.categorie, list:msg} )
-		});
-
-		socket.on ( "error", (msg)=>{
-			console.log ( msg )
-			domEls.serverMsg.display = "";
-			domEls.serverMsg.innerText = msg;
-
-			document.body.style.backgroundColor = "red";
-
-			setTimeout ( ()=>{
-				document.body.style.backgroundColor = "";
-			}, 1000 );
-		});
-
-		socket.on ( "ok", ()=>{
-			console.log ( "ok" )
-			domEls.name.value = "";
-			domEls.club.value = "";
-			domEls.categorie.value = "";
-			domEls.genre.value = "";
-			domEls.genre.pass = "";
-
-			document.body.style.backgroundColor = "green";
-
-			setTimeout ( ()=>{
-				document.body.style.backgroundColor = "";
-			}, 1000 );
-		});
-
-		domEls.validate.addEventListener ( "click", (ev)=>{
-			ev.preventDefault ( );
-			let msg = {
-				group: document.querySelectorAll ( "input[name=userType]:checked" )[ 0 ].id,
-				name: domEls.name.value.trim ( ),
+			let domEls = {
+				name: document.getElementById ( "name" ),
+				pass: document.getElementById ( "pass" ),
+				nameList: document.getElementById ( "nameList" ),
+				categorie: document.getElementById ( "categorie" ),
+				categorieList: document.getElementById ( "categorie" ),
+				genre: document.getElementById ( "genre" ),
+				club: document.getElementById ( "club" ),
+				clubList: document.getElementById ( "clubList" ),
+				validate: document.getElementById ( "validate" ),
+				serverMsg: document.getElementById ( "serverMsg" ),
 			};
 
-			domEls.serverMsg.innerText = "";
-
-			if ( undefined == msg.name )
+			if ( !socket )
 			{
-				domEls.serverMsg.innerText = "il manque le nom";
-				return;
+				var socket = io ( );
 			}
 
-			switch ( msg.group )
-			{
-				case "competitor":
-				{
-					msg.categorie = domEls.categorie.value;
-					msg.genre = domEls.genre.value;
-					msg.club = domEls.club.value;
-					break;
-				}
-				case "admin":
-				case "editor":
-				case "juge":
-				{
-					msg.pass = domEls.pass.value;
-					break;
-				}
-			}
+			let users = <%- JSON.stringify ( locals.users ) %>;
+			let genres = <%- JSON.stringify ( locals.genres ) %>;
+			let categories = <%- JSON.stringify ( locals.categories ) %>;
 
-			for ( let key in msg )
-			{
-				if ( !msg[ key ])
+			uOneSlector ({
+				default:"genre",
+				selector:domEls.genre,
+				list:genres,
+			});
+			uOneSlector ({
+				default:"categorie",
+				selector:domEls.categorieList,
+				list:categories,
+			});
+			uOneSlector ({
+				default:"club",
+				selector:domEls.clubList,
+				list:users.map ( u2=>u2.club ).distinct ( ).sort ( ),
+			});
+			uOneSlector ({
+				default: "",
+				selector: domEls.nameList,
+				list:users.map ( u2=>u2.name ).distinct ( ).sort ( ),
+			});
+
+			domEls.validate.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+				let data = {
+					group: document.querySelectorAll ( "input[name=userType]:checked" )[ 0 ].id,
+					name: domEls.name.value.trim ( ),
+				};
+
+				domEls.serverMsg.innerText = "";
+
+				if ( undefined == data.name )
 				{
-					domEls.serverMsg.innerText = "il manque une info : "+key;
+					domEls.serverMsg.innerText = "il manque le nom";
 					return;
 				}
-			}
 
-			socket.emit ( "setUser", msg );
-		});
+				switch ( data.group )
+				{
+					case "competitor":
+					{
+						data.categorie = domEls.categorie.value;
+						data.genre = domEls.genre.value;
+						data.club = domEls.club.value;
+						break;
+					}
+					case "admin":
+					case "staff":
+					case "juge":
+					{
+						data.pass = domEls.pass.value;
+						break;
+					}
+				}
+
+				for ( let key in data )
+				{
+					if ( !data[ key ])
+					{
+						domEls.serverMsg.innerText = "il manque une info : "+key;
+						return;
+					}
+				}
+
+				fetch ( "/ajax/set/user", {
+						method: "POST",
+						body: JSON.stringify ( data ),
+						headers: { "Content-Type" : "application/json" }
+					})
+					.then ( r=>{
+						if ( r.ok )
+						{
+							return r.json ( );
+						}
+						else
+						{
+							throw r
+						}
+					})
+					.catch ( console.log )
+			});
+
+			socket.on ( "users", ( msg )=>{
+				users = msg;
+
+				uOneSlector ({
+					default: "",
+					selector: domEls.nameList,
+					list:users.map ( u2=>u2.name ).distinct ( ).sort ( ),
+				});
+
+				uOneSlector ({
+					default:"club",
+					selector:domEls.clubList,
+					list:users.map ( u2=>u2.club ).distinct ( ).sort ( ),
+				});
+			});
 		</script>
 	</body>
 </html>

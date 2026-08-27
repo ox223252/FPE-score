@@ -1,5 +1,6 @@
 import express from 'express'; // routing module
 import fs from 'fs'; // read / write files
+import {checkId} from './fnct.js';
 
 export default function ( params )
 {
@@ -20,11 +21,13 @@ export default function ( params )
 				next ( );
 				return;
 			}
-			case "editor":
+			case "staff":
 			{
 				route.push ( "/set/route" );
-				route.push ( "/set/addUser" );
-				route.push ( "/set/edit" );
+				route.push ( "/set/score" );
+				route.push ( "/set/value" );
+				route.push ( "/set/user" );
+
 			}
 			case "juge":
 			{
@@ -369,6 +372,95 @@ export default function ( params )
 			res.end ( );
 		}
 	}); // set value
+
+	params.express.post ( "/set/user", function ( req, res )
+	{
+		let listInfos = undefined;
+		switch ( req.body.group )
+		{
+			case "admin":
+			case "staff":
+			{
+				if ( "admin" != req.session?.logged )
+				{
+					params.io.to( "admin" ).emit ( "msg", "un juge tente tente de faire une action admin" );
+					res.status ( 403 );
+					res.json ( {msg:"droits insufisants"} );
+					res.end ( );
+					return;
+				}
+			}
+			case "juge":
+			{
+				listInfos = [ "name", "pass" ];
+				break;
+			}
+			case "competitor":
+			{
+				listInfos = [ "name", "categorie", "genre", "club" ];
+				break;
+			}
+			default:
+			{
+				res.status ( 406 );
+				res.json ( {msg:"il manque une info : "+key} );
+				res.end ( );
+				return;
+			}
+		}
+
+		let error = [];
+		listInfos.map ( key=>{
+				if ( !req.body[ key ] )
+				{
+					error.push ( key );
+				}
+			});
+
+		if ( error.length )
+		{
+			res.status ( 406 );
+			res.json ({
+				msg:"il manque des infos",
+				keys: error
+			});
+			res.end ( );
+			return;
+		}
+
+		let data = {}
+		if ( "competitor" == req.body.group )
+		{
+			let index = params.db.users.map ( u=>u.name ).indexOf ( req.body.name );
+			if ( 0 <= index )
+			{
+				Object.assign ( params.db.users[ index ], req.body );
+			}
+			else
+			{
+				params.db.users.push ( req.body );
+			}
+
+			checkId ( params.db.users, "dossard" );
+			fs.writeFileSync ( params.args.db?.users, JSON.stringify ( params.db.users, null, 4 ) );
+
+			data = req.body;
+		}
+		else
+		{
+			params.db.login[ req.body.name ] = {
+				pass: crypto.createHash ( 'sha512' ).update ( req.body.pass ).digest ( 'hex' ),
+				status: req.body.group,
+				error: 0,
+			};
+
+			fs.writeFileSync ( params.args.db.login, JSON.stringify ( params.db.login, null, 4 ), "utf8" )
+		}
+
+		res.status ( 200 );
+		res.json ( data );
+		res.end ( );
+	}); // user
 
 	params.express.post ( "/db/:cmd/:file", function ( req, res )
 	{
