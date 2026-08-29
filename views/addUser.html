@@ -197,7 +197,8 @@
 							throw r
 						}
 					})
-					.catch ( console.log )
+					.then ( onOk )
+					.catch ( onError )
 			});
 
 			socket.on ( "users", ( msg )=>{

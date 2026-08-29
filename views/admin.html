@@ -148,45 +148,17 @@
 					categories: getChecked ( domEls.input.categories )
 				};
 
-				fetch ( "/ajax/start", {
-						method: "POST",
-						body: JSON.stringify ( data ),
-						headers: { "Content-Type": "application/json" }
-					})
-					.then ( r=>{
-						if ( r.ok )
-						{
-							return 0;
-						}
-						else
-						{
-							throw r;
-						}
-					})
-					.then ( )
-					.catch ( console.log );
+				sendCmd ( "/ajax/start", data )
+					.then ( onOk )
+					.catch ( onError );
 			});
 
 			domEls.stop.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
 
-				fetch ( "/ajax/stop", {
-						method: "POST",
-						body: "{}",
-						headers: { "Content-Type": "application/json" }
-					})
-					.then ( r=>{
-						if ( r.ok )
-						{
-							return 0;
-						}
-						else
-						{
-							throw r;
-						}
-					})
-					.then ( )
-					.catch ( console.log );
+				sendCmd ( "/ajax/stop" )
+					.then ( onOk )
+					.catch ( onError );
 			});
 
 			domEls.halt.addEventListener ( "click", (ev)=>{
@@ -195,7 +167,8 @@
 				if ( confirm ( "Vous allez eteindre le systeme etes vous sur ?" ) )
 				{
 					sendCmd ( "/ajax/halt" )
-						.catch ( console.log )
+						.then ( onOk )
+						.catch ( onError );
 				}
 			});
 
@@ -323,7 +296,9 @@
 								{
 									exportFile ( r, file );
 								}
-							});
+							})
+							.then ( onOk )
+							.catch ( onError )
 					});
 				});
 			});

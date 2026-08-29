@@ -190,15 +190,11 @@
 						}
 						else
 						{
-							throw "invalid";
+							throw r;
 						}
 					})
-					.then ( r=>{
-
-					})
-					.catch ( e=>{
-
-					});
+					.then ( onOk )
+					.catch (  onError );
 			});
 		</script>
 	</body>

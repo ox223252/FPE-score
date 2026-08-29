@@ -566,3 +566,33 @@ function exportFile ( data, file )
 	downloadLink.click();
 	document.body.removeChild ( downloadLink );
 }
+
+function onError ( ev )
+{
+	let nav = document.querySelector ( "nav" );
+
+	nav.style.backgroundColor = "red";
+
+	setTimeout ( ()=>{
+		nav.style.backgroundColor = "";
+	}, 1000 );
+}
+
+function onOk ( ev )
+{
+	let nav = document.querySelector ( "nav" );
+
+	nav.style.backgroundColor = "blue";
+
+	setTimeout ( ()=>{
+		nav.style.backgroundColor = "";
+	}, 1000 );
+}
+
+
+
+
+
+
+
+
