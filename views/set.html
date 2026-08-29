@@ -374,7 +374,18 @@
 						body: JSON.stringify ( data ),
 						headers: { "Content-Type": "application/json" },
 					})
-					.then ( console.log )
+					.then ( r=>{
+						if ( r.ok )
+						{
+							return r;
+						}
+						else
+						{
+							throw r;
+						}
+					} )
+					.then ( onOk )
+					.catch ( onError )
 				
 				domEls.validate.disabled = true;
 			});

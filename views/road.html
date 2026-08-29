@@ -145,6 +145,7 @@
 							throw r;
 						}
 					})
+					.catch ( onError )
 			});
 
 			domEls.route.addEventListener ( "change", ( ev )=>{
