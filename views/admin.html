@@ -148,17 +148,13 @@
 					categories: getChecked ( domEls.input.categories )
 				};
 
-				sendCmd ( "/ajax/start", data )
-					.then ( onOk )
-					.catch ( onError );
+				ajaxReq ( "/ajax/start", data )
 			});
 
 			domEls.stop.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
 
-				sendCmd ( "/ajax/stop" )
-					.then ( onOk )
-					.catch ( onError );
+				ajaxReq ( "/ajax/stop" )
 			});
 
 			domEls.halt.addEventListener ( "click", (ev)=>{
@@ -166,30 +162,9 @@
 
 				if ( confirm ( "Vous allez eteindre le systeme etes vous sur ?" ) )
 				{
-					sendCmd ( "/ajax/halt" )
-						.then ( onOk )
-						.catch ( onError );
+					ajaxReq ( "/ajax/halt" )
 				}
 			});
-
-			function sendCmd ( path, data = {} )
-			{
-				return fetch ( path,{
-						method:"POST",
-						body: JSON.stringify ( data ),
-						headers: { "Content-Type":"application/json" }
-					})
-					.then ( r=>{
-						if ( r.ok )
-						{
-							return r.json ( );
-						}
-						else
-						{
-							throw r;
-						}
-					})
-			}
 
 			[ "users", "routes", "scores" ].map ( file=>{
 				Object.keys ( domEls[ file ] ).map ( cmd=>{
@@ -290,15 +265,18 @@
 							}
 						}
 
-						sendCmd ( `/ajax/db/${cmd}/${file}`, data )
+						ajaxReq ( `/ajax/db/${cmd}/${file}`, data )
 							.then ( r=>{
+								if ( !r.status )
+								{
+									return;
+								}
+
 								if ( "export" == cmd )
 								{
 									exportFile ( r, file );
 								}
 							})
-							.then ( onOk )
-							.catch ( onError )
 					});
 				});
 			});

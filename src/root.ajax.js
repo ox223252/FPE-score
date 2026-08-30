@@ -179,7 +179,7 @@ export default function ( params )
 		if ( !params.types.includes ( req.body.type ) )
 		{
 			res.status ( 403 );
-			res.json ( {msg:"type "+req.body.type+"invalide, accepté : "+params.type})
+			res.json ( {msg:"type "+req.body.type+"invalide, accepté : "+params.types})
 			res.end ( );
 			return;
 		}
@@ -206,15 +206,18 @@ export default function ( params )
 			{
 				if ( 2 != req.body.scores.length )
 				{
+					console.log ( "406, C");
 					res.status ( 406 );
 					res.json ( {msg:"pour le bloc seul un score de ZONE et de TOP sont requis"})
 					res.end ( );
 					return;
 				}
 
+				console.log ( req.body )
+
 				req.body.scores = {
-					zone: req.body.score[ 0 ],
-					top: req.body.score[ 1 ],
+					zone: req.body.scores[ 0 ],
+					top: req.body.scores[ 1 ],
 				};
 			}
 		}

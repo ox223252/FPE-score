@@ -567,26 +567,56 @@ function exportFile ( data, file )
 	document.body.removeChild ( downloadLink );
 }
 
-function onError ( ev )
+
+
+function ajaxReq ( path, data = {} )
 {
 	let nav = document.querySelector ( "nav" );
+	nav.style.backgroundColor = "orange";
 
-	nav.style.backgroundColor = "red";
+	return fetch ( path,{
+			method:"POST",
+			body: JSON.stringify ( data ),
+			headers: { "Content-Type":"application/json" }
+		})
+		.then ( r=>{
+			if ( r.ok )
+			{
+				const contentType = r.headers.get ( "content-type" );
 
-	setTimeout ( ()=>{
-		nav.style.backgroundColor = "";
-	}, 1000 );
-}
+				if ( contentType
+					&& -1 !== contentType.indexOf ( "application/json" ) )
+				{
+					return r.json ( );
+				}
+				else
+				{
+					return r.text ( )
+				}
+			}
+			else
+			{
+				throw r.txt ( );
+			}
+		})
+		.then ( r=>({ data: r, status: true }) )
+		.catch ( r=>({ data: r, status: false }) )
+		.then ( r=>{
+			let nav = document.querySelector ( "nav" );
 
-function onOk ( ev )
-{
-	let nav = document.querySelector ( "nav" );
+			if ( !nav )
+			{
+				return r;
+			}
 
-	nav.style.backgroundColor = "blue";
+			nav.style.backgroundColor = (status)?"lightgreen":"red";
 
-	setTimeout ( ()=>{
-		nav.style.backgroundColor = "";
-	}, 1000 );
+			setTimeout ( ()=>{
+				nav.style.backgroundColor = "";
+			}, 1000 );
+
+			return r;
+		})
 }
 
 
