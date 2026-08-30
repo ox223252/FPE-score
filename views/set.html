@@ -369,23 +369,7 @@
 					}
 				};
 
-				fetch ( "/ajax/set/score", {
-						method: "POST",
-						body: JSON.stringify ( data ),
-						headers: { "Content-Type": "application/json" },
-					})
-					.then ( r=>{
-						if ( r.ok )
-						{
-							return r;
-						}
-						else
-						{
-							throw r;
-						}
-					} )
-					.then ( onOk )
-					.catch ( onError )
+				ajaxReq ( "/ajax/set/score", data )
 				
 				domEls.validate.disabled = true;
 			});
