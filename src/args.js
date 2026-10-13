@@ -49,6 +49,10 @@ export default function ( params )
 			describe: 'name of group for user from linux',
 			default: 'loginForNodeApp',
 		})
+		.option ( 'login.pamService', {
+			describe: 'PAM service used to check linux passwords ( /etc/pam.d/<service> )',
+			default: 'login',
+		})
 		.option ( 'login.file', {
 			describe: 'file for user by file ( file using JSON format )',
 			default: 'private/userDB.js',

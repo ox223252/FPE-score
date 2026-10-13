@@ -6,7 +6,9 @@ import childProcess from 'child_process';
 
 import ActiveDirectory from 'activedirectory'; // login with windows user account
 
-const exec = util.promisify ( childProcess.exec );
+// execFile lance le programme directement, sans passer par un shell :
+// les arguments ne sont jamais interprétés ( pas de ; | $( ) ` ... )
+const execFile = util.promisify ( childProcess.execFile );
 
 class User {
 	constructor ( params = {})
@@ -99,14 +101,20 @@ class ULinux extends User {
 	{
 		super ( params );
 
+		if ( !ULinux.isValidName ( params.group ) )
+		{
+			throw `ERROR : invalid group name "${params.group}"`;
+		}
+
 		this.group = params.group;
+		this.pamService = params.pamService || "login";
 
 		this.init ( );
 	}
 
 	init ( )
 	{
-		return exec ( `getent group | grep ${this.group}` )
+		return execFile ( "getent", [ "group", this.group ] )
 			.catch ( r=>{
 				if ( process.getuid ( ) )
 				{
@@ -114,15 +122,31 @@ class ULinux extends User {
 				}
 				else
 				{
-					return exec ( `addgroup ${this.group}`)
+					return execFile ( "groupadd", [ this.group ] )
 						.then ( r=>{
 							console.log ( `   - group "${this.group}" added` )
 						})
 				}
 			})
 			.then ( ()=>{
+				// pamtester absent -> ENOENT ; présent sans argument -> code de sortie != 0 ( normal )
+				return execFile ( "pamtester" )
+					.catch ( r=>{
+						if ( "ENOENT" == r.code )
+						{
+							throw `ERROR : "pamtester" not found ( apt install pamtester ), login can't work`;
+						}
+					})
+			})
+			.then ( ()=>{
+				if ( process.getuid ( ) )
+				{
+					console.log ( `   - WARNING : not root, PAM can only check the password of the user running node` )
+				}
+
 				console.log ( ` - Use linux system to connect` )
 				console.log ( `   - connexion allowed to group "${this.group}"` )
+				console.log ( `   - PAM service "${this.pamService}"` )
 			})
 	}
 
@@ -133,6 +157,12 @@ class ULinux extends User {
 				return r;
 			})
 			.catch ( ()=>{
+				if ( !ULinux.isValidName ( name )
+					|| !ULinux.isValidPassword ( passwd ) )
+				{
+					return Promise.reject ( "invalid" );
+				}
+
 				return this.users
 					.then ( r=>{
 						if ( 0 > r.indexOf ( name ) )
@@ -140,7 +170,7 @@ class ULinux extends User {
 							throw 'user not allowed';
 						}
 
-						return exec ( `echo ${passwd} | su - ${name} -c exit 0` )
+						return ULinux.pamAuthenticate ( this.pamService, name, passwd );
 					})
 					.then ( r=>{
 						let index = this.db.map ( u=>u.name )
@@ -178,7 +208,12 @@ class ULinux extends User {
 			return Promise.reject ( "user check : neet to be root" );
 		}
 
-		return exec ( `id ${name}` )
+		if ( !ULinux.isValidName ( name ) )
+		{
+			return Promise.reject ( "invalid" );
+		}
+
+		return execFile ( "id", [ "--", name ] )
 			.then ( r=>{
 				return 0;
 			})
@@ -194,19 +229,24 @@ class ULinux extends User {
 			return Promise.reject ( "user add : neet to be root" );
 		}
 
+		if ( !ULinux.isValidName ( name ) )
+		{
+			return Promise.reject ( "invalid" );
+		}
+
 		return this.exist ( name )
 			.then ( ()=>{
-				return exec ( `usermod -a -G ${this.group} ${name}` )
-			})
-			.catch ( r=>{
-				return exec ( `useradd ${name} --groups ${this.group} --no-create-home --shell false` )
+				return execFile ( "usermod", [ "-a", "-G", this.group, "--", name ] )
+			}, r=>{
+				return execFile ( "useradd", [ "--groups", this.group, "--no-create-home", "--shell", "/usr/sbin/nologin", "--", name ] )
 			})
 	}
 
 	get users ( )
 	{
-		return exec ( `getent group | grep ${this.group} | cut -d':' -f4` )
-			.then ( r=>r.stdout.trim ( ).split ( "," ) )
+		// getent group <groupe> -> "nom:x:gid:membre1,membre2"
+		return execFile ( "getent", [ "group", this.group ] )
+			.then ( r=>( r.stdout.trim ( ).split ( ":" )[ 3 ] ?? "" ).split ( "," ) )
 			.then ( r=>{
 				if ( 0 <= r.indexOf ( "root" ) )
 				{
@@ -225,6 +265,44 @@ class ULinux extends User {
 	get _isRoot ( )
 	{
 		return process.getuid ( ) == 0;
+	}
+
+	static isValidName ( name )
+	{
+		return ( "string" == typeof name ) &&  /^[a-z_][a-z0-9_-]{0,31}$/i.test ( name );
+	}
+
+	static isValidPassword ( passwd )
+	{
+		return ( "string" == typeof passwd )
+			&& ( 0 < passwd.length )
+			&& ( 1024 >= passwd.length )
+			&& !/[\r\n\0]/.test ( passwd ); // un retour ligne couperait le mot de passe envoyé sur stdin
+	}
+
+	static pamAuthenticate ( service, name, passwd )
+	{
+		return new Promise ( ( ok, ko )=>{
+			let child = childProcess.spawn ( "pamtester", [ service, name, "authenticate", "acct_mgmt" ], {
+				stdio: [ "pipe", "ignore", "ignore" ],
+				timeout: 10000,
+			});
+
+			child.on ( "error", ko );
+			child.on ( "close", ( code )=>{
+				if ( 0 === code )
+				{
+					ok ( );
+				}
+				else
+				{
+					ko ( "invalid" );
+				}
+			});
+
+			child.stdin.on ( "error", ()=>{} ); // le processus peut fermer stdin avant la fin de l'écriture
+			child.stdin.end ( passwd + "\n" );
+		});
 	}
 }
 
