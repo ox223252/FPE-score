@@ -31,25 +31,41 @@ export default function ( params )
 
 	params.express.post ( '/ajax/login', function ( req, res )
 	{
-		params.login.login ( req.body.user, req.body.pass, req.body.token )
+		params.login.login ( req.body?.user, req.body?.pass, req.body?.token, req.ip )
 			.then ( r=>{
-				req.session.user = r.name;
-				req.session.logged = r.status || true;
+				params.login.limit.reset ( req.ip );
 
-				if ( "/login" == req.session.target )
-				{
-					req.session.target = "/";
-				}
+				let target = req.session.target;
 
-				res.status ( 200 );
-				res.json ({
-					target: req.session.target,
-					token: r.token,
+				// nouvel identifiant de session à la connexion : un identifiant connu
+				// avant la connexion ( fixation de session ) ne donne plus accès au compte
+				req.session.regenerate ( ( err )=>{
+					if ( err )
+					{
+						res.status ( 500 );
+						res.json ({});
+						res.end ( );
+						return;
+					}
+
+					req.session.user = r.name;
+					req.session.logged = r.status || true;
+					req.session.target = ( "/login" == target ) ? "/" : target;
+
+					res.status ( 200 );
+					res.json ({
+						target: req.session.target,
+						token: r.token,
+					});
+					res.end ( );
 				});
-				res.end ( );
 			})
 			.catch ( r=>{
-				res.status ( 403 );
+				res.status ( r?.code ?? 500 );
+				if ( 429 == r?.code )
+				{
+					res.set ( "Retry-After", String ( r.time ) );
+				}
 				res.json ({});
 				res.end ( );
 			})

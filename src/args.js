@@ -58,6 +58,16 @@ export default function ( params )
 			type: 'number',
 			default: 30,
 		})
+		.option ( 'login.maxAttempts', {
+			describe: 'max login attempts per IP before blocking',
+			type: 'number',
+			default: 10,
+		})
+		.option ( 'login.lockMinutes', {
+			describe: 'duration of the login attempts window / block, in minutes',
+			type: 'number',
+			default: 15,
+		})
 		.option ( 'login.file', {
 			describe: 'file for user by file ( file using JSON format )',
 			default: 'private/userDB.js',

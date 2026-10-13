@@ -14,12 +14,72 @@ const scrypt = util.promisify ( crypto.scrypt );
 // paramètres scrypt ( N = coût CPU / mémoire, ~16 Mo et ~50 ms par vérification )
 const SCRYPT = { N: 16384, r: 8, p: 1, keyLen: 64 };
 
+class LogLimit {
+	constructor ( params )
+	{
+		this._params = params;
+
+		this._max = Number ( this._params.maxAttempts ) || 10;
+		this._window = ( Number ( this._params.lockMinutes ) || 15 ) * 60 * 1000;
+		this.ips = new Map ( ); // ip -> { count, reset }
+
+		setInterval ( ()=>this.purge ( ), 60 * 1000 ).unref ( ); // nettoyage des entrées expirées
+	}
+
+	// enregistre une tentative ; retourne 0 si autorisée, sinon le nombre de secondes à attendre
+	check ( ip )
+	{
+		if ( !ip )
+		{
+			return Promise.reject ({ code:500, msg: "no ip" });
+		}
+
+		let now = Date.now ( );
+		let entry = this.ips.get ( ip );
+
+		if ( !entry
+			|| ( now > entry.reset ) )
+		{
+			entry = { count: 0, reset: now + this._window };
+			this.ips.set ( ip, entry );
+		}
+
+		if ( entry.count >= this._max )
+		{
+			return Promise.reject ({ code:429, time: Math.ceil ( ( entry.reset - now ) / 1000 ) });
+		}
+
+		entry.count++; // compté dès le début : des requêtes en parallèle ne contournent pas la limite
+		return Promise.resolve ( );
+	}
+
+	reset ( ip )
+	{
+		this.ips.delete ( ip );
+	}
+
+	purge ( )
+	{
+		let now = Date.now ( );
+
+		for ( let [ ip, entry ] of this.ips )
+		{
+			if ( now > entry.reset )
+			{
+				this.ips.delete ( ip );
+			}
+		}
+	}
+}
+
 class User {
 	constructor ( params = {})
 	{
 		this._params = params;
 		this._tokenMaxAge = ( Number ( params.tokenDuration ) || 30 ) * 24 * 60 * 60 * 1000;
 		this._maxTokens = 10;
+
+		this.limit = new LogLimit ( params )
 
 		let path = this._params.file.substring ( 0, this._params.file.lastIndexOf ( "/" ) );
 
@@ -35,7 +95,19 @@ class User {
 	}
 
 	// connexion par jeton : on compare l'empreinte du jeton reçu à celles stockées
-	login ( token )
+	login ( name, passwd, token, ip )
+	{
+		return this._logToken ( token ) // tentative de connecion par token
+			.catch ( ()=>this.limit.check ( ip ) ) // token invalide donc check de limite de tentative
+			.then ( ()=>this._login ( name, passwd ) ) // tentative par user/password
+			.catch ( ( err )=>{
+				throw [ 403, 429 ].includes ( err?.code )
+					? err
+					: { code:403, msg: "invalid" };
+			})
+	}
+
+	_logToken ( token )
 	{
 		if ( ( "string" != typeof token )
 			|| ( 0 == token.length )
@@ -56,6 +128,11 @@ class User {
 		}
 
 		return Promise.resolve ( this.getSafeUser ( index, { token } ) );
+	}
+
+	_login ( name, passwd )
+	{
+		return Promise.reject ({code:500,msg:"not managed"});
 	}
 
 	// crée un nouveau jeton pour l'utilisateur, ne stocke que son empreinte
@@ -205,56 +282,50 @@ class ULinux extends User {
 			})
 	}
 
-	login ( name, passwd, token )
+	// jeton valide, mais son propriétaire doit toujours être dans le groupe
+	_logToken ( token )
 	{
-		return super.login ( token )
+		return super._logToken ( token )
 			.then ( r=>this.users
 				.then ( users=>{
-					if ( !users.includes ( name ) )
+					if ( !users.includes ( r.name ) )
 					{
-						throw "user not allowed";
+						throw { code:403, msg: "not allowed" };
 					}
 
 					return r;
 				})
-			)
-			.catch ( (err)=>{
-				if ( err )
-				{
-					console.log ( err )
-					throw err;
-				}
+			);
+	}
 
+	_login ( name, passwd )
+	{
+		return this.users
+			.then ( users=>{
+				if ( !users.includes ( name ) )
+				{
+					throw { code:403, msg: "not allowed" };
+				}
+				
 				if ( !ULinux.isValidName ( name )
 					|| !ULinux.isValidPassword ( passwd ) )
 				{
-					return Promise.reject ( "invalid" );
+					throw { code:403, msg: "not allowed" };
 				}
 
-				return this.users
-					.then ( users=>{
-						if ( !users.includes ( r.name ) )
-						{
-							throw "user not allowed";
-						}
+				return ULinux.pamAuthenticate ( this.pamService, name, passwd )
+			})
+			.then ( ()=>{
+				let index = this.db.map ( u=>u.name )
+					.indexOf ( name );
 
-						return ULinux.pamAuthenticate ( this.pamService, name, passwd )
-					})
-					.then ( ()=>{
-						let index = this.db.map ( u=>u.name )
-							.indexOf ( name );
+				if ( -1 == index )
+				{
+					this.db.push ({ name: name, tokens: [] });
+					index = this.db.length - 1;
+				}
 
-						if ( -1 == index )
-						{
-							this.db.push ({ name: name, tokens: [] });
-							index = this.db.length - 1;
-						}
-
-						return this._addToken ( index );
-					})
-					.catch ( r=>{
-						throw "invalid";
-					})
+				return this._addToken ( index );
 			})
 	}
 
@@ -375,7 +446,7 @@ class UFile extends User {
 		console.log ( `   - no user defined, next one will be root` )
 	}
 
-	login ( name, passwd, token )
+	_login ( name, passwd )
 	{
 		if ( 0 == this.db.length )
 		{ // base vide : le premier utilisateur est créé ( comportement voulu )
@@ -383,21 +454,19 @@ class UFile extends User {
 				.then ( ()=>this._addToken ( this.db.map ( u=>u.name ).indexOf ( name ) ) );
 		}
 
-		return super.login ( token )
-			.catch ( async ()=>{
-				if ( !UFile.isValidName ( name )
-					|| !UFile.isValidPassword ( passwd ) )
-				{
-					throw "invalid";
-				}
+		if ( !UFile.isValidName ( name )
+			|| !UFile.isValidPassword ( passwd ) )
+		{
+			return Promise.reject ({ code:403, msg: "invalid" });
+		}
 
-				let index = this.db.map ( u=>u.name ).indexOf ( name );
+		let index = this.db.map ( u=>u.name )
+			.indexOf ( name );
 
-				// si l'utilisateur n'existe pas on calcule quand même un hash :
-				// le temps de réponse ne révèle pas si le nom existe
-				return UFile.verifyPassword ( passwd, this.db[ index ]?.pass )
-					.then ( ()=>this._addToken ( index ) )
-			})
+		// si l'utilisateur n'existe pas on calcule quand même un hash :
+		// le temps de réponse ne révèle pas si le nom existe
+		return UFile.verifyPassword ( passwd, this.db[ index ]?.pass )
+			.then ( ()=>this._addToken ( index ) )
 	}
 
 	exist ( name )
@@ -543,11 +612,11 @@ class UAd extends User {
 					ad.authenticate ( user, pass, (e,d)=>{
 						if ( e )
 						{
-							ko ( e );
+							ko ({code:403, msg:e});
 						}
 						else
 						{
-							ok ( d );
+							ok ({name:user});
 						}
 					});
 				});
@@ -573,20 +642,22 @@ class UAd extends User {
 		};
 	}
 
-	login ( user, pass, token )
+	_login ( name, passwd )
 	{
-		return super.login ( token )
-			.catch ( r=>{
-				if ( -1 == user.indexOf ( "@" ) )
-				{
-					return this._ad.authenticate ( user+this._params.ad.domain, pass )
-				}
-				else
-				{
-					return this._ad.authenticate ( user, pass );
-				} 
+		if ( ( "string" != typeof name )
+			|| ( "string" != typeof passwd ) )
+		{
+			return Promise.reject ({ code:403, msg: "invalid" });
+		}
 
-			})
+		if ( -1 == name.indexOf ( "@" ) )
+		{
+			return this._ad.authenticate ( name+this._params.ad.domain, pass )
+		}
+		else
+		{
+			return this._ad.authenticate ( name, passwd );
+		}
 	}
 
 	exist ( name )

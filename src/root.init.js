@@ -76,14 +76,17 @@ export default async function ( params )
 	}
 
 	let sessionMiddleware = session ({
-		secret: crypto.createHash( 'sha512' ).update( Math.random ( ).toString ( Math.floor ( Math.random ( ) * 34 ) + 2 ) ).digest( "hex" ),
+		// secret aléatoire à chaque démarrage : les sessions sont en mémoire et perdues au redémarrage
+		// de toute façon, les utilisateurs se reconnectent automatiquement avec leur jeton
+		secret: crypto.randomBytes ( 64 ).toString ( "hex" ),
 		resave: false,
 		saveUninitialized: false,
 		cookie: {
 			maxAge: 24 * 60 * 60 * 1000,
 			path: '/',
-			httpOnly: true,
-			secure: false,
+			httpOnly: true, // illisible depuis le JavaScript de la page
+			secure: ( "https" == params.args.server ), // envoyé uniquement en HTTPS
+			sameSite: "lax", // non envoyé par les requêtes POST / fetch venant d'un autre site
 		}
 	});
 

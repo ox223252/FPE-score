@@ -97,12 +97,14 @@
 						}
 					})
 					.catch ( r=>{
-						if ( data.token )
-						{
+						if ( data.token
+							&& ( 403 == r.status ) )
+						{ // jeton refusé ( pas en cas de blocage 429 ou d'erreur réseau )
 							localStorage.removeItem ( <%- js ( locals.title ) %> );
 						}
 
-						if ( 403 == r.status )
+						if ( ( 403 == r.status )
+							|| ( 429 == r.status ) )
 						{
 							domEls.logEl.style.backgroundColor = "var( --error )";
 							
