@@ -98,8 +98,11 @@ class User {
 	login ( name, passwd, token, ip )
 	{
 		return this._logToken ( token ) // tentative de connecion par token
-			.catch ( ()=>this.limit.check ( ip ) ) // token invalide donc check de limite de tentative
-			.then ( ()=>this._login ( name, passwd ) ) // tentative par user/password
+			.catch ( ()=>{
+				return this.limit.check ( ip ) // token invalide donc check de limite de tentative
+					.then ( ()=>this._login ( name, passwd ) ) // tentative par user/password
+					.then ( index=>this._addToken ( index ) ) // add token for this user
+			})
 			.catch ( ( err )=>{
 				throw [ 403, 429 ].includes ( err?.code )
 					? err
@@ -325,7 +328,7 @@ class ULinux extends User {
 					index = this.db.length - 1;
 				}
 
-				return this._addToken ( index );
+				return index;
 			})
 	}
 
@@ -451,7 +454,7 @@ class UFile extends User {
 		if ( 0 == this.db.length )
 		{ // base vide : le premier utilisateur est créé ( comportement voulu )
 			return this.add ( name, passwd )
-				.then ( ()=>this._addToken ( this.db.map ( u=>u.name ).indexOf ( name ) ) );
+				.then ( ()=>this.db.map ( u=>u.name ).indexOf ( name ) );
 		}
 
 		if ( !UFile.isValidName ( name )
@@ -466,7 +469,7 @@ class UFile extends User {
 		// si l'utilisateur n'existe pas on calcule quand même un hash :
 		// le temps de réponse ne révèle pas si le nom existe
 		return UFile.verifyPassword ( passwd, this.db[ index ]?.pass )
-			.then ( ()=>this._addToken ( index ) )
+			.then ( ()=>index )
 	}
 
 	exist ( name )
@@ -650,14 +653,19 @@ class UAd extends User {
 			return Promise.reject ({ code:403, msg: "invalid" });
 		}
 
-		if ( -1 == name.indexOf ( "@" ) )
-		{
-			return this._ad.authenticate ( name+this._params.ad.domain, pass )
-		}
-		else
-		{
-			return this._ad.authenticate ( name, passwd );
-		}
+		return this._ad.authenticate ( name + ( ( -1 == name.indexOf ( "@" ) )?this._params.ad.domain:"" ), passwd )
+			.then ( ret=>{
+				let index = this.db.map ( u=>u.name )
+					.indexOf ( ret.name );
+
+				if ( -1 == index )
+				{
+					this.db.push ({ name: ret.name, tokens: [] });
+					index = this.db.length - 1;
+				}
+
+				return index;
+			})
 	}
 
 	exist ( name )

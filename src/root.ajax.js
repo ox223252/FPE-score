@@ -15,7 +15,7 @@ export default function ( params )
 			}
 		}
 
-		if ( route.includes ( req.originalUrl ) )
+		if ( route.includes ( req.path ) )
 		{
 			next ( );
 		}
