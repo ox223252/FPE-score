@@ -45,7 +45,7 @@
 				let data = {
 					user: domEls.user.value,
 					pass: domEls.pass.value,
-					token: localStorage.getItem ( "<%- locals.title %>" ),
+					token: localStorage.getItem ( <%- js ( locals.title ) %> ),
 				};
 
 				if ( ( !data.user
@@ -74,7 +74,7 @@
 						}
 					})
 					.then ( r=>{
-						localStorage.setItem ( "<%- locals.title %>", r.token );
+						localStorage.setItem ( <%- js ( locals.title ) %>, r.token );
 						return r;
 					})
 					.then ( r=>{
@@ -99,7 +99,7 @@
 					.catch ( r=>{
 						if ( data.token )
 						{
-							localStorage.removeItem ( "<%- locals.title %>" );
+							localStorage.removeItem ( <%- js ( locals.title ) %> );
 						}
 
 						if ( 403 == r.status )
@@ -136,7 +136,7 @@
 
 			window.onload = ()=>{
 				<% if ( locals.logged ) { %>
-					localStorage.removeItem ( "<%- locals.title %>" );
+					localStorage.removeItem ( <%- js ( locals.title ) %> );
 				<% } else { %>
 					sentCredential ( );
 				<% } %>

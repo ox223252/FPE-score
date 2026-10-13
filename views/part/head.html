@@ -6,7 +6,7 @@
 <link rel="stylesheet" type="text/css"  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
 <link rel="stylesheet" type="text/css"  href="css/main.css">
 
-<title><%- locals.title %></title>
+<title><%= locals.title %></title>
 <script src="socket.io.js" nonce="<%- locals.nonce %>"></script>
 <script nonce="<%- locals.nonce %>">
 	var socket = io.connect ( window.location.origin ,{
@@ -26,22 +26,22 @@
 		if ( firstConnection )
 		{
 			socket .emit ( "identify", {
-				user:"<%- locals.user %>",
-				page:"<%- locals.page %>"
+				user: <%- js ( locals.user ) %>,
+				page: <%- js ( locals.page ) %>
 			});
 		}
-		else if ( !localStorage.getItem ( "<%- locals.title %>" ) )
+		else if ( !localStorage.getItem ( <%- js ( locals.title ) %> ) )
 		{ // if no token -> strange
 			socket .emit ( "identify", {
-				user:"<%- locals.user %>-disconnected",
-				page:"<%- locals.page %>"
+				user: <%- js ( locals.user + "-disconnected" ) %>,
+				page: <%- js ( locals.page ) %>
 			});
 		}
 		else
 		{ // reconnect
 			fetch ( "/ajax/login", {
 					method: "POST",
-					body: JSON.stringify( {token: localStorage.getItem ( "<%- locals.title %>" ) }),
+					body: JSON.stringify( {token: localStorage.getItem ( <%- js ( locals.title ) %> ) }),
 					headers: { "Content-Type": "application/json" },
 				})
 				.then ( r=>{
@@ -56,8 +56,8 @@
 				})
 				.then ( ()=>{
 					socket .emit ( "identify", {
-						user:"<%- locals.user %>",
-						page:"<%- locals.page %>"
+						user: <%- js ( locals.user ) %>,
+						page: <%- js ( locals.page ) %>
 					});
 				})
 				.catch ( ()=>{

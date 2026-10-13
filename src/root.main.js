@@ -1,3 +1,16 @@
+// convertit une valeur en littéral JavaScript sûr à insérer dans un <script> :
+// JSON gère les guillemets / antislashs, on neutralise en plus < > & ( pas de </script> possible )
+// et les séparateurs de ligne U+2028 / U+2029
+function toJs ( value )
+{
+	return JSON.stringify ( value ?? null )
+		.replace ( /</g, "\\u003c" )
+		.replace ( />/g, "\\u003e" )
+		.replace ( /&/g, "\\u0026" )
+		.replace ( /\u2028/g, "\\u2028" )
+		.replace ( /\u2029/g, "\\u2029" );
+}
+
 export default function ( params )
 {
 	console.log ( "   - Init Root part" );
@@ -38,6 +51,7 @@ export default function ( params )
 		res.locals.user = req.session.user || "unknow";
 		res.locals.page = req.originalUrl;
 		res.locals.logged = req.session.logged;
+		res.locals.js = toJs; // à utiliser dans les vues : <%- js ( valeur ) %>
 
 		next ( );
 	});
