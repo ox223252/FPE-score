@@ -1,6 +1,6 @@
 import fs from 'fs'; // read / write files
 import util from 'util';
-import crypto from 'crypto'; // sha512
+import crypto from 'crypto'; // scrypt / sha256 / randomBytes
 import chokidar from "chokidar";
 import childProcess from 'child_process';
 
@@ -9,11 +9,18 @@ import ActiveDirectory from 'activedirectory'; // login with windows user accoun
 // execFile lance le programme directement, sans passer par un shell :
 // les arguments ne sont jamais interprétés ( pas de ; | $( ) ` ... )
 const execFile = util.promisify ( childProcess.execFile );
+const scrypt = util.promisify ( crypto.scrypt );
+
+// paramètres scrypt ( N = coût CPU / mémoire, ~16 Mo et ~50 ms par vérification )
+const SCRYPT = { N: 16384, r: 8, p: 1, keyLen: 64 };
 
 class User {
 	constructor ( params = {})
 	{
 		this._params = params;
+		this._tokenMaxAge = ( Number ( params.tokenDuration ) || 30 ) * 24 * 60 * 60 * 1000;
+		this._maxTokens = 10;
+
 		let path = this._params.file.substring ( 0, this._params.file.lastIndexOf ( "/" ) );
 
 		if ( !fs.existsSync ( path ) )
@@ -27,24 +34,54 @@ class User {
 		}
 	}
 
+	// connexion par jeton : on compare l'empreinte du jeton reçu à celles stockées
 	login ( token )
 	{
-		if ( !token )
+		if ( ( "string" != typeof token )
+			|| ( 0 == token.length )
+			|| ( 256 < token.length ) )
 		{
 			return Promise.reject ( );
 		}
 
-		let index = this.db.map ( u=>u.token )
-			.indexOf ( token );
+		let hash = User.hashToken ( token );
+		let now = Date.now ( );
+
+		let index = this.db.findIndex ( u=>( u.tokens ?? [] )
+			.some ( t=>( t.hash == hash ) && ( t.expires > now ) ) );
 
 		if ( -1 == index )
 		{
 			return Promise.reject ( );
 		}
-		
-		let tmp = { ...this.db[ index ] };
 
-		return Promise.resolve ( tmp );
+		return Promise.resolve ( this.getSafeUser ( index, { token } ) );
+	}
+
+	// crée un nouveau jeton pour l'utilisateur, ne stocke que son empreinte
+	// un utilisateur peut avoir plusieurs jetons ( un par navigateur / poste )
+	_addToken ( index )
+	{
+		let token = crypto.randomBytes ( 32 ).toString ( "base64url" );
+		let now = Date.now ( );
+		let user = this.db[ index ];
+
+		if ( !user.tokens )
+		{
+			user.tokens = [];
+		}
+
+		user.tokens.push ({
+			hash: User.hashToken ( token ),
+			expires: now + this._tokenMaxAge
+		});
+
+		user.tokens = user.tokens.filter ( t=>t.expires > now )
+			.slice ( -this._maxTokens );
+
+		this.db = [ ...this.db ]; // sauvegarde
+
+		return this.getSafeUser ( index, { token } );
 	}
 
 	exist ( )
@@ -60,6 +97,17 @@ class User {
 	rm ( )
 	{
 		return Promise.reject ( );
+	}
+
+	getSafeUser ( index, params = {} )
+	{
+		let tmp = {...this.db[ index ]};
+		Object.assign ( tmp, params );
+
+		delete tmp.tokens;
+		delete tmp.pass;
+
+		return tmp;
 	}
 
 	get users ( )
@@ -93,6 +141,13 @@ class User {
 		}
 
 		return this._db ?? [];
+	}
+
+	static hashToken ( token )
+	{
+		return crypto.createHash ( "sha256" )
+			.update ( token )
+			.digest ( "hex" );
 	}
 }
 
@@ -153,10 +208,23 @@ class ULinux extends User {
 	login ( name, passwd, token )
 	{
 		return super.login ( token )
-			.then ( r=>{
-				return r;
-			})
-			.catch ( ()=>{
+			.then ( r=>this.users
+				.then ( users=>{
+					if ( !users.includes ( name ) )
+					{
+						throw "user not allowed";
+					}
+
+					return r;
+				})
+			)
+			.catch ( (err)=>{
+				if ( err )
+				{
+					console.log ( err )
+					throw err;
+				}
+
 				if ( !ULinux.isValidName ( name )
 					|| !ULinux.isValidPassword ( passwd ) )
 				{
@@ -164,36 +232,25 @@ class ULinux extends User {
 				}
 
 				return this.users
-					.then ( r=>{
-						if ( 0 > r.indexOf ( name ) )
+					.then ( users=>{
+						if ( !users.includes ( r.name ) )
 						{
-							throw 'user not allowed';
+							throw "user not allowed";
 						}
 
-						return ULinux.pamAuthenticate ( this.pamService, name, passwd );
+						return ULinux.pamAuthenticate ( this.pamService, name, passwd )
 					})
-					.then ( r=>{
+					.then ( ()=>{
 						let index = this.db.map ( u=>u.name )
 							.indexOf ( name );
 
 						if ( -1 == index )
 						{
-							let t = {
-								name: name,
-								token: crypto.createHash ( 'sha512' ).update ( Math.random ( ).toString ( ) ).digest ( 'hex' ),
-							};
-
-							this.db = [ ...this.db, t ];
-
-							return { ...t };
+							this.db.push ({ name: name, tokens: [] });
+							index = this.db.length - 1;
 						}
-						else
-						{
-							this.db[ index ].token = crypto.createHash ( 'sha512' ).update ( Math.random ( ).toString ( ) ).digest ( 'hex' );
-							this.db = [ ...this.db ];
 
-							return { ...this.db[ index ] };
-						}
+						return this._addToken ( index );
 					})
 					.catch ( r=>{
 						throw "invalid";
@@ -321,37 +378,25 @@ class UFile extends User {
 	login ( name, passwd, token )
 	{
 		if ( 0 == this.db.length )
-		{
-			return this.add ( name, passwd );
+		{ // base vide : le premier utilisateur est créé ( comportement voulu )
+			return this.add ( name, passwd )
+				.then ( ()=>this._addToken ( this.db.map ( u=>u.name ).indexOf ( name ) ) );
 		}
 
 		return super.login ( token )
-			.then ( r=>{
-				delete r.pass;
-				return r;
-			})
-			.catch ( ()=>{
-				return this.users
-					.then ( r=>{
-						let index = r.indexOf ( name );
+			.catch ( async ()=>{
+				if ( !UFile.isValidName ( name )
+					|| !UFile.isValidPassword ( passwd ) )
+				{
+					throw "invalid";
+				}
 
-						if ( -1 == index )
-						{
-							throw "invalid";
-						}
+				let index = this.db.map ( u=>u.name ).indexOf ( name );
 
-						let hash = crypto.createHash ( 'sha512' ).update ( passwd ).digest ( 'hex' )
-						if ( hash != this.db[ index ].pass )
-						{
-							throw "invalid"
-						}
-
-						let tmp = { ...this.db[ index ] }
-
-						delete tmp.pass;
-
-						return tmp;
-					})
+				// si l'utilisateur n'existe pas on calcule quand même un hash :
+				// le temps de réponse ne révèle pas si le nom existe
+				return UFile.verifyPassword ( passwd, this.db[ index ]?.pass )
+					.then ( ()=>this._addToken ( index ) )
 			})
 	}
 
@@ -370,12 +415,18 @@ class UFile extends User {
 			})
 	}
 
-	add ( name, passwd, params = {} )
+	async add ( name, passwd, params = {} )
 	{
+		if ( !UFile.isValidName ( name )
+			|| !UFile.isValidPassword ( passwd ) )
+		{
+			throw "invalid";
+		}
+
 		let nUser = Object.assign ({
 			name: name,
-			pass: crypto.createHash ( 'sha512' ).update ( passwd ).digest ( 'hex' ),
-			token: crypto.createHash ( 'sha512' ).update ( Math.random ( ).toString ( ) ).digest ( 'hex' ),
+			pass: await UFile.hashPassword ( passwd ),
+			tokens: [], // nouvel utilisateur ou mot de passe changé : anciens jetons révoqués
 		}, params )
 
 		try
@@ -392,11 +443,11 @@ class UFile extends User {
 
 			this.db = this.db;
 
-			return Promise.resolve ( nUser );
+			return { name: nUser.name };
 		}
 		catch ( e )
 		{
-			return Promise.reject ( "invalid" );
+			throw "invalid";
 		}
 	}
 
@@ -418,6 +469,60 @@ class UFile extends User {
 	get db ( )
 	{
 		return super.db;
+	}
+
+	// hash scrypt d'un mot de passe aléatoire, utilisé quand l'utilisateur n'existe pas
+	static DUMMY_HASH = "scrypt$16384$8$1$" + crypto.randomBytes ( 16 ).toString ( "base64" ) + "$" + crypto.randomBytes ( 64 ).toString ( "base64" );
+
+	static isValidName ( name )
+	{ // nom libre, mais chaîne non vide, sans caractère de contrôle
+		return ( "string" == typeof name )
+			&& ( 0 < name.trim ( ).length )
+			&& ( 64 >= name.length )
+			&& !/[\x00-\x1f\x7f]/.test ( name );
+	}
+
+	static isValidPassword ( passwd )
+	{
+		return ( "string" == typeof passwd )
+			&& ( 0 < passwd.length )
+			&& ( 1024 >= passwd.length );
+	}
+
+	// format stocké : scrypt$N$r$p$sel$hash ( sel aléatoire propre à chaque utilisateur )
+	static async hashPassword ( passwd )
+	{
+		let salt = crypto.randomBytes ( 16 );
+		let key = await scrypt ( passwd, salt, SCRYPT.keyLen, { N: SCRYPT.N, r: SCRYPT.r, p: SCRYPT.p } );
+
+		return [ "scrypt", SCRYPT.N, SCRYPT.r, SCRYPT.p, salt.toString ( "base64" ), key.toString ( "base64" ) ].join ( "$" );
+	}
+
+	static async verifyPassword ( passwd, stored = UFile.DUMMY_HASH )
+	{
+		if ( "string" != typeof stored )
+		{
+			return Promise.reject ( "invalid" );
+		}
+
+		let parts = stored.split ( "$" );
+
+		if ( ( 6 == parts.length )
+			&& ( "scrypt" == parts[ 0 ] ) )
+		{
+			let [ , N, r, p, salt, hash ] = parts;
+			let expected = Buffer.from ( hash, "base64" );
+			let key = await scrypt ( passwd, Buffer.from ( salt, "base64" ), expected.length, { N: Number ( N ), r: Number ( r ), p: Number ( p ) } );
+
+			if ( !crypto.timingSafeEqual ( key, expected ) )
+			{
+				return Promise.reject ( "invalid" );
+			}
+
+			return Promise.resolve ( );
+		}
+
+		return Promise.reject ( "invalid" );
 	}
 }
 

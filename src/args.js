@@ -53,6 +53,11 @@ export default function ( params )
 			describe: 'PAM service used to check linux passwords ( /etc/pam.d/<service> )',
 			default: 'login',
 		})
+		.option ( 'login.tokenDuration', {
+			describe: 'lifetime of "remember me" tokens, in days',
+			type: 'number',
+			default: 30,
+		})
 		.option ( 'login.file', {
 			describe: 'file for user by file ( file using JSON format )',
 			default: 'private/userDB.js',
