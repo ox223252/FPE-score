@@ -23,22 +23,17 @@
 				n.classList.remove ( "disconnected" );
 			});
 
-		if ( firstConnection )
-		{
-			socket .emit ( "identify", {
-				user: <%- js ( locals.user ) %>,
-				page: <%- js ( locals.page ) %>
-			});
-		}
-		else if ( !localStorage.getItem ( <%- js ( locals.title ) %> ) )
-		{ // if no token -> strange
-			socket .emit ( "identify", {
-				user: <%- js ( locals.user + "-disconnected" ) %>,
+		if ( firstConnection
+			|| !localStorage.getItem ( <%- js ( locals.title ) %> ) )
+		{ // première connexion, ou pas de jeton pour se reconnecter : le serveur lit l'état de la session
+			firstConnection = false;
+
+			socket.emit ( "identify", {
 				page: <%- js ( locals.page ) %>
 			});
 		}
 		else
-		{ // reconnect
+		{ // reconnect : on se reconnecte avec le jeton
 			fetch ( "/ajax/login", {
 					method: "POST",
 					body: JSON.stringify( {token: localStorage.getItem ( <%- js ( locals.title ) %> ) }),
@@ -51,29 +46,20 @@
 					}
 					else
 					{
-						throw r.json ( );
+						throw r;
 					}
 				})
 				.then ( ()=>{
-					socket .emit ( "identify", {
-						user: <%- js ( locals.user ) %>,
-						page: <%- js ( locals.page ) %>
-					});
+					// si le serveur a redémarré, la session ( et son cookie ) est nouvelle :
+					// on rouvre la socket pour qu'elle utilise le nouveau cookie
+					firstConnection = true;
+					socket.disconnect ( ).connect ( );
 				})
 				.catch ( ()=>{
 					window.location.href = window.location.origin;
 				})
 		}
-
-		firstConnection = false;
 	});
-
-	socket.on ( "disconnect", ()=>{
-		let nav = [ ...document.getElementsByClassName ( "connectionStatus" ) ].map ( n=>{
-				n.classList.add ( "disconnected" );
-			});
-	});
-
 
 	socket.on ( "disconnect", ()=>{
 		let nav = [ ...document.getElementsByClassName ( "connectionStatus" ) ].map ( n=>{

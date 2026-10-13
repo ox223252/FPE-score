@@ -1,5 +1,33 @@
 import { Server as ServerIO } from "socket.io";
 
+// lit l'utilisateur dans la session côté serveur ( jamais dans ce qu'envoie le navigateur )
+// la session est rechargée car elle a pu changer depuis la connexion de la socket
+// ( ex : connexion via /ajax/login après l'ouverture de la socket )
+function sessionUser ( socket )
+{
+	return new Promise ( ( ok )=>{
+		if ( !socket.request.session )
+		{
+			return ok ( "unknow" );
+		}
+
+		socket.request.session.reload ( ( err )=>{
+			let session = socket.request.session; // reload remplace l'objet session
+
+			if ( !err
+				&& session?.logged
+				&& ( "string" == typeof session.user ) )
+			{
+				ok ( session.user );
+			}
+			else
+			{ // session absente / expirée / non connectée
+				ok ( "unknow" );
+			}
+		});
+	});
+}
+
 export default function ( params )
 {
 	console.log ( "   - Init Socket.io" );
@@ -12,7 +40,6 @@ export default function ( params )
 	params.io.on ( "connection", function( socket )
 	{
 		let id = socket.request.sessionID;
-		let index = undefined;
 
 		if ( !params.connected[ id ] )
 		{
@@ -24,20 +51,36 @@ export default function ( params )
 		}
 
 		socket.on ( "identify", ( msg )=>{
+			// la page n'est qu'une information d'affichage : on la borne
+			let page = ( "string" == typeof msg?.page ) ? msg.page.slice ( 0, 256 ) : "";
+
+			sessionUser ( socket )
+				.then ( ( user )=>{
+					if ( !socket.connected )
+					{ // déconnectée pendant la lecture de la session
+						return;
+					}
+
+					if ( !params.connected[ id ] )
+					{
+						params.connected[ id ] = {
+							user: user,
+							page: {},
+							id: id,
+						};
+					}
+
+					params.connected[ id ].user = user;
+					params.connected[ id ].page[ socket.id ] = page;
+				});
+		});
+
+		socket.on ( "disconnect", ( )=>{
 			if ( !params.connected[ id ] )
 			{
-				params.connected[ id ] = {
-					user: msg.user,
-					page: {},
-					id: id,
-				};
+				return;
 			}
 
-			params.connected[ id ].user = msg.user;
-			params.connected[ id ].page[ socket.id ] = msg.page;
-		});
-		
-		socket.on ( "disconnect", ( )=>{
 			delete params.connected[ id ].page[ socket.id ];
 
 			if ( 0 == Object.keys ( params.connected[ id ].page ).length )
