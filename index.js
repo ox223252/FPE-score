@@ -21,5 +21,6 @@ getParams ( params )
 	.then ( socket )
 	.then ( cmd )
 	.catch ( r=>{
-		console.error ( "KO", r )
+		console.error ( "KO", r );
+		process.exitCode = 1;
 	})
