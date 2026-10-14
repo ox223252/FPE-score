@@ -1,9 +1,10 @@
 import path from "path";
 import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers';
 
 export default function ( params )
 {
-	params.args = yargs ( process.argv )
+	params.args = yargs ( hideBin ( process.argv ) )
 		.option ( 'help', {
 			alias: 'h',
 			type: 'boolean',
@@ -33,11 +34,11 @@ export default function ( params )
 			default: "key.pem",
 		})
 		.option ( 'cert', {
-			describe: "private key",
+			describe: "certificate",
 			default: "certificate.pem",
 		})
 		.option ( 'keySize', {
-			describe: 'user login for SQL databse connection',
+			describe: 'size of key',
 			type: 'number',
 			default: 4096
 		})
