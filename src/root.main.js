@@ -64,6 +64,15 @@ export default function ( params )
 	params.express.get ( '/login', function ( req, res )
 	{
 		req.session.logged = false;
+
+		if ( req.session.hashToken )
+		{
+			params.login.logout ( req.session.hashToken );
+
+			delete req.session.hashToken;
+			delete req.session.token;
+		}
+
 		res.render ( 'login.html' );
 	});
 

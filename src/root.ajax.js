@@ -49,8 +49,10 @@ export default function ( params )
 					}
 
 					req.session.user = r.name;
+					req.session.hashToken = r.hash;
 					req.session.logged = r.status || true;
 					req.session.target = ( "/login" == target ) ? "/" : target;
+
 
 					res.status ( 200 );
 					res.json ({

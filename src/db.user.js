@@ -111,6 +111,27 @@ class User {
 			})
 	}
 
+	logout ( hash )
+	{
+		if ( ( "string" != typeof hash )
+			|| ( 0 == hash.length )
+			|| ( 256 < hash.length ) )
+		{
+			return Promise.resolve ( );
+		}
+
+		let user = this.db.find ( u=>( u.tokens ?? [] )
+			.some ( t=>t.hash == hash ) )
+
+		if ( user )
+		{
+			user.tokens = user.tokens.filter ( t=>t.hash != hash );
+			this.db = [ ...this.db ]; // sauvegarde
+		}
+
+		return Promise.resolve ( );
+	}
+
 	_logToken ( token )
 	{
 		if ( ( "string" != typeof token )
@@ -131,7 +152,7 @@ class User {
 			return Promise.reject ( );
 		}
 
-		return Promise.resolve ( this.getSafeUser ( index, { token } ) );
+		return Promise.resolve ( this.getSafeUser ( index, { token, hash } ) );
 	}
 
 	_login ( name, passwd )
@@ -152,8 +173,10 @@ class User {
 			user.tokens = [];
 		}
 
+		let hash = User.hashToken ( token )
+
 		user.tokens.push ({
-			hash: User.hashToken ( token ),
+			hash: hash,
 			expires: now + this._tokenMaxAge
 		});
 
@@ -162,7 +185,7 @@ class User {
 
 		this.db = [ ...this.db ]; // sauvegarde
 
-		return this.getSafeUser ( index, { token } );
+		return this.getSafeUser ( index, { token, hash } );
 	}
 
 	exist ( )
