@@ -134,10 +134,10 @@ html {
 	}
 }
 
-.connectionStatus:has( .disconnected ) {
-	color: var( --disconnected );
+.connectionStatus {
+	color: var( --connected );
 }
 
-.connectionStatus:not( .disconnected ) {
-	color: var( --connected );
+.connectionStatus.disconnected {
+	color: var( --disconnected );
 }

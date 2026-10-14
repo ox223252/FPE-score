@@ -67,13 +67,13 @@ export default function ( params )
 			let index = fnct.map ( r=>r.cmd ).indexOf ( cmd );
 
 			if ( ( 0 <= index )
-				&& ( "function" != typeof fnct[ index ] ) )
+				&& ( "function" == typeof fnct[ index ].fnct ) )
 			{
 				fnct[ index ].fnct( args );
 			}
 			else
 			{
-				console.log ( " unknow cmd", f );
+				console.log ( " unknow cmd", cmd );
 			}
 		});
 
