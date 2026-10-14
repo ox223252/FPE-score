@@ -104,11 +104,11 @@ export default async function ( params )
 
 	exp.use ( function ( req, res, next )
 	{
-		if ( [ "/", "/login", "/favicon.ico" ].includes ( req.originalUrl ) )
+		if ( [ "/", "/login", "/favicon.ico" ].includes ( req.path ) )
 		{
 			next ( );
 		}
-		else if ( 0 == req.originalUrl.indexOf ( "/ajax" ) )
+		else if ( 0 == req.path.indexOf ( "/ajax" ) )
 		{
 			next ( );
 		}

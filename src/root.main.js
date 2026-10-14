@@ -19,12 +19,12 @@ export default function ( params )
 	{
 		let routes = [];
 
-		if ( 0 == req.originalUrl.indexOf ( "/ajax/" ) )
+		if ( 0 == req.path.indexOf ( "/ajax/" ) )
 		{
 			return next ( );
 		}
 
-		switch ( res.locals.logged )
+		switch ( req.session.logged )
 		{
 			default:
 			{
@@ -34,7 +34,7 @@ export default function ( params )
 			}
 		}
 
-		if ( routes.includes ( req.originalUrl ) )
+		if ( routes.includes ( req.path ) )
 		{
 			next ( );
 		}
@@ -49,7 +49,7 @@ export default function ( params )
 	{
 		res.locals.title = params.name;
 		res.locals.user = req.session.user || "unknow";
-		res.locals.page = req.originalUrl;
+		res.locals.page = req.path;
 		res.locals.logged = req.session.logged;
 		res.locals.js = toJs; // à utiliser dans les vues : <%- js ( valeur ) %>
 
