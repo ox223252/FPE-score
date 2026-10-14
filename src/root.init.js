@@ -10,7 +10,7 @@ import express from 'express'; // routing module
 import session from 'express-session'; // create session encypted https://github.com/mozilla/node-client-sessions
 import childProcess from 'child_process';
 
-const exec = util.promisify ( childProcess.exec );
+const execFile = util.promisify ( childProcess.execFile );
 
 export default async function ( params )
 {
@@ -49,14 +49,13 @@ export default async function ( params )
 			if ( !fs.existsSync ( options.key )
 				|| !fs.existsSync ( options.cert ) )
 			{
-				let cmds = [
-					'openssl req -x509 -newkey rsa:'+params?.args?.keySize+' -keyout '+options.key+' -out '+options.cert+' -sha256 -days 3650 -nodes -subj "/C=FR/ST=./L=./O=FFME/OU=./CN=localhost"'
-				];
-
-				for ( let c of cmds )
-				{
-					const { stdout, stderr } = await exec ( c );
-				}
+				await execFile ( 'openssl', [
+					"req", "-x509",
+					"-newkey", "rsa:"+params?.args?.keySize,
+					"-keyout", options.key,
+					"-out", options.cert,
+					"-sha256", "-days", 3650, "-nodes",
+					"-subj", "/C=FR/ST=./L=./O=moi/OU=./CN=localhost" ] );
 
 				console.log ( " - key doesn't exist create locals " );
 				console.log ( Object.values ( options ).map ( s=>'   - '+s ).join ( "\n") );
@@ -95,9 +94,9 @@ export default async function ( params )
 	}));
 	exp.use ( express.json ( ) ); // lecture des corps de requête JSON ( intégré à express 5 )
 	exp.use ( express.urlencoded ( { extended: true } ) );
-	exp.set ( 'views', params.path + '/views' );
-	exp.use ( express.static ( params.path + '/public' ) );
-	exp.use ( express.static ( params.path + '/node_modules/socket.io/client-dist' ) );
+	exp.set ( 'views', path.join ( params.path, 'views' ) );
+	exp.use ( express.static ( path.join ( params.path, 'public' ) ) );
+	exp.use ( express.static ( path.join ( params.path, 'node_modules', 'socket.io', 'client-dist' ) ) );
 	exp.engine ( 'html', ejs.renderFile );
 
 	exp.use ( sessionMiddleware );

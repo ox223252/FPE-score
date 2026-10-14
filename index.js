@@ -14,7 +14,7 @@ const dir = path.dirname ( fileURLToPath ( import.meta.url ) );
 
 let params = {
 	path: dir,
-	name: JSON.parse ( readFileSync( dir+"/package.json").toString( ) ).name,
+	name: JSON.parse ( readFileSync( path.join ( dir, "package.json" ) ).toString( ) ).name,
 };
 
 getParams ( params )
