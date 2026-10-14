@@ -1,5 +1,6 @@
 import fs from 'fs'; // read / write files
 import util from 'util';
+import path from 'path';
 import crypto from 'crypto'; // scrypt / sha256 / randomBytes
 import chokidar from "chokidar";
 import childProcess from 'child_process';
@@ -81,11 +82,11 @@ class User {
 
 		this.limit = new LogLimit ( params )
 
-		let path = this._params.file.substring ( 0, this._params.file.lastIndexOf ( "/" ) );
+		let dir = path.dirname ( this._params.file );
 
-		if ( !fs.existsSync ( path ) )
+		if ( !fs.existsSync ( dir ) )
 		{
-			fs.mkdirSync ( path, {recursive:true} )
+			fs.mkdirSync ( dir, { recursive: true, mode: 0o700 } )
 		}
 
 		if ( !fs.existsSync ( this._params.file ) )
@@ -199,25 +200,35 @@ class User {
 	{
 		if ( "Array" != value?.constructor.name )
 		{
-			this._db = [];
 			throw "invalide db format";
 		}
 		else
 		{
+			fs.rmSync ( this._params.file + ".tmp", { force: true } );
+			fs.writeFileSync ( this._params.file + ".tmp", JSON.stringify ( value, null, 4 ), { mode: 0o600 } );
+			fs.renameSync ( this._params.file + ".tmp", this._params.file );
+
 			this._db = value;
-			fs.writeFileSync ( this._params.file, JSON.stringify ( this._db, null, 4 ) );
 		}
 	}
 
 	get db ( )
 	{
+
 		if ( !this._db ) try
 		{
-			this._db = JSON.parse ( fs.readFileSync ( this._params.file, "utf-8" ).toString ( ) );
+			if ( !fs.existsSync ( this._params.file ) )
+			{
+				this._db = [];
+			}
+			else
+			{
+				this._db = JSON.parse ( fs.readFileSync ( this._params.file, "utf-8" ).toString ( ) );
+			}
 		}
 		catch ( e )
 		{
-			this._db = [];
+			throw "database corrupted";
 		}
 
 		return this._db ?? [];
@@ -670,7 +681,7 @@ class UAd extends User {
 
 	exist ( name )
 	{
-		return this._ad.exist ( user );
+		return this._ad.exist ( name );
 	}
 }
 
