@@ -274,13 +274,13 @@ class ULinux extends User {
 	{
 		super ( params );
 
-		if ( !ULinux.isValidName ( params.group ) )
+		if ( !ULinux.isValidName ( params.linux.group ) )
 		{
-			throw `ERROR : invalid group name "${params.group}"`;
+			throw `ERROR : invalid group name "${params.linux.group}"`;
 		}
 
-		this.group = params.group;
-		this.pamService = params.pamService || "login";
+		this.group = params.linux.group;
+		this.pamService = params.linux.pamService || "login";
 	}
 
 	init ( )

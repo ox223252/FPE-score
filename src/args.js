@@ -47,14 +47,6 @@ export default function ( params )
    			choices: [ 'linux', 'file', 'ad' ],
 			default: 'file',
 		})
-		.option ( 'login.group', {
-			describe: 'name of group for user from linux',
-			default: 'loginForNodeApp',
-		})
-		.option ( 'login.pamService', {
-			describe: 'PAM service used to check linux passwords ( /etc/pam.d/<service> )',
-			default: 'login',
-		})
 		.option ( 'login.tokenDuration', {
 			describe: 'lifetime of "remember me" tokens, in days',
 			type: 'number',
@@ -74,19 +66,13 @@ export default function ( params )
 			describe: 'file for user by file ( file using JSON format )',
 			default: 'private/userDB.js',
 		})
-		.option ( 'login.ad.port', {
-			describe: 'ldap : 389, ldaps : 636',
-			type: 'number',
-			default: 389,
+		.option ( 'login.linux.group', {
+			describe: 'name of group for user from linux',
+			default: 'loginForNodeApp',
 		})
-		.option ( 'login.ad.url', {
-			describe: 'ldap(s) login url',
-			type: 'url',
-			default: undefined,
-		})
-		.option ( 'login.ad.baseDN', {
-			describe: 'dc=XXX,dc=YYY',
-			default: '',
+		.option ( 'login.linux.pamService', {
+			describe: 'PAM service used to check linux passwords ( /etc/pam.d/<service> )',
+			default: 'login',
 		})
 		.option ( 'login.ad.domain', {
 			describe: 'add <login>@domain.com to login if needed',
