@@ -8,7 +8,6 @@ import crypto from 'crypto'; // sha512
 import helmet from 'helmet'; // security module : clickjacking / xss / cross dommain / ...
 import express from 'express'; // routing module
 import session from 'express-session'; // create session encypted https://github.com/mozilla/node-client-sessions
-import bodyParser from 'body-parser'; // parsing data from request
 import childProcess from 'child_process';
 
 const exec = util.promisify ( childProcess.exec );
@@ -94,8 +93,8 @@ export default async function ( params )
 		contentSecurityPolicy: false,        // définie plus bas, avec le nonce
 		strictTransportSecurity: ( "https" == params.args.server ),
 	}));
-	exp.use ( bodyParser.json( ) );
-	exp.use ( bodyParser.urlencoded( {extended: true} ) );
+	exp.use ( express.json ( ) ); // lecture des corps de requête JSON ( intégré à express 5 )
+	exp.use ( express.urlencoded ( { extended: true } ) );
 	exp.use ( express.static ( params.path + '/public' ) );
 	exp.use ( express.static ( params.path + '/node_modules/socket.io/client-dist' ) );
 	exp.engine ( 'html', ejs.renderFile );

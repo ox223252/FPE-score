@@ -2,7 +2,6 @@ import fs from 'fs'; // read / write files
 import util from 'util';
 import path from 'path';
 import crypto from 'crypto'; // scrypt / sha256 / randomBytes
-import chokidar from "chokidar";
 import childProcess from 'child_process';
 
 import ActiveDirectory from 'activedirectory'; // login with windows user account
