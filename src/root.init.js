@@ -90,7 +90,10 @@ export default async function ( params )
 		}
 	});
 
-	exp.use ( helmet ( ) );
+	exp.use ( helmet ({
+		contentSecurityPolicy: false,        // définie plus bas, avec le nonce
+		strictTransportSecurity: ( "https" == params.args.server ),
+	}));
 	exp.use ( bodyParser.json( ) );
 	exp.use ( bodyParser.urlencoded( {extended: true} ) );
 	exp.use ( express.static ( params.path + '/public' ) );
@@ -129,7 +132,10 @@ export default async function ( params )
 
 	exp.use ( helmet.contentSecurityPolicy({
 		directives: {
-			scriptSrc: [ "'self'", (req,res)=>`'nonce-${res.locals.nonce}'`]
+			scriptSrc: [ "'self'", (req,res)=>`'nonce-${res.locals.nonce}'`],
+			upgradeInsecureRequests: ( "https" == params.args.server )
+				? []
+				: null,
 		}
 	}));
 
