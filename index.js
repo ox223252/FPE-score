@@ -6,11 +6,15 @@ import ajax from "./src/root.ajax.js"
 import user from "./src/db.user.js"
 import socket from "./src/ioSocket.js"
 
+import path from "path";
+import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 
+const dir = path.dirname ( fileURLToPath ( import.meta.url ) );
+
 let params = {
-	path: "/"+import.meta.url.split ( "/" ).filter ( f=>f ).slice ( 1, -1 ).join ( "/" ),
-	name: JSON.parse ( readFileSync("./package.json").toString( ) ).name,
+	path: dir,
+	name: JSON.parse ( readFileSync( dir+"/package.json").toString( ) ).name,
 };
 
 getParams ( params )

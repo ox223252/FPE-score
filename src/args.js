@@ -1,3 +1,4 @@
+import path from "path";
 import yargs from 'yargs'
 
 export default function ( params )
@@ -91,6 +92,9 @@ export default function ( params )
 			default: '',
 		})
 		.argv;
+
+	params.args.keyPath = path.resolve ( params.path, params.args.keyPath );
+	params.args.login.file = path.resolve ( params.path, params.args.login.file );
 
 	return Promise.resolve ( params );
 }

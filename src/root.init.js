@@ -95,6 +95,7 @@ export default async function ( params )
 	}));
 	exp.use ( express.json ( ) ); // lecture des corps de requête JSON ( intégré à express 5 )
 	exp.use ( express.urlencoded ( { extended: true } ) );
+	exp.set ( 'views', params.path + '/views' );
 	exp.use ( express.static ( params.path + '/public' ) );
 	exp.use ( express.static ( params.path + '/node_modules/socket.io/client-dist' ) );
 	exp.engine ( 'html', ejs.renderFile );
