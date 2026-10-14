@@ -97,6 +97,7 @@ export default async function ( params )
 	exp.set ( 'views', path.join ( params.path, 'views' ) );
 	exp.use ( express.static ( path.join ( params.path, 'public' ) ) );
 	exp.use ( express.static ( path.join ( params.path, 'node_modules', 'socket.io', 'client-dist' ) ) );
+	exp.use ( '/fontawesome', express.static ( path.join ( params.path, 'node_modules', '@fortawesome', 'fontawesome-free' ) ) );
 	exp.engine ( 'html', ejs.renderFile );
 
 	exp.use ( sessionMiddleware );
