@@ -44,7 +44,7 @@ export default function ( params )
 		})
 		.option ( 'login.mode', {
 			describe: 'user login mode',
-   			choices: [ 'linux', 'file', 'activeDirectory' ],
+   			choices: [ 'linux', 'file', 'ad' ],
 			default: 'file',
 		})
 		.option ( 'login.group', {
@@ -91,6 +91,27 @@ export default function ( params )
 		.option ( 'login.ad.domain', {
 			describe: 'add <login>@domain.com to login if needed',
 			default: '',
+		})
+		.option ( 'login.ad.url', {
+			describe: 'ldaps://serveur:636 ( ldap:// = mots de passe en clair )',
+			type: 'string',
+		})
+		.option ( 'login.ad.group', {
+			describe: 'DN of the group allowed to connect ( ex : CN=AppUsers,OU=Groupes,DC=domaine,DC=fr )',
+			type: 'string',
+		})
+		.option ( 'login.ad.bindDN', {
+			describe: 'service account DN ( optional, password in env NODEBASE_AD_PASSWORD )',
+			type: 'string',
+		})
+		.option ( 'login.ad.baseDN', {
+			describe: 'search base ( ex : DC=domaine,DC=fr )',
+			type: 'string',
+		})
+		.option ( 'login.ad.recursive', {
+			describe: 'search user on direct group and indirect',
+			type: 'boolean',
+			default: true,
 		})
 		.argv;
 

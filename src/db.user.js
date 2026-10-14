@@ -4,7 +4,7 @@ import path from 'path';
 import crypto from 'crypto'; // scrypt / sha256 / randomBytes
 import childProcess from 'child_process';
 
-import ActiveDirectory from 'activedirectory'; // login with windows user account
+import { Client, escapeFilter } from 'ldapts'; // Active Directory ( LDAP )
 
 // execFile lance le programme directement, sans passer par un shell :
 // les arguments ne sont jamais interprétés ( pas de ; | $( ) ` ... )
@@ -634,79 +634,221 @@ class UFile extends User {
 	}
 }
 
+// règle AD "LDAP_MATCHING_RULE_IN_CHAIN" : memberOf suit aussi les groupes imbriqués
+// ( bob ∈ Compta ∈ AppUsers  =>  bob est considéré comme membre de AppUsers )
+// 1.2.840.113556.1.4.1941 est un OID (Object Identifier), un numéro normalisé attribué par Microsoft.
+const AD_IN_CHAIN = "1.2.840.113556.1.4.1941";
+
 class UAd extends User {
 	constructor ( params )
 	{
 		super ( params );
 
-		let ad = new ActiveDirectory ({
-			url: params.ad.url,
-			port: params.ad.port,
-			baseDN: params.ad.baseDN,
-		});
+		this._ad = { ...params.ad };
 
-		this._ad = {
-			authenticate: ( user,pass )=>{
-				return new Promise ( (ok,ko)=>{
-					ad.authenticate ( user, pass, (e,d)=>{
-						if ( e )
-						{
-							ko ({code:403, msg:e});
-						}
-						else
-						{
-							ok ({name:user});
-						}
-					});
-				});
-			},
-			exist: ( user )=>{
-				return new Promise ( (ok,ko)=>{
-					ad.userExists ( user, ( e, d )=>{
-						if ( e )
-						{
-							ko ( );
-						}
-						else if ( d )
-						{
-							ok ( );
-						}
-						else
-						{
-							ko ( );
-						}
-					});
-				});
-			},
-		};
-	}
-
-	_login ( name, passwd )
-	{
-		if ( ( "string" != typeof name )
-			|| ( "string" != typeof passwd ) )
+		if ( !this._ad.url )
 		{
-			return Promise.reject ({ code:403, msg: "invalid" });
+			throw `ERROR : --login.ad.url is required ( ex : ldaps://ad.domaine.fr:636 )`;
 		}
 
-		return this._ad.authenticate ( name + ( ( -1 == name.indexOf ( "@" ) )?this._params.ad.domain:"" ), passwd )
-			.then ( ret=>{
-				let index = this.db.map ( u=>u.name )
-					.indexOf ( ret.name );
+		if ( !this._ad.baseDN )
+		{
+			throw `ERROR : --login.ad.baseDN is required ( ex : DC=domaine,DC=fr )`;
+		}
 
-				if ( -1 == index )
+		// compte de service ( optionnel ) : mot de passe lu dans l'environnement, jamais en ligne de commande
+		this._ad.bindPassword = process.env.NODEBASE_AD_PASSWORD;
+	}
+
+	_client ( )
+	{
+		return new Client ({
+			url: this._ad.url,
+			timeout: 10000,        // ms par opération
+			connectTimeout: 5000,  // ms pour la connexion
+			// annuaire avec un certificat interne : tlsOptions: { ca: [ fs.readFileSync ( "ca.pem" ) ] },
+		});
+	}
+
+	// "bob" -> "bob@domaine.fr" ; minuscules : l'AD ne distingue pas la casse, la base locale si
+	_upn ( name )
+	{
+		return ( name.includes ( "@" ) ? name : name + ( this._ad.domain ?? "" ) ).toLowerCase ( );
+	}
+
+	// cherche l'utilisateur dans l'annuaire, et s'il est membre du groupe ( si un groupe est configuré )
+	// la connexion "client" doit déjà être authentifiée ( utilisateur ou compte de service )
+	// retourne l'entrée trouvée, ou null
+	async _findUser ( client, upn )
+	{
+		let filter = escapeFilter`(&(objectCategory=person)(objectClass=user)(userPrincipalName=${upn})`;
+
+		if ( this._ad.group )
+		{
+			if ( this._ad.recursive )
+			{
+				filter += escapeFilter`(memberOf:${AD_IN_CHAIN}:=${this._ad.group})`;
+			}
+			else
+			{
+				filter += escapeFilter`(memberOf=${this._ad.group})`;
+			}
+		}
+
+		filter += ")";
+
+		let { searchEntries } = await client.search ( this._ad.baseDN, {
+			scope: "sub",
+			filter: filter,
+			attributes: [ "userPrincipalName", "displayName" ],
+			sizeLimit: 2,
+		});
+
+		return ( 1 == searchEntries.length ) ? searchEntries[ 0 ] : null;
+	}
+
+	// au démarrage : avec un compte de service, on vérifie que l'annuaire répond et que le groupe existe
+	init ( )
+	{
+		console.log ( ` - Use Active Directory to connect ( ${this._ad.url} )` );
+
+		if ( this._ad.url.startsWith ( "ldap://" ) )
+		{
+			console.log ( `   - WARNING : ldap:// sends passwords in clear text, use ldaps://` );
+		}
+
+		if ( !this._ad.group )
+		{
+			console.log ( `   - WARNING : no --login.ad.group, every account of the directory can connect` );
+		}
+
+		if ( !this._ad.bindDN )
+		{
+			console.log ( `   - no service account : group membership is not re-checked on token login` );
+			return Promise.resolve ( );
+		}
+
+		return this._asService ( async ( client )=>{
+				if ( this._ad.group )
 				{
-					this.db.push ({ name: ret.name, tokens: [] });
-					index = this.db.length - 1;
+					let { searchEntries } = await client.search ( this._ad.group, { scope: "base", attributes: [ "cn" ] } );
+
+					if ( 0 == searchEntries.length )
+					{
+						throw "group not found";
+					}
+
+					console.log ( `   - connexion allowed to group "${this._ad.group}"` );
+				}
+			})
+			.catch ( ( e )=>{
+				throw `ERROR : Active Directory check failed ( ${e?.message ?? e} )`;
+			});
+	}
+
+	// exécute fn ( client ) avec une connexion authentifiée par le compte de service
+	async _asService ( fn )
+	{
+		let client = this._client ( );
+
+		try
+		{
+			await client.bind ( this._ad.bindDN, this._ad.bindPassword );
+			return await fn ( client );
+		}
+		finally
+		{
+			await client.unbind ( ).catch ( ()=>{} );
+		}
+	}
+
+	// connexion par jeton : avec un compte de service, on revérifie que l'utilisateur
+	// existe toujours et est toujours dans le groupe ( comme le mode Linux )
+	_logToken ( token )
+	{
+		return super._logToken ( token )
+			.then ( ( r )=>{
+				if ( !this._ad.bindDN )
+				{
+					return r;
 				}
 
-				return index;
-			})
+				return this._asService ( ( client )=>this._findUser ( client, r.name ) )
+					.then ( ( entry )=>{
+						if ( !entry )
+						{
+							throw { code:403, msg: "not allowed" };
+						}
+
+						return r;
+					});
+			});
+	}
+
+	async _login ( name, passwd )
+	{
+		// un mot de passe vide = "bind anonyme", que l'AD accepte : à refuser explicitement
+		if ( ( "string" != typeof name )
+			|| ( "string" != typeof passwd )
+			|| ( 0 == name.length )
+			|| ( 0 == passwd.length ) )
+		{
+			throw { code:403, msg: "invalid" };
+		}
+
+		let upn = this._upn ( name );
+		let client = this._client ( );
+
+		try
+		{
+			try
+			{ // vérifie le mot de passe
+				await client.bind ( upn, passwd );
+			}
+			catch ( e )
+			{
+				throw { code:403, msg: "invalid" };
+			}
+
+			// avec la connexion de l'utilisateur : il existe dans l'annuaire et appartient au groupe
+			if ( !await this._findUser ( client, upn ) )
+			{
+				throw { code:403, msg: "not allowed" };
+			}
+		}
+		finally
+		{
+			await client.unbind ( ).catch ( ()=>{} );
+		}
+
+		let index = this.db.map ( u=>u.name )
+			.indexOf ( upn );
+
+		if ( -1 == index )
+		{
+			this.db.push ({ name: upn, tokens: [] });
+			index = this.db.length - 1;
+		}
+
+		return index;
 	}
 
 	exist ( name )
 	{
-		return this._ad.exist ( name );
+		if ( !this._ad.bindDN )
+		{
+			return Promise.reject ( "user check : need a service account ( --login.ad.bindDN )" );
+		}
+
+		return this._asService ( ( client )=>this._findUser ( client, this._upn ( name ) ) )
+			.then ( ( entry )=>{
+				if ( !entry )
+				{
+					throw "invalid";
+				}
+
+				return 0;
+			});
 	}
 }
 
@@ -725,7 +867,7 @@ export default function ( params )
 			params.login = new UFile ( params.args?.login );
 			break;
 		}
-		case "activeDirectory":
+		case "ad":
 		{
 			params.login = new UAd ( params.args?.login );
 			break;
