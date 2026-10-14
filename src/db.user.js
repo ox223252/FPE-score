@@ -95,6 +95,11 @@ class User {
 		}
 	}
 
+	init ( )
+	{
+		return Promise.resolve ( );
+	}
+
 	// connexion par jeton : on compare l'empreinte du jeton reçu à celles stockées
 	login ( name, passwd, token, ip )
 	{
@@ -277,8 +282,6 @@ class ULinux extends User {
 
 		this.group = params.group;
 		this.pamService = params.pamService || "login";
-
-		this.init ( );
 	}
 
 	init ( )
@@ -730,9 +733,10 @@ export default function ( params )
 		}
 		default:
 		{
-			throw `user management mode unknow : ${params.args.login}`;
+			throw `user management mode unknow : ${params.args?.login?.mode}`;
 		}
 	}
 
-	return params;
+	return params.login.init ( )
+		.then ( ()=>params );
 }
