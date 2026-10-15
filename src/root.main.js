@@ -19,7 +19,7 @@ export default function ( params )
 	{
 		let routes = [];
 
-		if ( 0 == req.path.indexOf ( "/ajax/" ) )
+		if ( req.path.startsWith ( "/ajax/" ) )
 		{
 			return next ( );
 		}

@@ -1,16 +1,22 @@
+import express from 'express'; // routing module
+
 export default function ( params )
 {
 	console.log ( "   - Init Ajax part" );
 
-	params.express.use ( function ( req, res, next )
+	let ajax = express.Router ( );
+
+	params.express.use ( "/ajax", ajax );
+
+	ajax.use ( function ( req, res, next )
 	{ // manage right for ajax requests
 		let route = [];
 
-		switch ( res.locals.logged )
+		switch ( req.session.logged )
 		{
 			default:
 			{
-				route.push ( "/ajax/login" );
+				route.push ( "/login" );
 				break;
 			}
 		}
@@ -29,7 +35,7 @@ export default function ( params )
 
 	});
 
-	params.express.post ( '/ajax/login', function ( req, res )
+	ajax.post ( '/login', function ( req, res )
 	{
 		params.login.login ( req.body?.user, req.body?.pass, req.body?.token, req.ip )
 			.then ( r=>{

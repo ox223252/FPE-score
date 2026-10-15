@@ -104,27 +104,6 @@ export default async function ( params )
 
 	exp.use ( function ( req, res, next )
 	{
-		if ( [ "/", "/login", "/favicon.ico" ].includes ( req.path ) )
-		{
-			next ( );
-		}
-		else if ( 0 == req.path.indexOf ( "/ajax" ) )
-		{
-			next ( );
-		}
-		else switch ( req.session.logged )
-		{
-			default:
-			{
-				req.session.target = req.originalUrl;
-				res.redirect ( "/login" );
-				break;
-			}
-		}
-	});
-
-	exp.use ( function ( req, res, next )
-	{
 		res.locals.nonce  = crypto.randomBytes ( 16 ).toString ( "base64" );
 
 		next ( );
