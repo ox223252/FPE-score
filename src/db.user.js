@@ -109,9 +109,15 @@ class User {
 					.then ( index=>this._addToken ( index ) ) // add token for this user
 			})
 			.catch ( ( err )=>{
-				throw [ 403, 429 ].includes ( err?.code )
-					? err
-					: { code:403, msg: "invalid" };
+				if ( [ 403, 429 ].includes ( err?.code ) )
+				{
+					throw  err
+				}
+				else
+				{
+					console.log ( err );
+					throw { code:403, msg: "invalid" };
+				}
 			})
 	}
 
