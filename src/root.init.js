@@ -94,7 +94,8 @@ export default async function ( params )
 		contentSecurityPolicy: false,        // définie plus bas, avec le nonce
 		strictTransportSecurity: s.secure,
 	}));
-	exp.use ( express.json ( ) ); // lecture des corps de requête JSON ( intégré à express 5 )
+	exp.use ( express.json({limit: '10mb'}) );
+	exp.use ( express.urlencoded( { extended: true, limit: '10mb' } ) );
 	exp.use ( express.urlencoded ( { extended: true } ) );
 	exp.set ( 'views', path.join ( params.path, 'views' ) );
 	exp.use ( express.static ( path.join ( params.path, 'public' ) ) );
