@@ -5,6 +5,8 @@ import { hideBin } from 'yargs/helpers';
 export default function ( params )
 {
 	params.args = yargs ( hideBin ( process.argv ) )
+		.scriptName ( params.name )
+		.usage ( `${params.name} : ${params.description}\nUsage : $0 [options]` )
 		.wrap ( Math.min ( 180, process.stdout.columns ?? 120 ) )
 		// toute option peut aussi venir de l'environnement : NODEBASE_<OPTION>
 		// camelCase -> MOT_MOT, "." -> "__" ( ex : --login.mode = NODEBASE_LOGIN__MODE )

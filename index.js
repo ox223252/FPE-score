@@ -11,10 +11,12 @@ import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 
 const dir = path.dirname ( fileURLToPath ( import.meta.url ) );
+const pkg = JSON.parse ( readFileSync ( path.join ( dir, "package.json" ) ).toString ( ) );
 
 let params = {
 	path: dir,
-	name: JSON.parse ( readFileSync( path.join ( dir, "package.json" ) ).toString( ) ).name,
+	name: pkg.name,
+	description: pkg.description,
 };
 
 getParams ( params )
