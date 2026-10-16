@@ -5,6 +5,7 @@ import { hideBin } from 'yargs/helpers';
 export default function ( params )
 {
 	params.args = yargs ( hideBin ( process.argv ) )
+		.wrap ( Math.min ( 180, process.stdout.columns ?? 120 ) )
 		// toute option peut aussi venir de l'environnement : NODEBASE_<OPTION>
 		// camelCase -> MOT_MOT, "." -> "__" ( ex : --login.mode = NODEBASE_LOGIN__MODE )
 		// priorité : ligne de commande > environnement > défaut
@@ -105,6 +106,12 @@ export default function ( params )
 			type: 'boolean',
 			default: true,
 		})
+		.group ( [ 'help', 'version', 'debug' ], 'Général :' )
+		.group ( [ 'port', 'server', 'keyPath', 'key', 'cert', 'keySize' ], 'Serveur :' )
+		.group ( [ 'login.mode', 'login.tokenDuration', 'login.maxAttempts', 'login.lockMinutes' ], 'Connexion :' )
+		.group ( [ 'login.file' ], 'Mode fichier :' )
+		.group ( [ 'login.linux.group', 'login.linux.pamService' ], 'Mode Linux :' )
+		.group ( [ 'login.ad.url', 'login.ad.domain', 'login.ad.group', 'login.ad.bindDN', 'login.ad.baseDN', 'login.ad.recursive' ], 'Mode Active Directory :' )
 		.epilog ( 'Toute option peut être passée par variable d\'environnement : NODEBASE_<OPTION>, camelCase -> MOT_MOT, "." -> "__"\n'
 			+ 'ex : NODEBASE_PORT=8443 NODEBASE_LOGIN__MODE=ad NODEBASE_LOGIN__AD__BASE_DN="DC=domaine,DC=fr"\n'
 			+ 'la ligne de commande reste prioritaire sur l\'environnement' )
