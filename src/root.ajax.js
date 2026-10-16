@@ -1,5 +1,6 @@
 import express from 'express'; // routing module
 import fs from 'fs'; // read / write files
+import sharp from 'sharp';
 import {checkId} from './fnct.js';
 
 export default function ( params )
@@ -213,8 +214,6 @@ export default function ( params )
 					return;
 				}
 
-				console.log ( req.body )
-
 				req.body.scores = {
 					zone: req.body.scores[ 0 ],
 					top: req.body.scores[ 1 ],
@@ -247,7 +246,10 @@ export default function ( params )
 
 				if ( !fs.existsSync ( path+"/"+imgName ) )
 				{
-					fs.writeFileSync ( path+"/"+imgName, Buffer.from ( req.body.img.split(',')[1], 'base64' ) );
+					sharp ( Buffer.from ( req.body.img.split(',')[1], 'base64' ) )
+						.resize ( 640, 480 )
+						.toFile ( path+"/"+imgName, function(err) {} );
+
 					req.body.img = "/imgs/"+imgName;
 					break;
 				}
