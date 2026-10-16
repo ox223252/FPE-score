@@ -47,6 +47,36 @@ Le serveur peut être lancé depuis n'importe quel dossier : tous les chemins so
 
 En mode HTTPS, si la clé ou le certificat n'existent pas, un **certificat auto-signé** est généré au premier démarrage dans `private/`. Pour la production, remplacer ces fichiers par un vrai certificat.
 
+## Variables d'environnement
+
+Toute option de la ligne de commande peut aussi être passée par une variable d'environnement préfixée par `NODEBASE_` :
+
+- camelCase → mots séparés par `_` : `--keyPath` → `NODEBASE_KEY_PATH`
+- `.` ( option imbriquée ) → `__` : `--login.mode` → `NODEBASE_LOGIN__MODE`
+
+| Option | Variable |
+|---|---|
+| `--port` | `NODEBASE_PORT` |
+| `--keySize` | `NODEBASE_KEY_SIZE` |
+| `--login.mode` | `NODEBASE_LOGIN__MODE` |
+| `--login.tokenDuration` | `NODEBASE_LOGIN__TOKEN_DURATION` |
+| `--login.linux.pamService` | `NODEBASE_LOGIN__LINUX__PAM_SERVICE` |
+| `--login.ad.url` | `NODEBASE_LOGIN__AD__URL` |
+| `--login.ad.baseDN` | `NODEBASE_LOGIN__AD__BASE_DN` |
+| `--login.ad.bindDN` | `NODEBASE_LOGIN__AD__BIND_DN` |
+
+Priorité : **ligne de commande > environnement > valeur par défaut**.
+
+```bash
+NODEBASE_PORT=8443 NODEBASE_LOGIN__MODE=ad node index.js
+```
+
+Les variables peuvent être regroupées dans un fichier `.env` ( ignoré par git ), chargé nativement par Node ≥ 20.6 :
+
+```bash
+node --env-file=.env index.js
+```
+
 ## Modes de connexion
 
 ### Fichier ( `--login.mode file` )

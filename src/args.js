@@ -5,6 +5,10 @@ import { hideBin } from 'yargs/helpers';
 export default function ( params )
 {
 	params.args = yargs ( hideBin ( process.argv ) )
+		// toute option peut aussi venir de l'environnement : NODEBASE_<OPTION>
+		// camelCase -> MOT_MOT, "." -> "__" ( ex : --login.mode = NODEBASE_LOGIN__MODE )
+		// priorité : ligne de commande > environnement > défaut
+		.env ( 'NODEBASE' )
 		.option ( 'help', {
 			alias: 'h',
 			type: 'boolean',
@@ -87,10 +91,12 @@ export default function ( params )
 			type: 'string',
 		})
 		.option ( 'login.ad.bindDN', {
+			alias: 'login.ad.bindDn', // NODEBASE_LOGIN__AD__BIND_DN donne bindDn
 			describe: 'service account DN ( optional, password in env NODEBASE_AD_PASSWORD )',
 			type: 'string',
 		})
 		.option ( 'login.ad.baseDN', {
+			alias: 'login.ad.baseDn', // NODEBASE_LOGIN__AD__BASE_DN donne baseDn
 			describe: 'search base ( ex : DC=domaine,DC=fr )',
 			type: 'string',
 		})
@@ -99,7 +105,15 @@ export default function ( params )
 			type: 'boolean',
 			default: true,
 		})
+		.epilog ( 'Toute option peut être passée par variable d\'environnement : NODEBASE_<OPTION>, camelCase -> MOT_MOT, "." -> "__"\n'
+			+ 'ex : NODEBASE_PORT=8443 NODEBASE_LOGIN__MODE=ad NODEBASE_LOGIN__AD__BASE_DN="DC=domaine,DC=fr"\n'
+			+ 'la ligne de commande reste prioritaire sur l\'environnement' )
 		.argv;
+
+	// NODEBASE_AD_PASSWORD porte le préfixe : yargs le récupère en adPassword.
+	// db.user.js le lit directement dans process.env, on le retire pour qu'il n'apparaisse pas dans params.args ( logs debug )
+	delete params.args.adPassword;
+	delete params.args[ 'ad-password' ];
 
 	params.args.keyPath = path.resolve ( params.path, params.args.keyPath );
 	params.args.login.file = path.resolve ( params.path, params.args.login.file );
