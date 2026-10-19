@@ -662,8 +662,13 @@ class UAd extends User {
 			throw `ERROR : --login.ad.baseDN is required ( ex : DC=domaine,DC=fr )`;
 		}
 
+		let base = params.name.toUpperCase ( )
+			.replace ( /\s/g, "" );
+
 		// compte de service ( optionnel ) : mot de passe lu dans l'environnement, jamais en ligne de commande
-		this._ad.bindPassword = process.env.NODEBASE_AD_PASSWORD;
+		this._ad.bindPassword = process.env[ base+"_AD_PASSWORD" ];
+
+
 	}
 
 	_client ( )

@@ -25,7 +25,7 @@ npm run dev            # idem, avec redémarrage automatique quand src/ ou index
 Ou directement :
 
 ```bash
-node index.js -p 8443 --login.mode file
+node index.js --server.port 8443 --login.mode file
 node index.js --help   # liste complète des options
 ```
 
@@ -35,29 +35,31 @@ Le serveur peut être lancé depuis n'importe quel dossier : tous les chemins so
 
 | Option | Défaut | Description |
 |---|---|---|
-| `-p`, `--port` | 443 ( https ) / 80 ( http ) | port d'écoute |
-| `--server` | `https` | `https` ou `http` |
-| `--keyPath` | `private` | dossier de la clé et du certificat |
-| `--key` / `--cert` | `key.pem` / `certificate.pem` | noms des fichiers clé / certificat |
-| `--keySize` | `4096` | taille de la clé RSA générée |
+| `--server.port` | 443 ( https ) / 80 ( http ) | port d'écoute |
+| `--server.secure` | `true` | `true` = HTTPS, `false` = HTTP ( `--no-server.secure` ) |
+| `--server.tls.path` | `private` | dossier de la clé et du certificat |
+| `--server.tls.key` / `--server.tls.cert` | `key.pem` / `certificate.pem` | noms des fichiers clé / certificat |
+| `--server.tls.size` | `4096` | taille de la clé RSA générée |
 | `--login.mode` | `file` | `file`, `linux` ou `ad` |
 | `--login.tokenDuration` | `30` | durée de validité des jetons « se souvenir de moi », en jours |
 | `--login.maxAttempts` | `10` | tentatives de connexion par IP avant blocage |
 | `--login.lockMinutes` | `15` | durée de la fenêtre / du blocage, en minutes |
 
-En mode HTTPS, si la clé ou le certificat n'existent pas, un **certificat auto-signé** est généré au premier démarrage dans `private/`. Pour la production, remplacer ces fichiers par un vrai certificat.
+En mode HTTPS, si la clé ou le certificat n'existent pas, un **certificat auto-signé** est généré au premier démarrage dans `private/` ( option `--server.tls.path` ). Pour la production, remplacer ces fichiers par un vrai certificat.
 
 ## Variables d'environnement
 
-Toute option de la ligne de commande peut aussi être passée par une variable d'environnement préfixée par `NODEBASE_` :
+Toute option de la ligne de commande peut aussi être passée par une variable d'environnement préfixée par le nom de l'application en majuscules ( champ `name` de `package.json`, ici `NODEBASE_` ) :
 
-- camelCase → mots séparés par `_` : `--keyPath` → `NODEBASE_KEY_PATH`
-- `.` ( option imbriquée ) → `__` : `--login.mode` → `NODEBASE_LOGIN__MODE`
+- camelCase → mots séparés par `_` : `--login.tokenDuration` → `NODEBASE_LOGIN__TOKEN_DURATION`
+- `.` ( option imbriquée ) → `__` : `--server.tls.path` → `NODEBASE_SERVER__TLS__PATH`
 
 | Option | Variable |
 |---|---|
-| `--port` | `NODEBASE_PORT` |
-| `--keySize` | `NODEBASE_KEY_SIZE` |
+| `--server.port` | `NODEBASE_SERVER__PORT` |
+| `--server.secure` | `NODEBASE_SERVER__SECURE` |
+| `--server.tls.path` | `NODEBASE_SERVER__TLS__PATH` |
+| `--server.tls.size` | `NODEBASE_SERVER__TLS__SIZE` |
 | `--login.mode` | `NODEBASE_LOGIN__MODE` |
 | `--login.tokenDuration` | `NODEBASE_LOGIN__TOKEN_DURATION` |
 | `--login.linux.pamService` | `NODEBASE_LOGIN__LINUX__PAM_SERVICE` |
@@ -68,14 +70,19 @@ Toute option de la ligne de commande peut aussi être passée par une variable d
 Priorité : **ligne de commande > environnement > valeur par défaut**.
 
 ```bash
-NODEBASE_PORT=8443 NODEBASE_LOGIN__MODE=ad node index.js
+NODEBASE_SERVER__PORT=8443 NODEBASE_LOGIN__MODE=ad node index.js
 ```
 
-Les variables peuvent être regroupées dans un fichier `.env` ( ignoré par git ), chargé nativement par Node ≥ 20.6 :
+Les variables peuvent être regroupées dans un fichier `.env` ( ignoré par git ), chargé automatiquement au démarrage ( module `dotenv` ). Les variables déjà définies dans l'environnement restent prioritaires sur le fichier.
 
 ```bash
-node --env-file=.env index.js
+# .env
+NODEBASE_SERVER__PORT=8443
+NODEBASE_LOGIN__MODE=ad
+NODEBASE_AD_PASSWORD='...'
 ```
+
+> Le fichier `.env` est cherché dans le dossier courant au lancement.
 
 ## Modes de connexion
 

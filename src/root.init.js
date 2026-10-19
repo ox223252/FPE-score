@@ -17,33 +17,35 @@ export default async function ( params )
 	let server = undefined;
 	let exp = express ( );
 
-	switch ( params?.args?.server )
+	let s = params?.args?.server;
+
+	switch ( s?.secure )
 	{
-		case "http":
+		case false:
 		{
-			if ( !params?.args?.port )
+			if ( !s?.port )
 			{
-				params.args.port = 80;
+				s.port = 80;
 			}
 
 			server = http.createServer ( exp );
 			break;
 		}
-		case "https":
+		case true:
 		{
-			if ( !params?.args?.port )
+			if ( !s?.port )
 			{
-				params.args.port = 443;
+				s.port = 443;
 			}
 
-			if ( !fs.existsSync ( params.args.keyPath ) )
+			if ( !fs.existsSync ( s.tls.path ) )
 			{
-				fs.mkdirSync ( params.args.keyPath, {recursive:true} )
+				fs.mkdirSync ( s.tls.path, {recursive:true} )
 			}
 
 			let options = {
-			  key: path.join ( params.args.keyPath,  params?.args?.key ),
-			  cert: path.join ( params.args.keyPath, params?.args?.cert ),
+			  key:  path.join ( s.tls.path, s.tls.key ),
+			  cert: path.join ( s.tls.path, s.tls.cert ),
 			};
 
 			if ( !fs.existsSync ( options.key )
@@ -51,7 +53,7 @@ export default async function ( params )
 			{
 				await execFile ( 'openssl', [
 					"req", "-x509",
-					"-newkey", "rsa:"+params?.args?.keySize,
+					"-newkey", "rsa:"+s?.tls.size,
 					"-keyout", options.key,
 					"-out", options.cert,
 					"-sha256", "-days", 3650, "-nodes",
@@ -69,7 +71,7 @@ export default async function ( params )
 		}
 		default:
 		{
-			throw `server security invalid : requested : ${params?.args?.server}`
+			throw `server security invalid : requested : ${s?.secure}`
 		}
 	}
 
@@ -83,14 +85,14 @@ export default async function ( params )
 			maxAge: 24 * 60 * 60 * 1000,
 			path: '/',
 			httpOnly: true, // illisible depuis le JavaScript de la page
-			secure: ( "https" == params.args.server ), // envoyé uniquement en HTTPS
+			secure: s.secure, // envoyé uniquement en HTTPS
 			sameSite: "lax", // non envoyé par les requêtes POST / fetch venant d'un autre site
 		}
 	});
 
 	exp.use ( helmet ({
 		contentSecurityPolicy: false,        // définie plus bas, avec le nonce
-		strictTransportSecurity: ( "https" == params.args.server ),
+		strictTransportSecurity: s.secure,
 	}));
 	exp.use ( express.json ( ) ); // lecture des corps de requête JSON ( intégré à express 5 )
 	exp.use ( express.urlencoded ( { extended: true } ) );
@@ -112,7 +114,7 @@ export default async function ( params )
 	exp.use ( helmet.contentSecurityPolicy({
 		directives: {
 			scriptSrc: [ "'self'", (req,res)=>`'nonce-${res.locals.nonce}'`],
-			upgradeInsecureRequests: ( "https" == params.args.server )
+			upgradeInsecureRequests: ( s.secure )
 				? []
 				: null,
 		}
@@ -123,10 +125,10 @@ export default async function ( params )
 	params.sessionMiddleware = sessionMiddleware;
 
 	return new Promise ( (ok,ko)=>{
-		server.listen ( params?.args?.port, function ( )
+		server.listen ( s?.port, function ( )
 		{
-			console.log ( " - Server type "+ params?.args?.server );
-			console.log ( " - Server started on PORT "+ params?.args?.port );
+			console.log ( " - Server type "+ s?.secure ? "https" : "http" );
+			console.log ( " - Server started on PORT "+ s?.port );
 
 			ok ( params );
 		});
