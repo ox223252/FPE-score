@@ -7,11 +7,12 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node $WATCH index.js -p 65500 --login.mode file",
+    "start": "node $WATCH index.js",
     "dev": "WATCH='--watch-path=src --watch-path=index.js' npm start"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.3.1",
+    "dotenv": "^18.0.8",
     "ejs": "^6.0.1",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
