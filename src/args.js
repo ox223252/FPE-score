@@ -4,14 +4,17 @@ import { hideBin } from 'yargs/helpers';
 
 export default function ( params )
 {
+	let base = params.name.toUpperCase ( )
+		.replace ( /\s/g, "" );
+
 	params.args = yargs ( hideBin ( process.argv ) )
 		.scriptName ( params.name )
 		.usage ( `${params.name} : ${params.description}\nUsage : $0 [options]` )
 		.wrap ( Math.min ( 180, process.stdout.columns ?? 120 ) )
-		// toute option peut aussi venir de l'environnement : NODEBASE_<OPTION>
-		// camelCase -> MOT_MOT, "." -> "__" ( ex : --login.mode = NODEBASE_LOGIN__MODE )
+		// toute option peut aussi venir de l'environnement : <base>_<OPTION>
+		// camelCase -> MOT_MOT, "." -> "__" ( ex : --login.mode = <base>_LOGIN__MODE )
 		// priorité : ligne de commande > environnement > défaut
-		.env ( 'NODEBASE' )
+		.env ( base )
 		.option ( 'help', {
 			alias: 'h',
 			type: 'boolean',
@@ -94,12 +97,12 @@ export default function ( params )
 			type: 'string',
 		})
 		.option ( 'login.ad.bindDN', {
-			alias: 'login.ad.bindDn', // NODEBASE_LOGIN__AD__BIND_DN donne bindDn
-			describe: 'service account DN ( optional, password in env NODEBASE_AD_PASSWORD )',
+			alias: 'login.ad.bindDn', // <base>_LOGIN__AD__BIND_DN donne bindDn
+			describe: `service account DN ( optional, password in env ${base}_AD_PASSWORD )`,
 			type: 'string',
 		})
 		.option ( 'login.ad.baseDN', {
-			alias: 'login.ad.baseDn', // NODEBASE_LOGIN__AD__BASE_DN donne baseDn
+			alias: 'login.ad.baseDn', // <base>_LOGIN__AD__BASE_DN donne baseDn
 			describe: 'search base ( ex : DC=domaine,DC=fr )',
 			type: 'string',
 		})
@@ -114,12 +117,12 @@ export default function ( params )
 		.group ( [ 'login.file' ], 'Mode fichier :' )
 		.group ( [ 'login.linux.group', 'login.linux.pamService' ], 'Mode Linux :' )
 		.group ( [ 'login.ad.url', 'login.ad.domain', 'login.ad.group', 'login.ad.bindDN', 'login.ad.baseDN', 'login.ad.recursive' ], 'Mode Active Directory :' )
-		.epilog ( 'Toute option peut être passée par variable d\'environnement : NODEBASE_<OPTION>, camelCase -> MOT_MOT, "." -> "__"\n'
-			+ 'ex : NODEBASE_PORT=8443 NODEBASE_LOGIN__MODE=ad NODEBASE_LOGIN__AD__BASE_DN="DC=domaine,DC=fr"\n'
+		.epilog ( `Toute option peut être passée par variable d\'environnement : ${base}_<OPTION>, camelCase -> MOT_MOT, "." -> "__"\n`
+			+ `ex : ${base}_PORT=8443 ${base}_LOGIN__MODE=ad ${base}_LOGIN__AD__BASE_DN="DC=domaine,DC=fr"\n`
 			+ 'la ligne de commande reste prioritaire sur l\'environnement' )
 		.argv;
 
-	// NODEBASE_AD_PASSWORD porte le préfixe : yargs le récupère en adPassword.
+	// <base>_AD_PASSWORD porte le préfixe : yargs le récupère en adPassword.
 	// db.user.js le lit directement dans process.env, on le retire pour qu'il n'apparaisse pas dans params.args ( logs debug )
 	delete params.args.adPassword;
 	delete params.args[ 'ad-password' ];
