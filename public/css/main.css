@@ -140,4 +140,23 @@ html {
 
 .connectionStatus.disconnected {
 	color: var( --disconnected );
+
+.gecko {
+	fill: light-dark( black, white );
+}
+
+.climber_body {
+	fill: light-dark( black, white );
+}
+
+.climber_head {
+	fill: light-dark( black, white );
+}
+
+.climber_legs {
+	fill: light-dark( black, white );
+}
+
+.climber_rope {
+	fill: light-dark( black, white );
 }
