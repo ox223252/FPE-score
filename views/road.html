@@ -4,7 +4,7 @@
 	<body>
 		<%- include("part/nav.html") -%>
 		<section>
-			<form>
+			<div class="form">
 				<div>
 					<label for="newRoute">Nom de la nouvelle voie : </label>
 					<input id="route" type="text" list="knownRoute">
@@ -35,7 +35,7 @@
 				<div>
 					<button id="validate">Sauver</button>
 				</div>
-			</form>
+			</div>
 		</section>
 		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
 		<script nonce="<%- locals.nonce %>">

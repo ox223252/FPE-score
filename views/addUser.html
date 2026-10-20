@@ -37,7 +37,7 @@
 			}
 		</style>
 		<section>
-			<form>
+			<div class="form">
 				<% if ( "admin" == locals.logged ) {%>
 				<input type="radio" name="userType" id="admin">
 				<label class="admin" for="admin">Admin</label>
@@ -79,7 +79,7 @@
 					</datalist>
 				</div>
 				<button id="validate">Sauver</button>
-			</form>
+			</div>
 			<p id="serverMsg"></p>
 		</section>
 		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>

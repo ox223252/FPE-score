@@ -136,11 +136,12 @@ function uOneCheckList ( params = {} )
 /// 	tbody
 /// 	scores
 /// }
-function printTable ( params = {}, voie = undefined )
+function printTable ( params = {}, route )
 {
 	function createLine ( array, headerArray = [] )
 	{
 		let line = document.createElement ( "tr" );
+
 		array.map ( (item,index)=>{
 			let td = document.createElement ( "td" );
 			line.appendChild ( td );
@@ -148,7 +149,7 @@ function printTable ( params = {}, voie = undefined )
 			let span = document.createElement ( "span" );
 			td.appendChild ( span );
 
-			span.innerText = item;
+			span.innerText = item;			
 
 			if ( headerArray.includes ( index ) )
 			{
@@ -159,17 +160,14 @@ function printTable ( params = {}, voie = undefined )
 				td.classList.add ( "data" );
 			}
 
-			if ( params.event )
-			{
-				td.onclick = (ev)=>{
-					ev.preventDefault ( );
-					let e = new Event ( "click" );
-					e.value = item;
-					e.column = index;
-					e.firstCell = array[ 0 ];
-					params.event.dispatchEvent ( e );
-				};
-			}
+			td.onclick = (ev)=>{
+				ev.preventDefault ( );
+				let e = new Event ( "click" );
+				e.value = item;
+				e.column = index;
+				e.firstCell = array[ 0 ];
+				tableEvent.dispatchEvent ( e );
+			};
 
 			if ( params.callback )
 			{
@@ -180,99 +178,111 @@ function printTable ( params = {}, voie = undefined )
 		return line;
 	}
 
+	function getBestResult ( result )
+	{
+		if ( result?.some( v=>!isNaN(v) ) )
+		{
+			return Math.max( ...result )
+		}
+		else if ( result?.some( v=>v=="top" ) )
+		{
+			return "top";
+		}
+		else if ( result?.some( v=>v=="zone" ) )
+		{
+			return "zone";
+		}
+		else if ( result?.some( v=>v=="echec" ) )
+		{
+			return "echec";
+		}
+		else
+		{
+			return "";
+		}
+	}
+
+	let tableEvent = new EventTarget ( );
 	let users = getUsersList ( params.users, params.filters )
 		.filter ( name=>{
-			if ( !scores[ name ] )
+			if ( !params?.scores[ name ] )
 			{
 				return false;
 			}
 			return true;
 		})
 		.sort ( (a,b)=>{
-			return params.scores[ a ].rank - params.scores[ b ].rank;
+			if ( route
+				&& params.routes.includes ( route?.name ) )
+			{
+				let a1 = getBestResult ( params.scores[ a ][ route.name ] );
+				let b1 = getBestResult ( params.scores[ b ][ route.name ] );
+				
+				if ( isNaN ( a1 ) )
+				{
+					a1 = [ "", "echec", "zone", "top" ].indexOf ( a1 );
+				}
+
+				if ( isNaN ( b1 ) )
+				{
+					a1 = [ "", "echec", "zone", "top" ].indexOf ( b1 );
+				}
+
+				return b1 - a1;
+			}
+			else
+			{
+				return params.scores[ a ].rank - params.scores[ b ].rank;
+			}
 		})
-		.map ( (user,i)=>{
-			params.scores[ user ].partialRank = (i+1);
+		.map ( (user,i,a)=>{
+			if ( ( i > 0 )
+				&& ( params.scores[ user ].rank == params.scores[ a[ i - 1 ] ].rank ) )
+			{
+				params.scores[ user ].partialRank = params.scores[ a[ i - 1 ] ].partialRank;
+			}
+			else
+			{
+				params.scores[ user ].partialRank = (i+1);
+			}
 			return user;
 		})
-		.map ( (user,i,array)=>{
-			if ( 0 == i )
-			{
-				return user;
-			}
 
-			if ( params.scores[ user ][ voie.name ] == params.scores[ array[ i - 1 ] ][ voie.name ] )
-			{
-				params.scores[ user ].partialRank = params.scores[ array[ i - 1 ] ].partialRank;
-			}
+	let routes = users.map ( u=>Object.keys ( params.scores[ u ] ) )
+		.flat ( Infinity )
+		.distinct ( )
+		.filter ( f=>params.routes.includes ( f ) )
+		.filter ( v=>!["partialRank","rank","total"].includes ( v ) )
+		.sort ( );
 
-			return user;
-		});
-
-	while ( params.thead.firstChild )
+	while ( domEls.table.thead.firstChild )
 	{
 		params.thead.removeChild ( params.thead.lastChild );
 	}
+
 	while ( domEls.table.tbody.firstChild )
 	{
 		params.tbody.removeChild ( params.tbody.lastChild );
 	}
 
-	let available = Object.keys ( params.voies )
-		.filter ( f=>params.filters.type.includes ( f ) )
-		.map ( t=>params.voies[ t ] )
-		.flat ( Infinity )
-
-	let voies = users.map ( u=>Object.keys ( params.scores[ u ] ) )
-		.flat ( Infinity )
-		.distinct ( )
-		.filter ( f=>available.includes ( f ) )
-		.sort ( );
-
-
-	let voiesFiltered = voies.filter ( v=>!["partialRank","rank","total"].includes ( v ) );
-	let headerArray = [ 0 , voiesFiltered.length + 1, voiesFiltered.length + 2 ]
-
-	params.thead.appendChild ( createLine ( [ "Nom", ...voiesFiltered, "total", "rank" ], headerArray ) );
+	params.thead.appendChild ( createLine ( [ "Nom", "rank", "total", ...routes ], [ 0 ,1, 2 ] ) );
 
 	for ( let user of users )
 	{
 		params.tbody.appendChild ( createLine ( [
 			user,
-			...voiesFiltered.map ( v=>{
-				if ( params.scores?.[ user ]?.[ v ] )
-				{
-					if ( params.scores?.[ user ]?.[ v ]?.some( v=>!isNaN(v) ) )
-					{
-						return Math.max( ...params.scores[ user ][ v ] )
-					}
-					else if ( params.scores?.[ user ]?.[ v ]?.some( v=>v=="top" ) )
-					{
-						return "top";
-					}
-					else if ( params.scores?.[ user ]?.[ v ]?.some( v=>v=="zone" ) )
-					{
-						return "zone";
-					}
-					else if ( params.scores?.[ user ]?.[ v ]?.some( v=>v=="echec" ) )
-					{
-						return "echec";
-					}
-					else
-					{
-						return "";
-					}
-				}
-				else
-				{
-					return "";
-				}
-			}),
+			params.scores[ user ].partialRank,
 			params.scores[ user ].total,
-			params.scores[ user ].partialRank
+			...routes.map ( v=>getBestResult ( params.scores?.[ user ]?.[ v ] ) ),
 		],
-		headerArray ) );
+		[ 0, 1, 2 ] ) );
 	}
+
+	tableEvent.addEventListener ( "click", ( ev )=>{
+		printTable (params,{
+				name: ev.value,
+			});
+	})
 }
 
 /// params : {
@@ -295,9 +305,9 @@ function printTableOne ( params = {} )
 
 	let score = params.scores[ params.selectedUsers[ 0 ].name ]
 	
-	for ( let voie in score )
+	for ( let route in score )
 	{
-		if ( "Array" != score[ voie ].constructor.name )
+		if ( "Array" != score[ route ].constructor.name )
 		{
 			continue;
 		}
@@ -305,19 +315,19 @@ function printTableOne ( params = {} )
 
 		let th = document.createElement ( "th" );
 		line.appendChild ( th );
-		th.innerText = voie;
+		th.innerText = route;
 
 		if ( params.event )
 		{
 			th.onclick = (ev)=>{
 				ev.preventDefault ( );
 				let e = new Event ( "click" );
-				e.firstCell = voie;
+				e.firstCell = route;
 				params.event.dispatchEvent ( e );
 			};
 		}
 
-		score[ voie ].map ( (v,i)=>{
+		score[ route ].map ( (v,i)=>{
 			let td = document.createElement ( "td" );
 			line.appendChild ( td );
 
@@ -326,12 +336,12 @@ function printTableOne ( params = {} )
 
 			input.value = v;
 			input.dataset.index = i;
-			input.dataset.id = voie;
+			input.dataset.id = route;
 
 			input.addEventListener ( "change", (ev)=>{
 				params.socket.emit ( "uValue", {
 					index:i,
-					voie:voie,
+					route:route,
 					name:params.selectedUsers[ 0 ].name,
 					value: Number ( ev.target.value ),
 				} )

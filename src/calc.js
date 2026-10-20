@@ -1,8 +1,18 @@
-export function calcAll ( params )
+/// \biref calc rank
+/// \param [ in ] db : obect with routes, scores, users
+/// \param [ in ] mode : string with competition mode [ a, b, d ]
+export function calcAll ( db, mode )
 {
-	for ( let voie in params.db.voies )
+	if ( !db.scores
+		|| !db.routes
+		|| !db.users )
 	{
-		params.db.voies.map ( v=>{
+		return Promise.reject ( );
+	}
+
+	for ( let route in db.routes )
+	{
+		db.routes.map ( v=>{
 			v.meta = {
 				total: 0, // totals de points
 				tryed: 0, // nombre dessais
@@ -16,7 +26,7 @@ export function calcAll ( params )
 		speed: {}
 	};
 
-	params.db.voies.filter ( v=>{
+	db.routes.filter ( v=>{
 			return "vitesse" == v.type;
 		})
 		.map ( v=>{
@@ -25,43 +35,43 @@ export function calcAll ( params )
 		});
 
 	// recuperation du meilleur chrono de chaque grimpeur sur chaque voie de vitesse
-	Object.keys ( params.db.score ).map ( u=>{
-			Object.keys ( params.db.score[ u ] ).map ( v=>{
+	Object.keys ( db.scores ).map ( u=>{
+			Object.keys ( db.scores[ u ] ).map ( v=>{
 				if ( !local.speed[ v ] )
 				{
 					return;
 				}
-				local.speed[ v ].push ( Math.min ( ...params.db.score[ u ][ v ] ) )
+				local.speed[ v ].push ( Math.min ( ...db.scores[ u ][ v ] ) )
 			})
 		})
 
-	// reordonne les resultat dans l'ordre decroissant (plus rapide au debut)
+	// reordonne les resultat dans l'ordre croissant (plus rapide au debut)
 	Object.keys ( local.speed ).map ( v=>{
 			local.speed[ v ] = local.speed[ v ].sort ( (a,b)=>a-b);
 		})
 
 	return new Promise ( (ok,ko)=>{
 		// calc total of points
-		switch ( params.args.mode )
+		switch ( mode )
 		{
 			case "a":
 			case "autre":
 			{
-				params.db.users.map ( user=>{
-					if ( !params.db.score[ user.name ] )
+				db.users.map ( user=>{
+					if ( !db.scores[ user.name ] )
 					{ // ceux qui n'ont pas particiés
 						return;
 					}
 
-					params.db.score[ user.name ].total = 0;
-					for ( let voie in params.db.score[ user.name ] )
+					db.scores[ user.name ].total = 0;
+					for ( let route in db.scores[ user.name ] )
 					{
-						if ( "Array" != params.db.score[ user.name ][ voie ].constructor.name )
+						if ( "Array" != db.scores[ user.name ][ route ].constructor.name )
 						{
 							continue;
 						}
 
-						let currentVoie = params.db.voies.filter ( v=>v.name == voie )?.[ 0 ];
+						let currentVoie = db.routes.filter ( v=>v.name == route )?.[ 0 ];
 
 						if ( !currentVoie )
 						{
@@ -72,7 +82,7 @@ export function calcAll ( params )
 						{
 							case "vitesse":
 							{
-								let index = local.speed[ voie ]?.indexOf ( Math.min ( ...params.db.score[ user.name ]?.[ voie ] ) );
+								let index = local.speed[ route ]?.indexOf ( Math.min ( ...db.scores[ user.name ]?.[ route ] ) );
 
 								if ( ( undefined == index )
 									|| ( 0 > index )
@@ -81,20 +91,20 @@ export function calcAll ( params )
 								}
 								else
 								{
-									params.db.score[ user.name ].total += 50 - index;
+									db.scores[ user.name ].total += 50 - index;
 								}
 								break;
 							}
 							default:
 							{
-								params.db.score[ user.name ].total += Math.max ( ...params.db.score[ user.name ][ voie ] );
+								db.scores[ user.name ].total += Math.max ( ...db.scores[ user.name ][ route ] );
 								break;
 							}
 						}
 
 						currentVoie.meta.users++;
 
-						// params.db.score[ user.name ][ voie ].map ( v=>{
+						// db.score[ user.name ][ voie ].map ( v=>{
 						// 	currentVoie.meta.tryed++;
 						// 	currentVoie.meta.total += v;
 						// 	console.log ( currentVoie.meta.results[ v ] )
@@ -115,31 +125,31 @@ export function calcAll ( params )
 			case "b":
 			case "bloc":
 			{
-				params.db.users.map ( user=>{
-					if ( !params.db.score[ user.name ] )
+				db.users.map ( user=>{
+					if ( !db.scores[ user.name ] )
 					{ // ceux qui n'ont pas particiés
 						return;
 					}
 
-					params.db.score[ user.name ].total = "";
+					db.scores[ user.name ].total = "";
 
 					let top = 0;
 					let zone = 0;
 					let echec = 0;
 
-					for ( let voie in params.db.score[ user.name ] )
+					for ( let route in db.scores[ user.name ] )
 					{
-						if ( "Array" != params.db.score[ user.name ][ voie ].constructor.name )
+						if ( "Array" != db.scores[ user.name ][ route ].constructor.name )
 						{
 							continue;
 						}
 
-						if ( !params?.db?.voies?.[ voie ] )
+						if ( !db?.routes?.[ route ] )
 						{
 							continue;
 						}
 
-						let currentVoie = params.db.voies.filter ( v=>v.name == voie )?.[ 0 ];
+						let currentVoie = db.routes.filter ( v=>v.name == route )?.[ 0 ];
 
 						if ( !currentVoie )
 						{
@@ -160,24 +170,24 @@ export function calcAll ( params )
 
 						currentVoie.meta.tryed++;
 
-						if ( params.db.score[ user.name ][ voie ].some ( v=>v=="top" ) )
+						if ( db.scores[ user.name ][ route ].some ( v=>v=="top" ) )
 						{
 							currentVoie.meta.results.top++;
 							top++;
 						}
 						
-						let z = params.db.score[ user.name ][ voie ].filter ( v=>v=="zone" ).length;
+						let z = db.scores[ user.name ][ route ].filter ( v=>v=="zone" ).length;
 						zone += z;
 						currentVoie.meta.results.zone += z;
 
-						let e = params.db.score[ user.name ][ voie ].filter ( v=>v=="echec" ).length;
+						let e = db.scores[ user.name ][ route ].filter ( v=>v=="echec" ).length;
 						echec += e;
 						currentVoie.meta.results.zone += e;
 
 						currentVoie.meta.users++;
 					}
 
-					params.db.score[ user.name ].total = {
+					db.scores[ user.name ].total = {
 						top,
 						zone,
 						echec,
@@ -190,23 +200,23 @@ export function calcAll ( params )
 			{
 				let full = {};
 
-				let voies = Object.keys ( params.db.voies );
-				let uS = Object.keys ( params.db.score );
+				let routes = Object.keys ( db.routes );
+				let uS = Object.keys ( db.scores );
 
 				uS.map ( k=>{
-					voies.map ( v=>{
+					routes.map ( v=>{
 						if ( !full[ v ] )
 						{
 							full[ v ] = [];
 						}
 
-						if ( "Array" == params.db.score?.[ k ]?.[ v ]?.constructor.name )
+						if ( "Array" == db.scores?.[ k ]?.[ v ]?.constructor.name )
 						{
-							full[ v ].push ( Math.max ( params.db.score?.[ k ]?.[ v ] ) );
+							full[ v ].push ( Math.max ( db.scores?.[ k ]?.[ v ] ) );
 						}
 					});
 					
-					params.db.score[ k ].total = 0;
+					db.scores[ k ].total = 0;
 				})
 
 				for ( let v in full )
@@ -220,18 +230,18 @@ export function calcAll ( params )
 					full[ v ].sort ( (a,b)=>b-a )
 				}
 
-				voies = Object.keys ( full );
+				routes = Object.keys ( full );
 
 				uS.map ( k=>{
-					voies.map ( v=>{
+					routes.map ( v=>{
 						let value = undefined;
-						if ( "Array" == params.db.score?.[ k ]?.[ v ]?.constructor.name )
+						if ( "Array" == db.scores?.[ k ]?.[ v ]?.constructor.name )
 						{
-							value = Math.max ( params.db.score?.[ k ]?.[ v ] );
+							value = Math.max ( db.scores?.[ k ]?.[ v ] );
 						}
 						else
 						{
-							value = params.db.score?.[ k ]?.[ v ];
+							value = db.scores?.[ k ]?.[ v ];
 						}
 
 						let t = full[ v ].indexOf ( value );
@@ -242,26 +252,26 @@ export function calcAll ( params )
 						}
 						t++;
 
-						params.db.score[ k ].total += t * t;
+						db.scores[ k ].total += t * t;
 					});
 
-					params.db.score[ k ].total = Math.sqrt ( params.db.score[ k ].total );
+					db.scores[ k ].total = Math.sqrt ( db.scores[ k ].total );
 				});
 				break;
 			}
 		}
 
-		let users = Object.keys ( params.db.score );
+		let users = Object.keys ( db.scores );
 
 		// calc rank
-		switch ( params.args.mode )
+		switch ( mode )
 		{
 			case "a":
 			case "autre":
 			{
-				users.sort ( (a,b)=>{ return params.db.score[ b ].total - params.db.score[ a ].total })
+				users.sort ( (a,b)=>{ return db.scores[ b ].total - db.scores[ a ].total })
 					.map ( (user,i)=>{
-						params.db.score[ user ].rank = (i+1);
+						db.scores[ user ].rank = (i+1);
 						return user;
 					})
 				break;
@@ -295,16 +305,16 @@ export function calcAll ( params )
 					}
 				}
 
-				users.sort ( (a,b)=>{return cmp ( params.db.score[ b ].total, params.db.score[ a ].total ) })
+				users.sort ( (a,b)=>{return cmp ( db.scores[ b ].total, db.scores[ a ].total ) })
 					.map ( (user,i)=>{
-						params.db.score[ user ].rank = (i+1);
-						let t = params.db.score[ user ].total;
-						params.db.score[ user ].total = "";
+						db.scores[ user ].rank = (i+1);
+						let t = db.scores[ user ].total;
+						db.scores[ user ].total = "";
 						for ( let key in t )
 						{
 							if ( t[ key ] )
 							{
-								params.db.score[ user ].total += t[ key ]+key.charAt ( 0 )+" ";
+								db.scores[ user ].total += t[ key ]+key.charAt ( 0 )+" ";
 							}
 						}
 
@@ -316,10 +326,10 @@ export function calcAll ( params )
 			case "diff":
 			{
 				users.sort ( (a,b)=>{
-						return params.db.score[ a ].total-params.db.score[ b ].total
+						return db.scores[ a ].total-db.scores[ b ].total
 					})
 					.map ( (user,i)=>{
-						params.db.score[ user ].rank = (i+1);
+						db.scores[ user ].rank = (i+1);
 						return user;
 					})
 
@@ -333,9 +343,9 @@ export function calcAll ( params )
 					return user;
 				}
 
-				if ( params.db.score[ user ].total == params.db.score[ array[ i - 1 ] ].total )
+				if ( db.scores[ user ].total == db.scores[ array[ i - 1 ] ].total )
 				{
-					params.db.score[ user ].rank = params.db.score[ array[ i - 1 ] ].rank;
+					db.scores[ user ].rank = db.scores[ array[ i - 1 ] ].rank;
 				}
 
 				return user;
