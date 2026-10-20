@@ -73,6 +73,15 @@ export default function ( params )
 					params.connected[ id ].user = user;
 					params.connected[ id ].page[ socket.id ] = page;
 				});
+				
+			switch ( msg.page )
+			{
+				case "/road":
+				{
+					socket.join ( "route" );
+					break;
+				}
+			}
 		});
 
 		socket.on ( "disconnect", ( )=>{
