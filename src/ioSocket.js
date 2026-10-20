@@ -97,6 +97,11 @@ export default function ( params )
 					socket.join ( "route" );
 					break;
 				}
+				case "/addUser":
+				{
+					socket.join ( "users" );
+					break;
+				}
 			}
 		});
 
