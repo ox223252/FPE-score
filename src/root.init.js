@@ -127,7 +127,7 @@ export default async function ( params )
 	return new Promise ( (ok,ko)=>{
 		server.listen ( s?.port, function ( )
 		{
-			console.log ( " - Server type "+ s?.secure ? "https" : "http" );
+			console.log ( " - Server type "+ ( s?.secure ? "https" : "http" ) );
 			console.log ( " - Server started on PORT "+ s?.port );
 
 			ok ( params );
