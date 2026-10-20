@@ -571,8 +571,8 @@ function exportFile ( data, file )
 
 function ajaxReq ( path, data = {} )
 {
-	let nav = document.querySelector ( "nav" );
-	nav.style.backgroundColor = "orange";
+	let domEl = document.querySelector ( "body" );
+	domEl.style.backgroundColor = "orange";
 
 	return fetch ( path,{
 			method:"POST",
@@ -602,17 +602,16 @@ function ajaxReq ( path, data = {} )
 		.then ( r=>({ data: r, status: true }) )
 		.catch ( r=>({ data: r, status: false }) )
 		.then ( r=>{
-			let nav = document.querySelector ( "nav" );
 
-			if ( !nav )
+			if ( !domEl )
 			{
 				return r;
 			}
 
-			nav.style.backgroundColor = (status)?"lightgreen":"red";
+			domEl.style.backgroundColor = (r.status)?"lightgreen":"red";
 
 			setTimeout ( ()=>{
-				nav.style.backgroundColor = "";
+				domEl.style.backgroundColor = "";
 			}, 1000 );
 
 			return r;
