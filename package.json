@@ -1,7 +1,7 @@
 {
-  "name": "nodebase",
+  "name": "fpe",
   "version": "1.0.0",
-  "description": "base des outils web",
+  "description": "project to manage FFME compliant competitions",
   "license": "ISC",
   "author": "ox223252",
   "type": "module",
