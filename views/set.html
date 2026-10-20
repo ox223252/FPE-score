@@ -4,50 +4,45 @@
 	<body>
 		<%- include("part/nav.html") -%>
 		<section>
-			<form>
-				<span id="divGenre">
+			<div class="form">
+				<div id="divGenre">
 					<label for="genre">Genre</label>
 					<select id="genre"></select>
-				</span>
-				<span id="divCategorie">
+				</div>
+				<div id="divCategorie">
 					<label for="categorie">Categorie</label>
 					<select id="categorie"></select>
-				</span>
-				<span id="divClub">
+				</div>
+				<div id="divClub">
 					<label for="club">Club</label>
 					<select id="club"></select>
-				</span>
+				</div>
 				<div  id="divUser" class="row">
-					<span>
+					<div>
 						<label for="user">Utilisateur</label>
 						<select id="user"></select>
-					</span>
-					<span>
+					</div>
+					<div>
 						<label for="dossard">Dossard</label>
 						<select id="dossard"></select>
-					</span>
+					</div>
 				</div>
 				<hr>
-				<span id="divType">
+				<div id="divType">
 					<label for=type>Type de voie</label>
-					<select id="type">
-						<option value="all" diseabled selected>--</option>
-						<option value="bloc">Bloc</option>
-						<option value="diff">Diff</option>
-						<option value="autre">Autre</option>
-					</select>
-				</span>
-				<span id="divVoie">
+					<select id="type"></select>
+				</div>
+				<div id="divVoie">
 					<label for=voie>Voie</label>
 					<select id="voie"></select>
-				</span>
+				</div>
 				<div class="marged">
 					<input id="scoreDiff"></input>
 					<select id="scoreBloc">
 						<option disabled selected>--</option>
-						<option value="echec">Echec</option>
-						<option value="zone">Zone</option>
-						<option value="top">Top</option>
+						<option value="echec">Echec</value>
+						<option value="zone">Zone</value>
+						<option value="top">Top</value>
 					</select>
 					<div id="divChrono" class="row">
 						<button id="chronoStart">Start</button>
@@ -59,7 +54,7 @@
 				<div>
 					<button id="validate">Valider</button>
 				</div>
-			</form>
+			</div class="form">
 			<img id="img"></img>
 			<div id="comments">
 			</div>
@@ -111,89 +106,85 @@
 				var socket = io ( );
 			}
 
-			let filters = {
-				user:{},
-				voie:undefined,
-			};
+			let routes = <%- JSON.stringify ( locals.routes ) %>;
+			let types = <%- JSON.stringify ( locals.types ) %>;
+			let users = <%- JSON.stringify ( locals.users ) %>;
 
-			let users = [];
-
-			socket.on ( "setUCCG", (msg)=>{
+			// user
+			function initUsersSelector ( array )
+			{
 				uOneSlector ({
 					default:"genre",
 					selector:domEls.genre,
-					list:msg.map ( u2=>u2.genre ).distinct ( ).sort ( ),
-					// parentDiv:domEls.div.genre
-				})
+					list:array.map ( u2=>u2.genre ).distinct ( ).sort ( ),
+				});
 				uOneSlector ({
 					default:"categorie",
 					selector:domEls.categorie,
-					list:msg.map ( u2=>u2.categorie ).distinct ( ).sort ( ),
-					// parentDiv:domEls.div.categorie
-				})
+					list:array.map ( u2=>u2.categorie ).distinct ( ).sort ( ),
+				});
 				uOneSlector ({
 					default:"club",
 					selector:domEls.club,
-					list:msg.map ( u2=>u2.club ).distinct ( ).sort ( ),
-					// parentDiv:domEls.div.club
-				})
+					list:array.map ( u2=>u2.club ).distinct ( ).sort ( ),
+				});
 				uOneSlector ({
 					default:"user",
 					selector:domEls.user,
-					list:msg.map ( u2=>u2.name ).distinct ( ).sort ( ),
-					// parentDiv:domEls.div.user
-				})
-
+					list:array.map ( u2=>u2.name ).distinct ( ).sort ( ),
+				});
 				uOneSlector ({
 					default:"dossard",
 					selector:domEls.dossard,
 					obj:{
 						valueId:"name",
 						textId:"dossard",
-						list:msg.distinct ( ).sort ( (a,b)=>{
+						list:array.distinct ( ).sort ( (a,b)=>{
 							return a.dossard - b.dossard;
 						}),
 					},
-					parentDiv:domEls.div.user
-				})
-			} );
+					parentDiv:domEls.div.user,
+				});
+			}
+			
+			initUsersSelector ( users );
 
-			socket.on ( "updateNav", ()=>{
-				socket.emit ( "getUCCG", filters.user );
-				socket.emit ( "getVoies", filters.voie );
-				socket.emit ( "getListOfType" );
+			// route
+			uOneSlector ({
+				default:"--",
+				selector:domEls.type,
+				list:types,
+				parentDiv:domEls.div.type
 			});
-
-			socket.on ( "setVoies", (msg)=>{
-				domEls.score.bloc.style.display = "none";
-				domEls.score.diff.style.display = "none";
-				domEls.div.chrono.style.display = "none";
-
-				uOneSlector ({
-					default:"voie",
-					selector:domEls.voie,
-					list:msg,
-					parentDiv:domEls.div.voie
-				})
-
-				domEls.voie.options[ 0 ].disabled = true;
+			uOneSlector ({
+				default:"voie",
+				selector:domEls.voie,
+				list:routes.map ( r=>r.name ),
+				parentDiv:domEls.div.voie
 			});
+			domEls.type.options[ 0 ].disabled = true;
+			domEls.voie.options[ 0 ].disabled = true;
 
-			socket.on ( "setVoie", (msg)=>{
-				if ( msg.comments )
+			domEls.score.bloc.style.display = "none";
+			domEls.score.diff.style.display = "none";
+			domEls.div.chrono.style.display = "none";
+
+			function initRoute ( route )
+			{
+				if ( route.comments )
 				{
 					domEls.comments.display = "";
-					domEls.comments.innerText = msg.comments;
+					domEls.comments.innerText = route.comments;
 				}
 				else
 				{
 					domEls.comments.display = "none";
 				}
 
-				if ( msg.img )
+				if ( route.img )
 				{
 					domEls.img.style.display = "";
-					domEls.img.src = msg.img;
+					domEls.img.src = route.img;
 				}
 				else
 				{
@@ -204,7 +195,7 @@
 				domEls.score.diff.style.display = "none";
 				domEls.div.chrono.style.display = "none";
 
-				switch ( msg.type )
+				switch ( route.type )
 				{
 					case "bloc":
 					{
@@ -214,7 +205,7 @@
 					case "diff":
 					{
 						domEls.score.diff.style.display = "";
-						if ( msg.score )
+						if ( route.scores )
 						{
 							if ( "select" != domEls.score.diff.nodeName.toLowerCase ( ) )
 							{
@@ -228,7 +219,7 @@
 							let tableS = [];
 							tableS.push ( {text:"Echec",value:0} );
 
-							msg.score.map ( (score,i)=>tableS.push ({text:"Degaine "+(i+1),value:score}) )
+							route.scores.map ( (score,i)=>tableS.push ({text:"Degaine "+(i+1),value:score}) )
 
 							uOneSlector ({
 								default:"score",
@@ -269,87 +260,48 @@
 					default:
 					{
 						console.error ( "type inconnue" );
-						console.error ( msg );
+						console.error ( route );
 						break;
 					}
 				}
-			});
+			}
 
-			socket.on ( "connect", ()=>{
-				socket.emit ( "getUCCG", filters.user );
-				socket.emit ( "getVoies", filters.voie );
-				socket.emit ( "getListOfType" );
-			});
-
-			socket.on ( "error", (msg)=>{
-				domEls.serverMsg.display = "";
-				domEls.serverMsg.innerText = msg;
-
-				document.body.style.backgroundColor = "red";
-
-				setTimeout ( ()=>{
-					document.body.style.backgroundColor = "";
-				}, 1000 );
-			});
-
-			socket.on ( "ok", ()=>{
-				domEls.score.diff.value = "";
-				domEls.score.bloc.options[ 0 ].selected = true;
-
-				document.body.style.backgroundColor = "green";
-
-				setTimeout ( ()=>{
-					document.body.style.backgroundColor = "";
-				}, 1000 );
-			});
-
-			socket.on ( "setListOfType", (msg)=>{
-				uOneSlector ({
-					default:"--",
-					selector:domEls.type,
-					list:msg,
-					parentDiv:domEls.div.type
-				})
-				domEls.type.options[ 0 ].disabled = true;
-				domEls.voie.options[ 0 ].disabled = true;
-			});
+			let filters = {};
 
 			for ( let key of [ "club","genre","categorie"] )
 			{
 				domEls[ key ].addEventListener ( "change", (ev)=>{
 					if ( "all" == ev.target.value )
 					{
-						delete filters.user[ key ];
+						delete filters[ key ];
 					}
 					else
 					{
-						filters.user[ key ] = ev.target.value;
+						filters[ key ] = ev.target.value;
 					}
-					socket.emit ( "getUCCG", {filters:filters.user} );
+
+					let filteredUsers = users;
+
+					for ( let key in filters )
+					{
+						filteredUsers = filteredUsers.filter ( u=>u[ key ] == filters[ key ] );
+					}
+
+					initUsersSelector ( filteredUsers );
 				} )
 			}
 
 			domEls.type.addEventListener ( "change", (ev)=>{
-				switch ( ev.target.value )
-				{
-					case "all":
-					{
-						filters.voie = undefined;
-						break;
-					}
-					case "autre":
-					{
-						filters.voie = [ "endurance", "vitesse" ];
-						break;
-					}
-					default:
-					{
-						filters.voie = [ ev.target.value ];
-						break;
-					}
-				}
+				uOneSlector ({
+					default:"voie",
+					selector:domEls.voie,
+					list:routes.filter ( r=>r.type == ev.target.value ).map ( r=>r.name ),
+					parentDiv:domEls.div.voie
+				});
 
-				socket.emit ( "getVoies", {filters:filters.voie} );
+				domEls.score.bloc.style.display = "none";
+				domEls.score.diff.style.display = "none";
+				domEls.div.chrono.style.display = "none";
 			});
 
 			domEls.voie.addEventListener ( "change", (ev)=>{
@@ -357,7 +309,17 @@
 				{
 					return;
 				}
-				socket.emit ( "getVoie", ev.target.value );
+
+				let index = routes.map ( r=>r.name ).indexOf ( ev.target.value );
+
+				if ( index < 0 )
+				{
+					alert ( "unknow route" );
+				}
+				else
+				{
+					initRoute ( routes[ index ] )
+				}
 			});
 
 			domEls.validate.addEventListener ( "click", (ev)=>{
@@ -386,10 +348,9 @@
 					domEls.user.classList.remove ( "err" )
 				}
 
-
-				socket.emit ( "setScore", {
+				let data = {
 					user: domEls.user.value,
-					voie: domEls.voie.value,
+					route: domEls.voie.value,
 					score:{
 						diff: domEls.score.diff.value,
 						bloc: domEls.score.bloc.value,
@@ -399,7 +360,14 @@
 									: a * 60 + v;
 							},0 ),
 					}
-				})
+				};
+
+				fetch ( "/ajax/set/score", {
+						method: "POST",
+						body: JSON.stringify ( data ),
+						headers: { "Content-Type": "application/json" },
+					})
+					.then ( console.log )
 				
 				domEls.validate.disabled = true;
 			});

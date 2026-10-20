@@ -23,9 +23,12 @@ export default function ( params )
 			case "editor":
 			{
 				route.push ( "/set/route" );
+				route.push ( "/set/addUser" );
+				route.push ( "/set/edit" );
 			}
 			case "juge":
 			{
+				route.push ( "/ajax/set/score" );
 			}
 			default:
 			{
@@ -215,6 +218,90 @@ export default function ( params )
 		res.status ( 200 );
 		res.end ( );
 	}); // set route
+
+	params.express.post ( "/ajax/set/score/", function ( req, res )
+	{
+		if ( -1 >= params?.db?.users?.map ( u=>u.name ).indexOf ( req.body.user ) )
+		{
+			res.status ( 406 );
+			res.json ( {msg:"competiteur inconnu"} );
+			res.end ( );
+			return;
+		}
+
+		if ( -1 >= params?.db?.routes?.map ( v=>v.name ).indexOf ( req.body.route ) )
+		{
+			res.status ( 406 );
+			res.json ( {msg:"voie inconnu"} );
+			res.end ( );
+			return;
+		}
+
+		if ( "Object" != params?.db?.scores?.constructor.name )
+		{
+			params.db.scores = {};
+		}
+
+		if ( !params?.db?.scores[ req.body.user ] )
+		{ // if no score table is created for this user
+			params.db.scores[ req.body.user ] = {};
+		}
+
+		let score = params.db.scores[ req.body.user ]
+
+		if ( !score[ req.body.route ] )
+		{
+			score[ req.body.route ] = [];
+		}
+
+		let route = params.db.routes [ params.db.routes.map ( v=>v.name ).indexOf ( req.body.route ) ];
+
+		let points = 0;
+
+		switch ( route.type )
+		{
+			case "bloc":
+			{
+				if ( params.args.mode == "a" )
+				{
+					points = route.scores[ req.body.score.bloc ] || 0;
+				}
+				else
+				{
+					points = req.body.score.bloc;
+				}
+				break;
+			}
+			case "diff":
+			{
+				points = Number ( req.body.score.diff );
+				break;
+			}
+			case "vitesse":
+			{
+				points = req.body.score.vitesse;
+				break;
+			}
+			case "endurance":
+			{
+				break;
+			}
+			case undefined:
+			{
+				res.status ( 500 );
+				res.json ( {msg:"voie invalide"} );
+				res.end ( );
+				return;
+			}
+		}
+
+		score[ req.body.route ].push ( points );
+
+		let r = fs.writeFileSync ( params.args.db.scores, JSON.stringify ( params.db.scores, null, 4 ), 'utf8' );
+
+		res.status ( 200 );
+		res.end ( );
+	});
 
 	return params;
 }

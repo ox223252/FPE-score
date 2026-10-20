@@ -1,5 +1,6 @@
 import fs from 'fs'; // read / write files
 import chokidar from "chokidar";
+import {calcAll} from "./calc.js";
 
 export default function ( params )
 {
@@ -41,13 +42,16 @@ export default function ( params )
 		}
 	}
 
+	params.categories = params.args.categories;
+	params.genres = params.args.genres;
+
 	function parse ( path )
 	{
 		let tmp;
 		try
 		{
 			tmp = fs.readFileSync ( path, "utf-8" );
-			tmp = eval ( tmp );
+			tmp = JSON.parse ( tmp );
 		}
 		catch ( e )
 		{
@@ -66,9 +70,31 @@ export default function ( params )
 		chokidar.watch ( params.args.db[ item ], {ignored: /^\.+/} )
 			.on ( 'add', ()=>{
 				params.db[ item ] = parse ( params.args.db[ item ] );
+
+				calcAll ( params.db, params.args.mode )
+					.then ( ()=>{
+						params.io.to( item ).emit ( item, params?.db?.[ item ] );
+					})
+					.catch ( e=>{
+						if ( e )
+						{
+							console.log ( e );
+						}
+					})
 			})
 			.on ( 'change', ()=>{
 				params.db[ item ] = parse ( params.args.db[ item ] );
+
+				calcAll ( params.db, params.args.mode )
+					.then ( ()=>{
+						params.io.to( item ).emit ( item, params?.db?.[ item ] );
+					})
+					.catch ( e=>{
+						if ( e )
+						{
+							console.log ( e );
+						}
+					})
 			})
 			.on ( 'unlink', ()=>{
 				params.db[ item ] = [];

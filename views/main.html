@@ -6,17 +6,159 @@
 	<body>
 		<%- include ( "part/nav.html" ) -%>
 		<aside>
-			test test<br>
-			test test<br>
-			test test<br>
-			test test<br>
-			test test<br>
-			test test<br>
+			<div id="divGenre">
+				<label for="genre">Genre</label>
+				<select id="genre"></select>
+			</div>
+			<div id="divCategorie">
+				<label for="categorie">Categorie</label>
+				<select id="categorie"></select>
+			</div>
+			<div id="divClub">
+				<label for="club">Club</label>
+				<select id="club"></select>
+			</div>
+			<div id="divType">
+				<label for=type>Type de voie</label>
+				<select id="type"></select>
+			</div>
 		</aside>
 		<section>
-			main page
+			<p id="serverMsg"></p>
+			<div>
+				<table id="table">
+					<thead id="thead"></thead>
+					<tbody id="tbody"></tbody>
+				</table>
+			</div>
+			<div id="graphs">
+				<canvas 
+					width="700"
+					height="400"
+					class="chartjs-render-monitor"
+					id="pointGraph">
+				</canvas>
+				<canvas 
+					width="700"
+					height="700"
+					class="chartjs-render-monitor"
+					id="userGraph">
+				</canvas>
+				<ul id="legendGraph" class="smothText">
+					<li>moyenne tenté : moyenne des points obtenu pas les personnes 
+						ayant tenté cette voie</li>
+					<li>moyenne totale : moyenne des points obtenu sur cette voie 
+						par toues les personnes ayant participé</li>
+				</ul>
+			</div>
 		</section>
-		<script nonce="<%- locals.nonce %>">
+		<script type="text/javascript" src="/js/utils.js"></script>
+		<script type="text/javascript" nonce="<%- locals.nonce %>">
+			Array.prototype.distinct = function () { return Array.from ( new Set ( this ) ); };
+
+			let domEls = {
+				input:{
+					genre: document.getElementById ( "genre" ),
+					categorie:  document.getElementById ( "categorie" ),
+					club: document.getElementById ( "club" ),
+					type: document.getElementById ( "type" ),
+				},
+				table: {
+					full: document.getElementById ( "table" ),
+					tbody: document.getElementById ( "tbody" ),
+					thead: document.getElementById ( "thead" ),
+				},
+				graphs:{
+					points: document.getElementById ( "pointGraph" ),
+					users: document.getElementById ( "userGraph"),
+					legend: document.getElementById ( "legendGraph" ),
+
+					all: document.getElementById ( "graphs" ),
+				},
+				serverMsg: document.getElementById ( "serverMsg" ),
+			};
+
+			let types = <%- JSON.stringify ( locals.types ) %>;
+			let users = <%- JSON.stringify ( locals.users ) %>;
+			let scores = <%- JSON.stringify ( locals.scores ) %>;
+			let routes = <%- JSON.stringify ( locals.routes ) %>;
+
+			let filters = {};
+
+			function initUsersSelector ( array )
+			{
+				uOneSlector ({
+					default:"genre",
+					selector:domEls.input.genre,
+					list:array.map ( u2=>u2.genre ).distinct ( ).sort ( ),
+				});
+				uOneSlector ({
+					default:"categorie",
+					selector:domEls.input.categorie,
+					list:array.map ( u2=>u2.categorie ).distinct ( ).sort ( ),
+				});
+				uOneSlector ({
+					default:"club",
+					selector:domEls.input.club,
+					list:array.map ( u2=>u2.club ).distinct ( ).sort ( ),
+				});
+			}
+
+			[ "genre","categorie","club","type" ].map ( item=>{
+				domEls.input[ item ].onchange = (ev)=>{
+					if ( "all" == ev.target.value )
+					{
+						delete filters[ item ];
+					}
+					else
+					{
+						filters[ item ] = [ ev.target.value ];
+					}
+
+					printTable ({
+						thead: domEls.table.thead,
+						tbody: domEls.table.tbody,
+						scores,
+						users,
+						routes: routes.map ( r=>r.name ),
+						filters,
+					});
+				}
+			})
+
+			initUsersSelector ( users );
+
+			domEls.graphs.points.style.display = "none";
+			domEls.graphs.users.style.display = "none";
+			domEls.graphs.legend.style.display = "none";
+
+			printTable ({
+				thead: domEls.table.thead,
+				tbody: domEls.table.tbody,
+				scores,
+				users,
+				routes: routes.map ( r=>r.name ),
+				filters,
+			});
+
+			if ( !socket )
+			{
+				var socket = io ( );
+			}
+
+			socket.on ( "scores", (msg)=>{
+				console.log ( msg )
+				scores = msg;
+
+				printTable ({
+					thead: domEls.table.thead,
+					tbody: domEls.table.tbody,
+					scores,
+					users,
+					routes: routes.map ( r=>r.name ),
+					filters,
+				});
+			});
 		</script>
 	</body>
 </html>

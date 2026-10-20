@@ -74,8 +74,13 @@ export default function ( params )
 					params.connected[ id ].page[ socket.id ] = page;
 				});
 				
-			switch ( msg.page )
+			switch ( page )
 			{
+				case "/":
+				{
+					socket.join ( "scores" );
+					break;
+				}
 				case "/road":
 				{
 					socket.join ( "route" );

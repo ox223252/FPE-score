@@ -105,6 +105,11 @@ export default function ( params )
 
 	params.express.get ( '/', function ( req, res )
 	{
+		res.locals.types = params.types;
+		res.locals.users = params.db.users.filter ( u=>params.categories.includes ( u.categorie ) );
+		res.locals.routes = params.db.routes.filter ( r1=>r1.categories.some ( r2=>params.categories.includes ( r2 ) ) );
+		res.locals.scores = params.db.scores;
+
 		res.render ( 'main.html' );
 	});
 
@@ -135,6 +140,10 @@ export default function ( params )
 
 	params.express.all ( "/set", function ( req, res )
 	{
+		res.locals.types = params.types;
+		res.locals.routes = params.db.routes.filter ( r1=>r1.categories.some ( r2=>params.categories.includes ( r2 ) ) );
+		res.locals.users = params.db.users.filter ( u=>params.categories.includes ( u.categorie ) );
+
 		res.render ( 'set.html' );
 	});
 
