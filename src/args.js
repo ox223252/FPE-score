@@ -118,16 +118,19 @@ export default function ( params )
 			})
 		// app specific
 			.option('mode',{
-				alias: 'm',
 				describe: 'a/b/c/d/v autre/bloc/combiné/dif/vitesse',
 				choices: [ "a", "b", "c", "d", "v", "autre", "bloc", "contest", "dif", "vitesse" ],
 				default: 'a'
 			})
 			.option('categories', {
-				alias: "c",
 				type: "array",
 				describe: "competitor available categorie",
 				default: [ "U9", "U11", "U13", "U15", "U17", "U19", "senior", "veteran" ],
+			})
+			.option('genres', {
+				type: "array",
+				describe: "competitor",
+				default: [ "M", "F" ],
 			})
 			.option('db.routes',{
 				describe: '/path/to/file',
@@ -147,7 +150,7 @@ export default function ( params )
 				default: false,
 			})
 		.group ( [ 'help', 'version', 'debug' ], 'Général :' )
-		.group ( [ 'mode', 'categories', 'db.routes', 'db.scores', 'db.users', 'halt' ], 'Spécific :' )
+		.group ( [ 'mode', 'categories', 'genres', 'db.routes', 'db.scores', 'db.users', 'halt' ], 'Spécific :' )
 		.group ( [ 'server.port', 'server.secure', 'server.tls.path', 'server.tls.key', 'server.tls.cert', 'server.tls.size' ], 'Serveur :' )
 		.group ( [ 'login.mode', 'login.tokenDuration', 'login.maxAttempts', 'login.lockMinutes' ], 'Connexion :' )
 		.group ( [ 'login.file' ], 'Mode fichier :' )

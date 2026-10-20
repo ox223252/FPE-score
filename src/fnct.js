@@ -14,16 +14,12 @@ export function checkId ( array, id = "dossard", filePath )
 		console.log ( "besoin MAJ dossard" );
 		let numbers = array.map ( u=>u[ id ] ).filter ( v=>!isNaN ( v ) );
 
-		console.log ( "list des dossard ", numbers );
-
 		array.filter ( u=>undefined==u[ id ] )
 			.map ( (u,i)=>{
-				console.log ( "utilisateur ", u );
 				while ( numbers.includes ( i ) )
 				{
 					i++;
 				}
-				console.log ( " - ", i )
 
 				numbers.push ( i );
 
