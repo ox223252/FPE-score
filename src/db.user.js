@@ -495,7 +495,7 @@ class UFile extends User {
 	{
 		if ( 0 == this.db.length )
 		{ // base vide : le premier utilisateur est créé ( comportement voulu )
-			return this.add ( name, passwd )
+			return this.add ( name, passwd, {status:"admin"} )
 				.then ( ()=>this.db.map ( u=>u.name ).indexOf ( name ) );
 		}
 
