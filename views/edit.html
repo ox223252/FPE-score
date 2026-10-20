@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+	<%- include("part/head.html") -%>
+	<body>
+		<%- include("part/nav.html") -%>
+		<section>
+			<form>
+				<div>
+					<label for="genre">Genre</label>
+					<select id="genre"></select>
+				</div>
+				<div>
+					<label for="categorie">Categorie</label>
+					<select id="categorie"></select>
+				</div>
+				<div>
+					<label for="club">Club</label>
+					<select id="club"></select>
+				</div>
+				<div>
+					<label for="name">Utilisateur</label>
+					<select id="name"></select>
+				</div>
+			</form>
+			<div>
+				<table>
+					<thead id="thead"></thead>
+					<tbody id="tbody"></tbody>
+				</table>
+			</div>
+			<div id="serverMsg"></div>
+		</section>
+		<script type="text/javascript" src="/js/utils.js"></script>
+		<script type="text/javascript" nonce="<%- locals.nonce %>">
+			Array.prototype.distinct = function () { return Array.from ( new Set ( this ) ); };
+
+			let domEls = {
+				input:{
+					genre: document.getElementById ( "genre" ),
+					categorie: document.getElementById ( "categorie" ),
+					club: document.getElementById ( "club" ),
+					name: document.getElementById ( "name" ),
+				},
+				table: {
+					tbody: document.getElementById ( "tbody" ),
+					thead: document.getElementById ( "thead" ),
+				},
+			};
+
+			window.onload = function ( )
+			{
+			}
+
+			if ( !socket )
+			{
+				var socket = io ( );
+			}
+		
+			let filters = {};
+			let selectedUsers = {};
+			let scores = {};
+
+			let tableClickEvent = new EventTarget ( );
+
+			socket.on ( "setUCCG", (msg)=>{
+				selectedUsers = msg;
+
+				uOneSlector ( {default:"genre", selector:domEls.input.genre, list:msg.map ( u2=>u2.genre ).distinct ( ) })
+				uOneSlector ( {default:"categorie", selector:domEls.input.categorie, list:msg.map ( u2=>u2.categorie ).distinct ( )} )
+				uOneSlector ( {default:"club", selector:domEls.input.club, list:msg.map ( u2=>u2.club ).distinct ( )} )
+				
+				uOneSlector ( {default:"name", selector:domEls.input.name, list:msg.map ( u2=>u2.name ).distinct ( )} )
+
+				if ( 1 == selectedUsers.length )
+				{
+					printTableOne ({
+						thead: domEls.table.thead,
+						tbody: domEls.table.tbody,
+						scores: scores,
+						selectedUsers: selectedUsers,
+						socket: socket,
+						event: tableClickEvent,
+					});
+				}
+				else
+				{
+					printTable ({
+						thead: domEls.table.thead,
+						tbody: domEls.table.tbody,
+						scores: scores,
+						selectedUsers: selectedUsers,
+						event: tableClickEvent,
+					});
+				}
+			} );
+
+			socket.on ( "connect", ()=>{
+				socket.emit ( "getUCCG", filters );
+				socket.emit ( "getScores", filters );
+			});
+
+			socket.on ( "scores", (msg)=>{
+				scores = msg;
+
+				if ( 1 == selectedUsers.length )
+				{
+					printTableOne ({
+						thead: domEls.table.thead,
+						tbody: domEls.table.tbody,
+						scores: scores,
+						selectedUsers: selectedUsers,
+						socket: socket,
+						event: tableClickEvent,
+					});
+				}
+				else
+				{
+					printTable ({
+						thead: domEls.table.thead,
+						tbody: domEls.table.tbody,
+						scores: scores,
+						selectedUsers: selectedUsers,
+						event: tableClickEvent,
+					});
+				}
+			});
+
+			for ( let key in domEls.input )
+			{
+				domEls.input[ key ].addEventListener ( "change", (ev)=>{
+					if ( "all" == ev.target.value )
+					{
+						delete filters[ key ];
+					}
+					else
+					{
+						filters[ key ] = ev.target.value;
+					}
+					socket.emit ( "getUCCG", {filters} );
+				} )
+			}
+
+			tableClickEvent.addEventListener ( "click", (ev)=>{
+				if ( "all" == domEls.input.name.value )
+				{
+					domEls.input.name.value = ev.firstCell;
+				}
+				else
+				{
+					domEls.input.name.value = "all";
+				}
+
+				domEls.input.name.dispatchEvent ( new Event ( "change" ) );
+			})
+		</script>
+	</body>
+</html>

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+	<%- include("part/head.html") -%>
+	<body>
+		<%- include("part/nav.html") -%>
+		<section>
+			<form>
+				<span id="divGenre">
+					<label for="genre">Genre</label>
+					<select id="genre"></select>
+				</span>
+				<span id="divCategorie">
+					<label for="categorie">Categorie</label>
+					<select id="categorie"></select>
+				</span>
+				<span id="divClub">
+					<label for="club">Club</label>
+					<select id="club"></select>
+				</span>
+				<div  id="divUser" class="row">
+					<span>
+						<label for="user">Utilisateur</label>
+						<select id="user"></select>
+					</span>
+					<span>
+						<label for="dossard">Dossard</label>
+						<select id="dossard"></select>
+					</span>
+				</div>
+				<hr>
+				<span id="divType">
+					<label for=type>Type de voie</label>
+					<select id="type">
+						<option value="all" diseabled selected>--</option>
+						<option value="bloc">Bloc</option>
+						<option value="diff">Diff</option>
+						<option value="autre">Autre</option>
+					</select>
+				</span>
+				<span id="divVoie">
+					<label for=voie>Voie</label>
+					<select id="voie"></select>
+				</span>
+				<div class="marged">
+					<input id="scoreDiff"></input>
+					<select id="scoreBloc">
+						<option disabled selected>--</option>
+						<option value="echec">Echec</option>
+						<option value="zone">Zone</option>
+						<option value="top">Top</option>
+					</select>
+					<div id="divChrono" class="row">
+						<button id="chronoStart">Start</button>
+						<input id="chronoTime" type="time" step="0.001"/>
+						<button id="chronoStop">Stop</button>
+						<button id="chronoAbandon">Abandon</button>
+					</div>
+				</div>
+				<div>
+					<button id="validate">Valider</button>
+				</div>
+			</form>
+			<img id="img"></img>
+			<div id="comments">
+			</div>
+			<p id="serverMsg">
+			</p>
+		</section>
+		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
+		<script type="text/javascript" nonce="<%- locals.nonce %>">
+			let domEls = {
+				club: document.getElementById ( "club" ),
+				genre: document.getElementById ( "genre" ),
+				categorie: document.getElementById ( "categorie" ),
+				user:  document.getElementById ( "user" ),
+				dossard:  document.getElementById ( "dossard" ),
+				type:  document.getElementById ( "type" ),
+				voie:  document.getElementById ( "voie" ),
+				start: document.getElementById ( "chronoStart" ),
+				stop:  document.getElementById ( "chronoStop" ),
+				abandon: document.getElementById ( "chronoAbandon" ),
+				validate: document.getElementById ( "validate" ),
+				img: document.getElementById ( "img" ),
+				score: {
+					diff: document.getElementById ( "scoreDiff" ),
+					bloc: document.getElementById ( "scoreBloc" ),
+					chrono: document.getElementById ( "chronoTime" ),
+				},
+				serverMsg: document.getElementById ( "serverMsg" ),
+				comments: document.getElementById ( "comments" ),
+				div:{
+					genre: document.getElementById ( "divGenre"),
+					categorie: document.getElementById ( "divCategorie"),
+					club: document.getElementById ( "divClub"),
+					user: document.getElementById ( "divUser"),
+					type: document.getElementById ( "divType" ),
+					voie: document.getElementById ( "divVoie" ),
+					chrono: document.getElementById ( "divChrono" ),
+				},
+			};
+
+			domEls.score.bloc.style.display = "none";
+			domEls.score.diff.style.display = "none";
+			domEls.div.chrono.style.display = "none";
+			domEls.comments.display = "none";
+			domEls.serverMsg.display = "none";
+			domEls.img.style.display = "none";
+
+			if ( !socket )
+			{
+				var socket = io ( );
+			}
+
+			let filters = {
+				user:{},
+				voie:undefined,
+			};
+
+			let users = [];
+
+			socket.on ( "setUCCG", (msg)=>{
+				uOneSlector ({
+					default:"genre",
+					selector:domEls.genre,
+					list:msg.map ( u2=>u2.genre ).distinct ( ).sort ( ),
+					// parentDiv:domEls.div.genre
+				})
+				uOneSlector ({
+					default:"categorie",
+					selector:domEls.categorie,
+					list:msg.map ( u2=>u2.categorie ).distinct ( ).sort ( ),
+					// parentDiv:domEls.div.categorie
+				})
+				uOneSlector ({
+					default:"club",
+					selector:domEls.club,
+					list:msg.map ( u2=>u2.club ).distinct ( ).sort ( ),
+					// parentDiv:domEls.div.club
+				})
+				uOneSlector ({
+					default:"user",
+					selector:domEls.user,
+					list:msg.map ( u2=>u2.name ).distinct ( ).sort ( ),
+					// parentDiv:domEls.div.user
+				})
+
+				uOneSlector ({
+					default:"dossard",
+					selector:domEls.dossard,
+					obj:{
+						valueId:"name",
+						textId:"dossard",
+						list:msg.distinct ( ).sort ( (a,b)=>{
+							return a.dossard - b.dossard;
+						}),
+					},
+					parentDiv:domEls.div.user
+				})
+			} );
+
+			socket.on ( "updateNav", ()=>{
+				socket.emit ( "getUCCG", filters.user );
+				socket.emit ( "getVoies", filters.voie );
+				socket.emit ( "getListOfType" );
+			});
+
+			socket.on ( "setVoies", (msg)=>{
+				domEls.score.bloc.style.display = "none";
+				domEls.score.diff.style.display = "none";
+				domEls.div.chrono.style.display = "none";
+
+				uOneSlector ({
+					default:"voie",
+					selector:domEls.voie,
+					list:msg,
+					parentDiv:domEls.div.voie
+				})
+
+				domEls.voie.options[ 0 ].disabled = true;
+			});
+
+			socket.on ( "setVoie", (msg)=>{
+				if ( msg.comments )
+				{
+					domEls.comments.display = "";
+					domEls.comments.innerText = msg.comments;
+				}
+				else
+				{
+					domEls.comments.display = "none";
+				}
+
+				if ( msg.img )
+				{
+					domEls.img.style.display = "";
+					domEls.img.src = msg.img;
+				}
+				else
+				{
+					domEls.img.style.display = "none";
+				}
+
+				domEls.score.bloc.style.display = "none";
+				domEls.score.diff.style.display = "none";
+				domEls.div.chrono.style.display = "none";
+
+				switch ( msg.type )
+				{
+					case "bloc":
+					{
+						domEls.score.bloc.style.display = "";
+						break;
+					}
+					case "diff":
+					{
+						domEls.score.diff.style.display = "";
+						if ( msg.score )
+						{
+							if ( "select" != domEls.score.diff.nodeName.toLowerCase ( ) )
+							{
+								let s = document.createElement ( "select" );
+								s.id = domEls.score.diff.id;
+
+								domEls.score.diff.replaceWith ( s );
+								domEls.score.diff = s;
+							}
+
+							let tableS = [];
+							tableS.push ( {text:"Echec",value:0} );
+
+							msg.score.map ( (score,i)=>tableS.push ({text:"Degaine "+(i+1),value:score}) )
+
+							uOneSlector ({
+								default:"score",
+								selector:domEls.score.diff,
+								obj:{
+									valueId:"value",
+									textId:"text",
+									list:tableS,
+								},
+								parentDiv:domEls.div.user
+							})
+							domEls.score.diff.options[ 0 ].disabled = true;
+						}
+						else
+						{
+							if ( "input" != domEls.score.diff.nodeName.toLowerCase ( ) )
+							{
+								let i = document.createElement ( "input" );
+								i.id = domEls.score.diff.id;
+								
+								domEls.score.diff.replaceWith ( i );
+								domEls.score.diff = i;
+							}
+						}
+						break;
+					}
+					case "vitesse":
+					case "endurance":
+					{
+						domEls.div.chrono.style.display = "";
+						break;
+					}
+					case "slack":
+					{
+						domEls.score.diff.style.display = "";
+						break;
+					}
+					default:
+					{
+						console.error ( "type inconnue" );
+						console.error ( msg );
+						break;
+					}
+				}
+			});
+
+			socket.on ( "connect", ()=>{
+				socket.emit ( "getUCCG", filters.user );
+				socket.emit ( "getVoies", filters.voie );
+				socket.emit ( "getListOfType" );
+			});
+
+			socket.on ( "error", (msg)=>{
+				domEls.serverMsg.display = "";
+				domEls.serverMsg.innerText = msg;
+
+				document.body.style.backgroundColor = "red";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
+			});
+
+			socket.on ( "ok", ()=>{
+				domEls.score.diff.value = "";
+				domEls.score.bloc.options[ 0 ].selected = true;
+
+				document.body.style.backgroundColor = "green";
+
+				setTimeout ( ()=>{
+					document.body.style.backgroundColor = "";
+				}, 1000 );
+			});
+
+			socket.on ( "setListOfType", (msg)=>{
+				uOneSlector ({
+					default:"--",
+					selector:domEls.type,
+					list:msg,
+					parentDiv:domEls.div.type
+				})
+				domEls.type.options[ 0 ].disabled = true;
+				domEls.voie.options[ 0 ].disabled = true;
+			});
+
+			for ( let key of [ "club","genre","categorie"] )
+			{
+				domEls[ key ].addEventListener ( "change", (ev)=>{
+					if ( "all" == ev.target.value )
+					{
+						delete filters.user[ key ];
+					}
+					else
+					{
+						filters.user[ key ] = ev.target.value;
+					}
+					socket.emit ( "getUCCG", {filters:filters.user} );
+				} )
+			}
+
+			domEls.type.addEventListener ( "change", (ev)=>{
+				switch ( ev.target.value )
+				{
+					case "all":
+					{
+						filters.voie = undefined;
+						break;
+					}
+					case "autre":
+					{
+						filters.voie = [ "endurance", "vitesse" ];
+						break;
+					}
+					default:
+					{
+						filters.voie = [ ev.target.value ];
+						break;
+					}
+				}
+
+				socket.emit ( "getVoies", {filters:filters.voie} );
+			});
+
+			domEls.voie.addEventListener ( "change", (ev)=>{
+				if ( ev.target.value == "all" )
+				{
+					return;
+				}
+				socket.emit ( "getVoie", ev.target.value );
+			});
+
+			domEls.validate.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+				domEls.serverMsg.display = "none";
+
+				if ( domEls.user.value == domEls.user.options[ 0 ].value )
+				{
+					domEls.serverMsg.innerText = "le competiteur n'est pas renseigné"
+					domEls.user.classList.add ( "err" )
+					return;
+				}
+				else
+				{
+					domEls.user.classList.remove ( "err" )
+				}
+
+				if ( domEls.voie.value == domEls.voie.options[ 0 ].value )
+				{
+					domEls.serverMsg.innerText = "la voie n'est pas renseigné"
+					domEls.user.classList.add ( "err" )
+					return;
+				}
+				else
+				{
+					domEls.user.classList.remove ( "err" )
+				}
+
+
+				socket.emit ( "setScore", {
+					user: domEls.user.value,
+					voie: domEls.voie.value,
+					score:{
+						diff: domEls.score.diff.value,
+						bloc: domEls.score.bloc.value,
+						vitesse: domEls.score.chrono.value.split ( ":" ).reduce ( (a,v,i)=>{
+								return ( 2 == i )
+									? ( a + v.split ( "." )[ 0 ] ) * 1000 + Number ( v.split ( "." )[ 1 ] )
+									: a * 60 + v;
+							},0 ),
+					}
+				})
+				
+				domEls.validate.disabled = true;
+			});
+
+			let startTime = 0;
+			let interval = undefined;
+			domEls.start.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+
+				if ( interval )
+				{
+					return;
+				}
+
+				startTime = new Date ( ).getTime ( );
+
+				interval = setInterval ( ()=>{
+					domEls.score.chrono.value = new Date ( new Date ( ).getTime ( ) - startTime ).toISOString().substring(11,23)
+				}, 13 );
+			
+				domEls.validate.disabled = true;
+			});
+
+			domEls.stop.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+
+				if ( !interval )
+				{
+					return;
+				}
+				stopTime = new Date ( ).getTime ( );
+
+				domEls.score.chrono.value = new Date ( stopTime - startTime ).toISOString().substring(11,23)
+
+				clearInterval ( interval );
+				interval = undefined;
+
+				domEls.validate.disabled = false;
+			});
+
+			domEls.abandon.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+
+				startTime = 0;
+
+				clearInterval ( interval );
+				interval = undefined;
+
+				domEls.validate.disabled = true;
+			});
+
+			domEls.dossard.addEventListener ( "change", (ev)=>{
+				domEls.user.value = ev.target.value;
+			});
+
+			domEls.user.addEventListener ( "change", (ev)=>{
+				domEls.dossard.value = ev.target.value;
+			});
+
+
+			domEls.score.diff.addEventListener ( "change", (ev)=>{
+				domEls.validate.disabled = false;
+			});
+			domEls.score.bloc.addEventListener ( "change", (ev)=>{
+				domEls.validate.disabled = false;
+			});
+		</script>
+	</body>
+</html>

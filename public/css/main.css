@@ -4,10 +4,12 @@
 	--nav-margin: 10px;
 	--nav-font-size: var( --nav-height );
 
-	--section-padding: 20px;
+	--section-padding: 10px;
 	--section-margin: 10px;
 
 	--aside-padding: 20px;
+
+	--font-size: 30px;
 }
 
 html {
@@ -33,13 +35,13 @@ html {
 		}
 
 		& > section {
-			padding: var( --section-padding );
 			margin: var( --section-margin );
+			padding: var( --section-padding );
 
 			height: calc( 100% - 2 * var( --section-padding ) - 2 * var( --section-margin ) );
 			width: calc( 100% - 2 * var( --section-padding ) - 2 * var( --section-margin ) );
 
-			font-size: 30px;
+			font-size: var( --font-size );
 
 			display: flex;
 			flex-direction: column;
@@ -85,7 +87,6 @@ html {
 			display: flex;
 			flex-direction: row;
 
-
 			background-color: unset;
 
 			& > div {
@@ -102,6 +103,8 @@ html {
 				gap: 10px;
 				row-gap: 15px;
 
+				overflow-x: scroll;
+
 				&:first-child {
 					flex-shrink: 1;
 					overflow: hidden;
@@ -117,15 +120,23 @@ html {
 					display: inline-block;
 					height: var( --nav-height );
 					font-size: var( --nav-font-size );
-
+					
+					text-decoration: none;
 					color:inherit;
 
 					&:visited {
 						color:inherit;
 					}
 
-					& > img {
+					& > img, & > svg {
 						height: 100%;
+						aspect-ratio: 1;
+						max-width: var( --nav-height );
+
+						@-moz-document url-prefix() {
+							position: relative;
+							top: -5px;
+						}
 					}
 				}
 			}

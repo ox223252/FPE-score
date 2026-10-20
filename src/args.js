@@ -116,7 +116,38 @@ export default function ( params )
 				type: 'boolean',
 				default: true,
 			})
+		// app specific
+			.option('mode',{
+				alias: 'm',
+				describe: 'a/b/c/d/v autre/bloc/combiné/dif/vitesse',
+				choices: [ "a", "b", "c", "d", "v", "autre", "bloc", "contest", "dif", "vitesse" ],
+				default: 'a'
+			})
+			.option('categories', {
+				alias: "c",
+				type: "array",
+				describe: "competitor available categorie",
+				default: [ "U9", "U11", "U13", "U15", "U17", "U19", "senior", "veteran" ],
+			})
+			.option('db.routes',{
+				describe: '/path/to/file',
+				default: "private/routes.js"
+			})
+			.option('db.scores',{
+				describe: '/path/to/file',
+				default: "private/scores.js"
+			})
+			.option('db.users',{
+				describe: '/path/to/file',
+				default: "private/users.js"
+			})
+			.option("halt",{
+				type: 'boolean',
+				describe: "allow halt button on HMI",
+				default: false,
+			})
 		.group ( [ 'help', 'version', 'debug' ], 'Général :' )
+		.group ( [ 'mode', 'categories', 'db.routes', 'db.scores', 'db.users', 'halt' ], 'Spécific :' )
 		.group ( [ 'server.port', 'server.secure', 'server.tls.path', 'server.tls.key', 'server.tls.cert', 'server.tls.size' ], 'Serveur :' )
 		.group ( [ 'login.mode', 'login.tokenDuration', 'login.maxAttempts', 'login.lockMinutes' ], 'Connexion :' )
 		.group ( [ 'login.file' ], 'Mode fichier :' )

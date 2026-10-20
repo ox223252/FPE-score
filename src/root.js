@@ -17,6 +17,40 @@ export default function ( params )
 
 	params.express.use ( function ( req, res, next )
 	{
+		switch ( req.session.logged )
+		{
+			case "admin":
+			case "juge":
+			{
+				res.locals.logged = req.session?.logged;
+				break;
+			}
+			default:
+			{
+				res.locals.logged = false;
+				break;
+			}
+			case "editor":
+			{
+				// during the competition editor are down classed to juge only
+				// reduce nav barre
+				if ( params.interval )
+				{
+					res.locals.logged = "juge";
+				}
+				else
+				{
+					res.locals.logged = "editor";
+				}
+				break;
+			}
+		}
+
+		next ( );
+	});
+
+	params.express.use ( function ( req, res, next )
+	{
 		let routes = [];
 
 		if ( req.path.startsWith ( "/ajax/" ) )
@@ -25,11 +59,21 @@ export default function ( params )
 			return next ( );
 		}
 
-		switch ( req.session.logged )
+		switch ( res.locals.logged )
 		{
 			case "admin":
+			{ // admin can edit addUser event during competition
+				routes.push ( "/admin" );
+			}
+			case "editor":
 			{
-				routes.push ( "/users" );
+				routes.push ( "/addUser" );
+				routes.push ( "/road" );
+				routes.push ( "/edit" );
+			}
+			case "juge":
+			{
+				routes.push ( "/set" );
 			}
 			default:
 			{
@@ -55,7 +99,6 @@ export default function ( params )
 		res.locals.title = params.name;
 		res.locals.user = req.session.user || "unknow";
 		res.locals.page = req.path;
-		res.locals.logged = req.session.logged;
 		res.locals.js = toJs; // à utiliser dans les vues : <%- js ( valeur ) %>
 
 		next ( );
@@ -81,12 +124,33 @@ export default function ( params )
 		res.render ( 'login.html' );
 	});
 
-	params.express.get ( '/users', function ( req, res )
+	params.express.all ( "/addUser", function ( req, res )
 	{
-		res.render ( 'users.html', {
-			fileMode: params.login.mode,
-			users: params.login.users ?? [],
-		});
+		res.render ( 'addUser.html' );
+	});
+
+	params.express.all ( "/admin", function ( req, res )
+	{
+		res.render ( 'admin.html' );
+	});
+
+	params.express.all ( "/set", function ( req, res )
+	{
+		res.render ( 'set.html' );
+	});
+
+	params.express.all ( "/edit", function ( req, res )
+	{
+		res.render ( 'edit.html' );
+	});
+
+	params.express.all ( "/road", function ( req, res )
+	{
+		res.locals.types = params.types;
+		res.locals.routes = params.db.routes;
+		res.locals.categories = params.args.categories;
+
+		res.render ( 'road.html' );
 	});
 
 	return params;

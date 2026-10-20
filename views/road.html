@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+	<%- include("part/head.html") -%>
+	<body>
+		<%- include("part/nav.html") -%>
+		<section>
+			<form>
+				<div>
+					<label for="newRoute">Nom de la nouvelle voie : </label>
+					<input id="route" type="text" list="knownRoute">
+					<datalist id="knownRoute">
+						
+					</datalist>
+				</div>
+				<div>
+					<label for="type">Type de voie : </label>
+					<select id="type"></select>
+				</div>
+				<div>
+					<label>Pour quelles categories : </label>
+					<div id="categories"></div>
+				</div>
+				<% if ( "a" == locals?.mode?.[ 0 ] ) { %>
+				<div>
+					<label for="scores">Score : </label>
+					<textarea id="scores"></textarea>
+				</div>
+				<div>
+					<span>Les differents scores doivent être separé par un point, une virgule ou un espace</span>
+				</div>
+				<% } %>
+				<textarea id="comments" placeholder="commentaires"></textarea>
+				<p id="serverMsg"></p>
+				<input id="img" type="file" accept="image/*" capture="environement">
+				<div>
+					<button id="validate">Sauver</button>
+				</div>
+			</form>
+		</section>
+		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
+		<script nonce="<%- locals.nonce %>">
+			let domEls = {
+				type:  document.getElementById ( "type" ),
+				route:  document.getElementById ( "route" ),
+				listOfRoutes: document.getElementById ( "knownRoute" ),
+				validate: document.getElementById ( "validate" ),
+				scores: document.getElementById ( "scores" ),
+				img: document.getElementById ( "img" ),
+				comments: document.getElementById ( "comments" ),
+				serverMsg: document.getElementById ( "serverMsg" ),
+				input:{
+					categories: {
+						main: document.getElementById ( "categories" ),
+					}
+				}
+			};
+
+			if ( !socket )
+			{
+				var socket = io ( );
+			}
+
+			let routes = <%- JSON.stringify ( locals.routes ) %>;
+			let types = <%- JSON.stringify ( locals.types ) %>;
+			let categories = <%- JSON.stringify ( locals.categories ) %>;
+			
+			uOneSlector ( {default:"--", selector:domEls.listOfRoutes, list:routes.map ( r=>r.name ).sort ( )} )
+			uOneSlector ( {default:"--", selector:domEls.type, list:types} )
+			uOneCheckList ({
+				key: "categories",
+				outList: domEls.input,
+				list: categories,
+			});
+			
+			function getCategories ( )
+			{
+				let r = [];
+				for ( let c in domEls.input.categories )
+				{
+					if ( "main" == c )
+					{
+						continue;
+					}
+
+					if ( domEls.input.categories[ c ].checked )
+					{
+						r.push ( c );
+					}
+				}
+				return r;
+			}
+
+			domEls.listOfRoutes.options[ 0 ].disabled = true;
+			domEls.type.options[ 0 ].disabled = true;
+
+			domEls.validate.addEventListener ( "click", (ev)=>{
+				ev.preventDefault ( );
+
+				new Promise ( (ok,ko)=>{
+						let out = {
+							name: domEls.route.value,
+							type: domEls.type.value,
+							comments: domEls.comments.value,
+							categories: getCategories ( ),
+						};
+
+						if ( domEls.scores )
+						{
+							out.scores = domEls.scores.value;
+						}
+
+						let files = domEls.img.files;
+
+						// FileReader support
+						if (FileReader && files && files.length)
+						{
+							let fr = new FileReader();
+							fr.onload = function (ev) {
+								out.img = fr.result;
+								ok ( out );
+							}
+							fr.onerror = function (ev) {
+								ok ( out );
+							}
+							fr.readAsDataURL(files[0]);
+						}
+						else
+						{
+							ok ( out );
+						}
+					})
+					.then ( r=>fetch ( "/ajax/set/route/", {
+						method:"POST",
+						body: JSON.stringify ( r ),
+						headers: { "Content-Type": "application/json" },
+					}))
+					.then ( r=>{
+						if ( r.ok )
+						{
+							domEls.route.value = "";
+							domEls.route.dispatchEvent ( new Event ( "change" ) );
+						}
+						else
+						{
+							throw r;
+						}
+					})
+			});
+
+			domEls.route.addEventListener ( "change", ( ev )=>{
+				let r = routes.filter ( r=>r.name == ev.target.value )?.[ 0 ];
+
+				domEls.type.value = r?.type || "";
+
+				for ( let item in domEls.input.categories )
+				{
+					domEls.input.categories[ item ].checked = r?.categories?.includes ( item ) ?? false;
+				}
+
+				if ( domEls.scores )
+				{
+					switch ( r?.scores?.constructor.name )
+					{
+						case "Object":
+						{
+							domEls.scores.value = r.scores.zone + "," + r.scores.top;
+							break;
+						}
+						case "Array":
+						{
+							domEls.scores.value = r.scores?.join ( ", " );
+							break;
+						}
+						default:
+						case "String":
+						{
+							domEls.scores.value = r.scores;
+							break;
+						}
+						case undefined:
+						{
+							domEls.scores.value = "";
+							break;
+						}
+					}
+
+					domEls.scores.rows = domEls.scores.value.split ( "\n" ).length + 2;
+				}
+
+				if ( domEls.comments )
+				{
+					domEls.comments.value = r?.comments || "";
+				}
+			});
+
+			window.onload = ()=>{
+				domEls.route.dispatchEvent ( new Event ( "change" ) );
+			}
+
+			socket.on ( "newRoute", ( msg )=>{
+				let index = routes.map ( r=>r.name ).indexOf ( msg.name );
+
+				if ( -1 == index )
+				{
+					routes.push ( msg );
+					uOneSlector ( {default:"--", selector:domEls.listOfRoutes, list:routes.map ( r=>r.name ).sort ( )} )
+				}
+				else
+				{
+					routes[ index ] = msg;
+
+					if ( msg.name == domEls.route.value )
+					{
+						domEls.route.dispatchEvent ( new Event ( "change" ) );
+					}
+				}
+			});
+		</script>
+	</body>
+</html>

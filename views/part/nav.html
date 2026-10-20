@@ -1,9 +1,28 @@
 <nav>
 	<div>
 		<a href="/" ><img src="imgs/fpe.svg"/></a>
+		<a href="/" class="fa-solid fa-home"></a>
 		<a href="/login" class="fa-solid fa-lock" <% if ( locals.logged ) { %>title="connected as <%= locals.user %>" <% } %>></a>
+		<%
+			switch ( locals.logged )
+			{
+				case "admin": { %>
+					<a href="/admin" class="fa-solid fa-screwdriver-wrench"></a>
+		<% 		}
+				case "editor": { %>
+					<a href="/addUser" class="fa-solid fa-user-plus"></a>
+					<a href="/road" class="fa-solid fa-road"></a>
+					<a href="/edit" class="fa-solid fa-pen-to-square"></a>
+		<%		}
+				case true: 
+				case "juge": { %>
+					<a href="/set" class="fa-solid fa-ranking-star"></a>
+		<% 		}
+			}
+		%>
 	</div>
 	<div>
+		<span id="timer" style="text-align: right;display: none;"></span>
 		<i class="connectionStatus fa-solid fa-globe disconnected"></i>
 	</div>
 </nav>

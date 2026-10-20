@@ -1,5 +1,6 @@
 import getParams from "./src/args.js"
 import cmd from "./src/cmd.js"
+import pre from "./src/pre.js"
 import init from "./src/root.init.js"
 import root from "./src/root.js"
 import ajax from "./src/root.ajax.js"
@@ -21,6 +22,7 @@ let params = {
 };
 
 getParams ( params )
+	.then ( pre )
 	.then ( user )
 	.then ( init )
 	.then ( ajax )

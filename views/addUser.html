@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+	<%- include("part/head.html") -%>
+	<body>
+		<%- include("part/nav.html") -%>
+		<style>
+			input[type=radio] {
+				display: none;
+			}
+			input[type=radio] ~ div {
+				display: none;
+			}
+			#juge:checked ~ div.juge {
+				display: initial;
+			}
+			#admin:checked ~ div.admin {
+				display: initial;
+			}
+			#editor:checked ~ div.editor {
+				display: initial;
+			}
+			#competitor:checked ~ div.competitor {
+				display: initial;
+			}
+
+			#juge:checked ~ label.juge {
+				background-color: grey;
+			}
+			#admin:checked ~ label.admin {
+				background-color: grey;
+			}
+			#editor:checked ~ label.editor {
+				background-color: grey;
+			}
+			#competitor:checked ~ label.competitor {
+				background-color: grey;
+			}
+		</style>
+		<section>
+			<form>
+				<% if ( "admin" == locals.logged ) {%>
+				<input type="radio" name="userType" id="admin">
+				<label class="admin" for="admin">Admin</label>
+				<input type="radio" name="userType" id="editor">
+				<label class="editor" for="editor">Configurateur de competition</label>
+				<input type="radio" name="userType" id="juge">
+				<label class="juge" for="juge">Juge</label>
+				<% } %>
+				<input type="radio" name="userType" id="competitor" checked>
+				<label class="competitor" for="competitor">Competiteur</label>
+				<hr style="width: 90%;">
+				<div class="juge admin competitor editor">
+					<label>Nom Prenom :</label>
+					<input id="name" list="nameList" type="text" placeholder="Nom Prenom">
+					<datalist id="nameList"></datalist>
+				</div>
+				<div class="juge admin editor">
+					<label>Password :</label>
+					<input id="pass" type="password" placeholder="Password">
+				</div>
+				<div class="competitor">
+					<label for="categorie">Categorie</label>
+					<select id="categorie">
+					</select>
+				</div>
+				<div class="competitor">
+					<label for="genre">Genre</label>
+					<select id="genre">
+						<option disabled selected>--</option>
+						<option value="M">homme</option>
+						<option value="F">femme</option>
+					</select>
+				</div>
+				<div class="competitor">
+					<label for="club">Club</label>
+					<input id="club" list="clubList" placeholder="club" type="text">
+					<datalist id="clubList">
+						<option value="test"></option>
+					</datalist>
+				</div>
+				<button id="validate">Sauver</button>
+			</form>
+			<p id="serverMsg"></p>
+		</section>
+		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
+		<script type="text/javascript" nonce="<%- locals.nonce %>">
+		let domEls = {
+			name: document.getElementById ( "name" ),
+			pass: document.getElementById ( "pass" ),
+			nameList: document.getElementById ( "nameList" ),
+			categorie: document.getElementById ( "categorie" ),
+			categorieList: document.getElementById ( "categorie" ),
+			genre: document.getElementById ( "genre" ),
+			club: document.getElementById ( "club" ),
+			clubList: document.getElementById ( "clubList" ),
+			validate: document.getElementById ( "validate" ),
+			serverMsg: document.getElementById ( "serverMsg" ),
+		};
+
+		if ( !socket )
+		{
+			var socket = io ( );
+		}
+
+		let users = [];
+
+		socket.on ( "connect", ()=>{
+			socket.emit ( "getUsersList" );
+			socket.emit ( "getClubsList" );
+			socket.emit ( "getListOfAllCategories" );
+		})
+
+		socket.on ( "setClubsList", (msg)=>{
+			while ( domEls.clubList.options.length )
+			{
+				domEls.clubList.removeChild ( domEls.clubList.firstChild );
+			}
+
+			for ( let opt of msg )
+			{
+				let option = document.createElement ( 'option' );
+				option.value = opt;
+				domEls.clubList.appendChild ( option );
+			}
+		});
+
+		socket.on ( "setUsersList", (msg)=>{
+			users = msg;
+			while ( nameList.options.length )
+			{
+				nameList.removeChild ( nameList.firstChild );
+			}
+
+			for ( let opt of msg )
+			{
+				let option = document.createElement ( 'option' );
+				option.value = opt;
+				nameList.appendChild ( option );
+			}
+		});
+
+		socket.on ( "setListOfAllCategories", (msg)=>{
+			uOneSlector ( {default:"categorie", selector:domEls.categorie, list:msg} )
+		});
+
+		socket.on ( "error", (msg)=>{
+			console.log ( msg )
+			domEls.serverMsg.display = "";
+			domEls.serverMsg.innerText = msg;
+
+			document.body.style.backgroundColor = "red";
+
+			setTimeout ( ()=>{
+				document.body.style.backgroundColor = "";
+			}, 1000 );
+		});
+
+		socket.on ( "ok", ()=>{
+			console.log ( "ok" )
+			domEls.name.value = "";
+			domEls.club.value = "";
+			domEls.categorie.value = "";
+			domEls.genre.value = "";
+			domEls.genre.pass = "";
+
+			document.body.style.backgroundColor = "green";
+
+			setTimeout ( ()=>{
+				document.body.style.backgroundColor = "";
+			}, 1000 );
+		});
+
+		domEls.validate.addEventListener ( "click", (ev)=>{
+			ev.preventDefault ( );
+			let msg = {
+				group: document.querySelectorAll ( "input[name=userType]:checked" )[ 0 ].id,
+				name: domEls.name.value.trim ( ),
+			};
+
+			domEls.serverMsg.innerText = "";
+
+			if ( undefined == msg.name )
+			{
+				domEls.serverMsg.innerText = "il manque le nom";
+				return;
+			}
+
+			switch ( msg.group )
+			{
+				case "competitor":
+				{
+					msg.categorie = domEls.categorie.value;
+					msg.genre = domEls.genre.value;
+					msg.club = domEls.club.value;
+					break;
+				}
+				case "admin":
+				case "editor":
+				case "juge":
+				{
+					msg.pass = domEls.pass.value;
+					break;
+				}
+			}
+
+			for ( let key in msg )
+			{
+				if ( !msg[ key ])
+				{
+					domEls.serverMsg.innerText = "il manque une info : "+key;
+					return;
+				}
+			}
+
+			socket.emit ( "setUser", msg );
+		});
+		</script>
+	</body>
+</html>
