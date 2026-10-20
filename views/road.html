@@ -129,7 +129,7 @@
 							ok ( out );
 						}
 					})
-					.then ( r=>ajaxReq ( "/ajax/set/route/", r ) )
+					.then ( r=>ajaxReq ( "/ajax/set/route", r ) )
 						.then ( r=>{
 							if ( !r.status )
 							{

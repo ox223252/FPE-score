@@ -99,7 +99,7 @@ export default function ( params )
 			})
 	}); // login
 
-	params.express.post ( "/halt", function ( req, res )
+	ajax.post ( "/halt", function ( req, res )
 	{
 		if ( !ajax?.params?.args?.halt )
 		{
@@ -117,7 +117,7 @@ export default function ( params )
 			})
 	}); // halt
 
-	params.express.post ( "/start", function ( req, res )
+	ajax.post ( "/start", function ( req, res )
 	{
 		if ( params.interval )
 		{
@@ -147,7 +147,7 @@ export default function ( params )
 		},remainingTime );
 	}); // start
 
-	params.express.post ( "/stop", function ( req, res )
+	ajax.post ( "/stop", function ( req, res )
 	{
 		if ( !params.interval )
 		{
@@ -166,7 +166,7 @@ export default function ( params )
 		console.log ( "user stop" )
 	}); //stop
 
-	params.express.post ( "/get/route", function ( req, res )
+	ajax.post ( "/get/route", function ( req, res )
 	{
 		// fetch ( "/ajax/get/route", {method:"POST", body: JSON.stringify ( {route:"A"} ), headers: { "Content-Type": "application/json" } } ).then ( console.log )
 		res.status ( 200 );
@@ -174,7 +174,7 @@ export default function ( params )
 		res.end ( );
 	}); // get route
 
-	params.express.post ( "/set/route", function ( req, res )
+	ajax.post ( "/set/route", function ( req, res )
 	{
 		// vérifie que le type de route est valide 
 		if ( !params.types.includes ( req.body.type ) )
@@ -207,7 +207,6 @@ export default function ( params )
 			{
 				if ( 2 != req.body.scores.length )
 				{
-					console.log ( "406, C");
 					res.status ( 406 );
 					res.json ( {msg:"pour le bloc seul un score de ZONE et de TOP sont requis"})
 					res.end ( );
@@ -233,9 +232,9 @@ export default function ( params )
 
 			let ext = req.body.img.split ( ";" )[ 0 ].split ( "/" )[ 1 ];
 			let post = 0;
+			let imgName = "img_"+req.body.name
 			do
 			{
-				let imgName = "img_"+req.body.route
 
 				if ( post++ )
 				{
@@ -276,7 +275,7 @@ export default function ( params )
 		res.end ( );
 	}); // set route
 
-	params.express.post ( "/set/score", function ( req, res )
+	ajax.post ( "/set/score", function ( req, res )
 	{
 		if ( -1 >= params?.db?.users?.map ( u=>u.name ).indexOf ( req.body.user ) )
 		{
@@ -360,7 +359,7 @@ export default function ( params )
 		res.end ( );
 	}); // set score
 
-	params.express.post ( "/set/value", function ( req, res )
+	ajax.post ( "/set/value", function ( req, res )
 	{
 		if ( undefined != params.db.scores?.[ req.body.name ]?.[ req.body.route ]?.[ req.body.index ] )
 		{
@@ -378,7 +377,7 @@ export default function ( params )
 		}
 	}); // set value
 
-	params.express.post ( "/set/user", function ( req, res )
+	ajax.post ( "/set/user", function ( req, res )
 	{
 		let listInfos = undefined;
 		switch ( req.body.group )
@@ -467,7 +466,7 @@ export default function ( params )
 		res.end ( );
 	}); // user
 
-	params.express.post ( "/db/:cmd/:file", function ( req, res )
+	ajax.post ( "/db/:cmd/:file", function ( req, res )
 	{
 		if ( !params.db[ req.params.file ] )
 		{
