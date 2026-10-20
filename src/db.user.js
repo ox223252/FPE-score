@@ -661,14 +661,6 @@ class UAd extends User {
 		{
 			throw `ERROR : --login.ad.baseDN is required ( ex : DC=domaine,DC=fr )`;
 		}
-
-		let base = params.name.toUpperCase ( )
-			.replace ( /\s/g, "" );
-
-		// compte de service ( optionnel ) : mot de passe lu dans l'environnement, jamais en ligne de commande
-		this._ad.bindPassword = process.env[ base+"_AD_PASSWORD" ];
-
-
 	}
 
 	_client ( )
@@ -733,7 +725,7 @@ class UAd extends User {
 			console.log ( `   - WARNING : no --login.ad.group, every account of the directory can connect` );
 		}
 
-		if ( !this._ad.bindDN )
+		if ( !this._ad.bind?.user )
 		{
 			console.log ( `   - no service account : group membership is not re-checked on token login` );
 			return Promise.resolve ( );
@@ -764,7 +756,7 @@ class UAd extends User {
 
 		try
 		{
-			await client.bind ( this._ad.bindDN, this._ad.bindPassword );
+			await client.bind ( this._ad.bind?.user, this._ad.bind?.password );
 			return await fn ( client );
 		}
 		finally
@@ -779,7 +771,7 @@ class UAd extends User {
 	{
 		return super._logToken ( token )
 			.then ( ( r )=>{
-				if ( !this._ad.bindDN )
+				if ( !this._ad.bind?.user )
 				{
 					return r;
 				}
@@ -846,9 +838,9 @@ class UAd extends User {
 
 	exist ( name )
 	{
-		if ( !this._ad.bindDN )
+		if ( !this._ad.bind?.user )
 		{
-			return Promise.reject ( "user check : need a service account ( --login.ad.bindDN )" );
+			return Promise.reject ( "user check : need a service account ( --login.ad.bind.user )" );
 		}
 
 		return this._asService ( ( client )=>this._findUser ( client, this._upn ( name ) ) )

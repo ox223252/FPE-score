@@ -102,7 +102,7 @@ export default function ( params )
 				describe: `service account DN ( optional )`,
 				type: 'string',
 			})
-			.option ( 'login.ad.bin.password', {
+			.option ( 'login.ad.bind.password', {
 				describe: `service account password ( optional )`,
 				type: 'string',
 			})
@@ -121,7 +121,7 @@ export default function ( params )
 		.group ( [ 'login.mode', 'login.tokenDuration', 'login.maxAttempts', 'login.lockMinutes' ], 'Connexion :' )
 		.group ( [ 'login.file' ], 'Mode fichier :' )
 		.group ( [ 'login.linux.group', 'login.linux.pamService' ], 'Mode Linux :' )
-		.group ( [ 'login.ad.url', 'login.ad.domain', 'login.ad.group', 'login.ad.bindDN', 'login.ad.baseDN', 'login.ad.recursive' ], 'Mode Active Directory :' )
+		.group ( [ 'login.ad.url', 'login.ad.domain', 'login.ad.group', 'login.ad.bind.user', 'login.ad.bind.password', 'login.ad.baseDN', 'login.ad.recursive' ], 'Mode Active Directory :' )
 		.epilog ( `Toute option peut être passée par variable d\'environnement : ${base}_<OPTION>, camelCase -> MOT_MOT, "." -> "__"\n`
 			+ `ex : ${base}_SERVER__PORT=8443 ${base}_LOGIN__MODE=ad ${base}_LOGIN__AD__BASE_DN="DC=domaine,DC=fr"\n`
 			+ 'la ligne de commande reste prioritaire sur l\'environnement' )

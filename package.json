@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node $WATCH index.js",
+    "start": "node $WATCH index.js --server.port 6800",
     "dev": "WATCH='--watch-path=src --watch-path=index.js' npm start"
   },
   "dependencies": {

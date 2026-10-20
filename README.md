@@ -29,7 +29,7 @@ node index.js --server.port 8443 --login.mode file
 node index.js --help   # liste complète des options
 ```
 
-Le serveur peut être lancé depuis n'importe quel dossier : tous les chemins sont résolus par rapport au dossier du projet.
+Le serveur peut être lancé depuis n'importe quel dossier : les chemins ( `--server.tls.path`, `--login.file` ) sont résolus par rapport au dossier du projet. Seul le fichier `.env` est cherché dans le dossier courant.
 
 ## Options principales
 
@@ -65,7 +65,8 @@ Toute option de la ligne de commande peut aussi être passée par une variable d
 | `--login.linux.pamService` | `NODEBASE_LOGIN__LINUX__PAM_SERVICE` |
 | `--login.ad.url` | `NODEBASE_LOGIN__AD__URL` |
 | `--login.ad.baseDN` | `NODEBASE_LOGIN__AD__BASE_DN` |
-| `--login.ad.bindDN` | `NODEBASE_LOGIN__AD__BIND_DN` |
+| `--login.ad.bind.user` | `NODEBASE_LOGIN__AD__BIND__USER` |
+| `--login.ad.bind.password` | `NODEBASE_LOGIN__AD__BIND__PASSWORD` |
 
 Priorité : **ligne de commande > environnement > valeur par défaut**.
 
@@ -79,7 +80,7 @@ Les variables peuvent être regroupées dans un fichier `.env` ( ignoré par git
 # .env
 NODEBASE_SERVER__PORT=8443
 NODEBASE_LOGIN__MODE=ad
-NODEBASE_AD_PASSWORD='...'
+NODEBASE_LOGIN__AD__BIND__PASSWORD='...'
 ```
 
 > Le fichier `.env` est cherché dans le dossier courant au lancement.
@@ -127,7 +128,8 @@ Vérifie le mot de passe auprès de l'AD, puis que l'utilisateur existe dans l'a
 | `--login.ad.domain` | suffixe ajouté si l'utilisateur tape un nom court, ex. `@domaine.fr` |
 | `--login.ad.group` | DN du groupe autorisé, ex. `CN=AppUsers,OU=Groupes,DC=domaine,DC=fr` ( sans groupe : tout l'annuaire peut se connecter ) |
 | `--login.ad.recursive` | `true` par défaut : accepte aussi les membres des groupes imbriqués. `--no-login.ad.recursive` pour les membres directs seulement |
-| `--login.ad.bindDN` | compte de service ( optionnel ), mot de passe dans la variable d'environnement `NODEBASE_AD_PASSWORD` |
+| `--login.ad.bind.user` | DN du compte de service ( optionnel ) |
+| `--login.ad.bind.password` | mot de passe du compte de service ( optionnel, à passer de préférence par l'environnement ou le `.env` ) |
 
 ```bash
 node index.js --login.mode ad \
@@ -137,12 +139,14 @@ node index.js --login.mode ad \
   --login.ad.group "CN=AppUsers,OU=Groupes,DC=domaine,DC=fr"
 ```
 
-**Compte de service** ( recommandé ) : avec `--login.ad.bindDN` et `NODEBASE_AD_PASSWORD`, l'application vérifie au démarrage que l'annuaire répond et que le groupe existe, et revérifie l'appartenance au groupe à chaque reconnexion par jeton.
+**Compte de service** ( recommandé ) : avec `--login.ad.bind.user` et `--login.ad.bind.password`, l'application vérifie au démarrage que l'annuaire répond et que le groupe existe, et revérifie l'appartenance au groupe à chaque reconnexion par jeton.
 
 ```bash
-NODEBASE_AD_PASSWORD='...' node index.js --login.mode ad ... \
-  --login.ad.bindDN "CN=svc-nodebase,OU=Services,DC=domaine,DC=fr"
+NODEBASE_LOGIN__AD__BIND__PASSWORD='...' node index.js --login.mode ad ... \
+  --login.ad.bind.user "CN=svc-nodebase,OU=Services,DC=domaine,DC=fr"
 ```
+
+> Éviter `--login.ad.bind.password` en ligne de commande : le mot de passe serait visible dans `ps` et l'historique du shell.
 
 Annuaire avec un certificat émis par une autorité interne : renseigner `tlsOptions: { ca: [ ... ] }` dans `UAd._client ( )` ( `src/db.user.js` ).
 
