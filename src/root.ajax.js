@@ -452,13 +452,7 @@ export default function ( params )
 		}
 		else
 		{
-			params.db.login[ req.body.name ] = {
-				pass: crypto.createHash ( 'sha512' ).update ( req.body.pass ).digest ( 'hex' ),
-				status: req.body.group,
-				error: 0,
-			};
-
-			fs.writeFileSync ( params.args.db.login, JSON.stringify ( params.db.login, null, 4 ), "utf8" )
+			params.login.add ( req.body.name, req.body.pass, {status:req.body.group} );
 		}
 
 		res.status ( 200 );

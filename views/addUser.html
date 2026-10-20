@@ -183,21 +183,28 @@
 				}
 
 				ajaxReq ( "/ajax/set/user", data )
+					.then ( (r)=>{
+						domEls.categorie.value = "";
+						domEls.genre.value = "";
+						domEls.club.value = "";
+						domEls.pass.value = "";
+						domEls.name.value = "";
+					})
 			});
 
 			socket.on ( "users", ( msg )=>{
 				users = msg;
 
 				uOneSlector ({
-					default: "",
+					default: domEls.name.value.trim ( ),
 					selector: domEls.nameList,
-					list:users.map ( u2=>u2.name ).distinct ( ).sort ( ),
+					list: users.map ( u2=>u2.name ).distinct ( ).sort ( ),
 				});
 
 				uOneSlector ({
-					default:"club",
-					selector:domEls.clubList,
-					list:users.map ( u2=>u2.club ).distinct ( ).sort ( ),
+					default: domEls.club.value,
+					selector: domEls.clubList,
+					list: users.map ( u2=>u2.club ).distinct ( ).sort ( ),
 				});
 			});
 		</script>

@@ -130,9 +130,9 @@ export default function ( params )
 
 	params.express.all ( "/addUser", function ( req, res )
 	{
-		res.locals.categories = params.args.categories;
-		res.locals.users = params.db.users;
-		res.locals.genres = params.genres;
+		res.locals.categories = params.args.categories ?? [];
+		res.locals.users = params.db.users ?? [];
+		res.locals.genres = params.args.genres ?? [];
 
 		res.render ( 'addUser.html' );
 	});
