@@ -19,6 +19,7 @@
     "express-session": "^1.19.0",
     "helmet": "^8.3.0",
     "ldapts": "^9.2.0",
+    "pica": "^10.0.3",
     "sharp": "^0.35.5",
     "socket.io": "^4.8.3",
     "yargs": "^18.1.0"
