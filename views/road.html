@@ -31,21 +31,30 @@
 				<% } %>
 				<textarea id="comments" placeholder="commentaires"></textarea>
 				<p id="serverMsg"></p>
-				<input id="img" type="file" accept="image/*" capture="environement">
+				<input id="file" type="file" accept="image/*" capture="environement">
+				<div>
+					<canvas id="imgOut" width="640" height="480" style="display: none;"></canvas>
+					<img id="img" width="640" height="480" style="display: none;">
+				</div>
 				<div>
 					<button id="validate">Sauver</button>
 				</div>
 			</div>
 		</section>
 		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
+		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/pica/dist/pica.js"></script>
 		<script nonce="<%- locals.nonce %>">
+			const resizer = pica ({ features: ['js'] });
+
 			let domEls = {
-				type:  document.getElementById ( "type" ),
+				type:   document.getElementById ( "type" ),
 				route:  document.getElementById ( "route" ),
 				listOfRoutes: document.getElementById ( "knownRoute" ),
 				validate: document.getElementById ( "validate" ),
 				scores: document.getElementById ( "scores" ),
+				file:    document.getElementById ( "file" ),
 				img: document.getElementById ( "img" ),
+				imgOut: document.getElementById ( "imgOut" ),
 				comments: document.getElementById ( "comments" ),
 				serverMsg: document.getElementById ( "serverMsg" ),
 				input:{
@@ -93,6 +102,48 @@
 			domEls.listOfRoutes.options[ 0 ].disabled = true;
 			domEls.type.options[ 0 ].disabled = true;
 
+			let currentImage = undefined;
+
+			domEls.file.addEventListener ( "change", (ev)=>{
+
+				let files = ev.target.files;
+				let img = undefined;
+
+				return new Promise ( (ok,ko)=>{
+						// FileReader support
+						if ( FileReader && files && files.length )
+						{
+							let fr = new FileReader();
+							fr.onload = function (ev) {
+								ok ( fr.result );
+							}
+							fr.onerror = function (ev) {
+								ko ( );
+							}
+							fr.readAsDataURL(files[0]);
+						}
+						else
+						{
+							ko ( );
+						}
+					})
+					.then ( data=>{
+						return new Promise ( (ok,ko)=>{
+							domEls.img.onload = ok;
+							domEls.img.src = data;
+							domEls.img.style.display = "";
+						})
+					})
+					.then ( ()=>resizer.resize ( domEls.img, domEls.imgOut ) )
+					.then( result=>resizer.toBlob ( result, 'image/jpeg', 0.90 ) )
+					.then( blob=>{
+						domEls.img.style.display = "none";
+						domEls.imgOut.style.display = "";
+						currentImage = blob;
+					})
+					.catch ( console.log )
+			});
+
 			domEls.validate.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
 
@@ -100,6 +151,7 @@
 						let out = {
 							name: domEls.route.value,
 							type: domEls.type.value,
+							img: currentImage,
 							comments: domEls.comments.value,
 							categories: getChecked ( domEls.input.categories ),
 						};
@@ -108,37 +160,18 @@
 						{
 							out.scores = domEls.scores.value;
 						}
-
-						let files = domEls.img.files;
-
-						// FileReader support
-						if (FileReader && files && files.length)
-						{
-							let fr = new FileReader();
-							fr.onload = function (ev) {
-								out.img = fr.result;
-								ok ( out );
-							}
-							fr.onerror = function (ev) {
-								ok ( out );
-							}
-							fr.readAsDataURL(files[0]);
-						}
-						else
-						{
-							ok ( out );
-						}
 					})
 					.then ( r=>ajaxReq ( "/ajax/set/route", r ) )
-						.then ( r=>{
-							if ( !r.status )
-							{
-								return;
-							}
+					.then ( r=>{
+						if ( !r.status )
+						{
+							return;
+						}
 
-							domEls.route.value = "";
-							domEls.route.dispatchEvent ( new Event ( "change" ) );
-						})
+						currentImage = undefined;
+						domEls.route.value = "";
+						domEls.route.dispatchEvent ( new Event ( "change" ) );
+					})
 			});
 
 			domEls.route.addEventListener ( "change", ( ev )=>{
@@ -188,6 +221,7 @@
 			});
 
 			window.onload = ()=>{
+				domEls.file.value  = "";
 				domEls.route.dispatchEvent ( new Event ( "change" ) );
 			}
 

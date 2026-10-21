@@ -101,6 +101,7 @@ export default async function ( params )
 	exp.use ( express.static ( path.join ( params.path, 'public' ) ) );
 	exp.use ( express.static ( path.join ( params.path, 'node_modules', 'socket.io', 'client-dist' ) ) );
 	exp.use ( '/fontawesome', express.static ( path.join ( params.path, 'node_modules', '@fortawesome', 'fontawesome-free' ) ) );
+	exp.use ( '/pica', express.static ( path.join ( params.path, 'node_modules', 'pica' ) ) );
 	exp.engine ( 'html', ejs.renderFile );
 
 	exp.use ( sessionMiddleware );
@@ -114,6 +115,7 @@ export default async function ( params )
 
 	exp.use ( helmet.contentSecurityPolicy({
 		directives: {
+			workerSrc: ["'self'", "blob:"],
 			scriptSrc: [ "'self'", (req,res)=>`'nonce-${res.locals.nonce}'`],
 			upgradeInsecureRequests: ( s.secure )
 				? []
