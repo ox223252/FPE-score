@@ -221,7 +221,7 @@ export default function ( params )
 		}
 
 		// convertion d'une image
-		if ( req.body.img )
+		if ( req.body.img ) try
 		{
 			let path = "./public/imgs";
 
@@ -254,6 +254,10 @@ export default function ( params )
 				}
 			}
 			while ( true );
+		}
+		catch ( e )
+		{
+			console.log ( e )
 		}
 
 		let index = params.db.routes.map ( v=>v.name ).indexOf ( req.body.name );

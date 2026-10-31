@@ -96,7 +96,6 @@ export default async function ( params )
 	}));
 	exp.use ( express.json({limit: '10mb'}) );
 	exp.use ( express.urlencoded( { extended: true, limit: '10mb' } ) );
-	exp.use ( express.urlencoded ( { extended: true } ) );
 	exp.set ( 'views', path.join ( params.path, 'views' ) );
 	exp.use ( express.static ( path.join ( params.path, 'public' ) ) );
 	exp.use ( express.static ( path.join ( params.path, 'node_modules', 'socket.io', 'client-dist' ) ) );

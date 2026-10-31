@@ -33,11 +33,11 @@
 				<p id="serverMsg"></p>
 				<input id="file" type="file" accept="image/*" capture="environement">
 				<div>
-					<canvas id="imgOut" width="640" height="480" style="display: none;"></canvas>
-					<img id="img" width="640" height="480" style="display: none;">
+					<button id="validate">Sauver</button>
 				</div>
 				<div>
-					<button id="validate">Sauver</button>
+					<canvas id="imgOut" width="640" height="480" style="display: none;"></canvas>
+					<img id="img" width="640" height="480" style="display: none;">
 				</div>
 			</div>
 		</section>
@@ -99,6 +99,18 @@
 				return r;
 			}
 
+			function blobToBase64 (blob)
+			{
+				const reader = new FileReader ( );
+				reader.readAsDataURL ( blob );
+
+				return new Promise ( (ok,ko)=>{
+					reader.onloadend = () => {
+						ok ( reader.result );
+					};
+				});
+			}
+
 			domEls.listOfRoutes.options[ 0 ].disabled = true;
 			domEls.type.options[ 0 ].disabled = true;
 
@@ -108,6 +120,8 @@
 
 				let files = ev.target.files;
 				let img = undefined;
+
+				domEls.validate.style.backgroundColor = 'red';
 
 				return new Promise ( (ok,ko)=>{
 						// FileReader support
@@ -136,12 +150,16 @@
 					})
 					.then ( ()=>resizer.resize ( domEls.img, domEls.imgOut ) )
 					.then( result=>resizer.toBlob ( result, 'image/jpeg', 0.90 ) )
-					.then( blob=>{
+					.then ( blob=> blobToBase64 ( blob ) )
+					.then( b64=>{
 						domEls.img.style.display = "none";
 						domEls.imgOut.style.display = "";
-						currentImage = blob;
+						currentImage = b64;
 					})
 					.catch ( console.log )
+					.finally (()=>{
+						domEls.validate.style.backgroundColor = '';
+					})
 			});
 
 			domEls.validate.addEventListener ( "click", (ev)=>{
@@ -160,6 +178,8 @@
 						{
 							out.scores = domEls.scores.value;
 						}
+
+						ok (out);
 					})
 					.then ( r=>ajaxReq ( "/ajax/set/route", r ) )
 					.then ( r=>{
