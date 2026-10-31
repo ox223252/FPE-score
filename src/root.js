@@ -171,6 +171,7 @@ export default function ( params )
 		res.locals.types = params.types;
 		res.locals.routes = params.db.routes;
 		res.locals.categories = params.args.categories;
+		res.locals.mode = params.args.mode;
 
 		res.render ( 'road.html' );
 	});
