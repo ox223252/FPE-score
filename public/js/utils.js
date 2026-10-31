@@ -34,6 +34,11 @@ function uOneSlector ( params = {} )
 
 	if ( params.list?.length )
 	{
+		if ( params.selector?.parentNode )
+		{
+			params.selector.parentNode.style.display = "";
+		}
+
 		for ( let i = 0; i < params.list.length; i++ )
 		{
 			params.selector.appendChild ( new Option ( params.list[ i ], i + 1 ) );
@@ -46,6 +51,13 @@ function uOneSlector ( params = {} )
 		}
 
 		length = params.list.length;
+	}
+	else if ( 0 == params.list?.length && params.hideable )
+	{
+		if ( params.selector?.parentNode )
+		{
+			params.selector.parentNode.style.display = "none";
+		}
 	}
 	else if ( "Object" == params.obj?.constructor.name )
 	{

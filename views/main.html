@@ -63,6 +63,12 @@
 					club: document.getElementById ( "club" ),
 					type: document.getElementById ( "type" ),
 				},
+				div:{
+					genre: document.getElementById ( "divGenre" ),
+					categorie: document.getElementById ( "divCategorie" ),
+					club: document.getElementById ( "divClub" ),
+					type: document.getElementById ( "divType" ),
+				},
 				table: {
 					full: document.getElementById ( "table" ),
 					tbody: document.getElementById ( "tbody" ),
@@ -91,16 +97,19 @@
 					default:"genre",
 					selector:domEls.input.genre,
 					list:array.map ( u2=>u2.genre ).distinct ( ).sort ( ),
+					.hideable: true,
 				});
 				uOneSlector ({
 					default:"categorie",
 					selector:domEls.input.categorie,
 					list:array.map ( u2=>u2.categorie ).distinct ( ).sort ( ),
+					.hideable: true,
 				});
 				uOneSlector ({
 					default:"club",
 					selector:domEls.input.club,
 					list:array.map ( u2=>u2.club ).distinct ( ).sort ( ),
+					.hideable: true,
 				});
 			}
 

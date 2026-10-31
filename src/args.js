@@ -159,6 +159,13 @@ export default function ( params )
 		.epilog ( `Toute option peut être passée par variable d\'environnement : ${base}_<OPTION>, camelCase -> MOT_MOT, "." -> "__"\n`
 			+ `ex : ${base}_SERVER__PORT=8443 ${base}_LOGIN__MODE=ad ${base}_LOGIN__AD__BASE_DN="DC=domaine,DC=fr"\n`
 			+ 'la ligne de commande reste prioritaire sur l\'environnement' )
+		.check ( args=>{
+			[ 'categories', 'genres' ].map ( item=>args[ item ] = args[ item ].map ( c=>c.split ( /[,;.]/ ) )
+				.flat ( Infinity )
+			)
+
+			return true;
+		})
 		.argv;
 
 	params.args.server.tls.path = path.resolve ( params.path, params.args.server.tls.path );
