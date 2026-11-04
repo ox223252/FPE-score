@@ -3,20 +3,26 @@
 	<%- include("part/head.html") -%>
 	<body>
 		<%- include("part/nav.html") -%>
+		<aside>
+			<div id="divGenre">
+				<label for="genre">Genre</label>
+				<select id="genre"></select>
+			</div>
+			<div id="divCategorie">
+				<label for="categorie">Categorie</label>
+				<select id="categorie"></select>
+			</div>
+			<div id="divClub">
+				<label for="club">Club</label>
+				<select id="club"></select>
+			</div>
+			<div id="divType">
+				<label for=type>Voie</label>
+				<select id="type"></select>
+			</div>
+		</aside>
 		<section>
 			<div class="form">
-				<div id="divGenre">
-					<label for="genre">Genre</label>
-					<select id="genre"></select>
-				</div>
-				<div id="divCategorie">
-					<label for="categorie">Categorie</label>
-					<select id="categorie"></select>
-				</div>
-				<div id="divClub">
-					<label for="club">Club</label>
-					<select id="club"></select>
-				</div>
 				<div  id="divUser" class="row">
 					<div style="flex-grow: 2;">
 						<label for="user">Utilisateur</label>
@@ -29,15 +35,11 @@
 						<datalist id="listDossard"></datalist>
 					</div>
 				</div>
-				<hr>
-				<div id="divType">
-					<label for=type>Type de voie</label>
-					<select id="type"></select>
-				</div>
 				<div id="divVoie">
 					<label for=voie>Voie</label>
 					<select id="voie"></select>
 				</div>
+				<hr>
 				<div class="marged">
 					<input id="scoreDiff"></input>
 					<select id="scoreBloc">
@@ -333,7 +335,7 @@
 				ev.preventDefault ( );
 				domEls.serverMsg.display = "none";
 
-				if ( domEls.user.value == domEls.user.options[ 0 ].value )
+				if ( domEls.user.value == domEls.listUser.options[ 0 ].value )
 				{
 					domEls.serverMsg.innerText = "le competiteur n'est pas renseigné"
 					domEls.user.classList.add ( "err" )
@@ -347,12 +349,12 @@
 				if ( domEls.voie.value == domEls.voie.options[ 0 ].value )
 				{
 					domEls.serverMsg.innerText = "la voie n'est pas renseigné"
-					domEls.user.classList.add ( "err" )
+					domEls.voie.classList.add ( "err" )
 					return;
 				}
 				else
 				{
-					domEls.user.classList.remove ( "err" )
+					domEls.voie.classList.remove ( "err" )
 				}
 
 				let data = {
