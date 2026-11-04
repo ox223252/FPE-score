@@ -2,6 +2,7 @@
 	color-scheme: light dark;
 
 	--grey: rgba( 128, 128, 128, 0.5 );
+	--grey-2: rgba( 128, 128, 128, 1 );
 	--disconnected: red;
 	--connected: green;
 

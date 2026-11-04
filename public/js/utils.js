@@ -77,7 +77,7 @@ function uOneSlector ( params = {} )
 
 	if ( params.parentDiv )
 	{
-		if ( length == 1 )
+		if ( length == 1 && params.hideable )
 		{
 			params.parentDiv.style.display = "none";
 			params.selector.options[ 1 ].selected = true;
