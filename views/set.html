@@ -335,7 +335,9 @@
 				ev.preventDefault ( );
 				domEls.serverMsg.display = "none";
 
-				if ( domEls.user.value == domEls.listUser.options[ 0 ].value )
+				if ( ![ ...domEls.listUser.options ]
+					.map ( o=>o.value )
+					.includes ( domEls.user.value ) )
 				{
 					domEls.serverMsg.innerText = "le competiteur n'est pas renseigné"
 					domEls.user.classList.add ( "err" )
