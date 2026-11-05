@@ -15,8 +15,6 @@
 	--light-background: rgb( 255,255,255 );
 
 	--background-color: light-dark( var( --light-background), var( --dark-background ) );
-	--background-color: revert;
-
 }
 
 html {
