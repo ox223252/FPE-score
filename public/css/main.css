@@ -77,6 +77,8 @@ html {
 
 				gap: 10px;
 
+				flex-shrink: 0;
+
 				& > div {
 					display: flex;
 					flex-direction: row;
