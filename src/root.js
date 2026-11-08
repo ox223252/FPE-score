@@ -64,12 +64,12 @@ export default function ( params )
 			case "admin":
 			{ // admin can edit addUser event during competition
 				routes.push ( "/admin" );
+				routes.push ( "/edit" );
 			}
 			case "editor":
 			{
 				routes.push ( "/addUser" );
 				routes.push ( "/road" );
-				routes.push ( "/edit" );
 			}
 			case "juge":
 			{
