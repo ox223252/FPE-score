@@ -134,6 +134,10 @@ html {
 					transform: scale(2);
 				}
 
+				& > img {
+					margin: auto;
+				}
+
 				& > canvas {
 					max-width: 200px;
 					max-height: 200px;

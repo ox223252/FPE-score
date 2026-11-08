@@ -45,10 +45,10 @@
 						{ %>
 							<input type="radio" name="userType" id="admin">
 							<label class="admin button" for="admin">Admin</label>
-							<input type="radio" name="userType" id="staff">
-							<label class="staff button" for="staff">Staff</label>
+							<input type="radio" name="userType" id="editor">
+							<label class="editor button" for="editor">Staff</label>
 						<% }
-						case "staff":
+						case "editor":
 						{ %>
 							<input type="radio" name="userType" id="juge">
 							<label class="juge button" for="juge">Juge</label>
@@ -62,12 +62,12 @@
 				</div>
 
 				<hr style="width: 90%;">
-				<div class="juge admin competitor staff">
+				<div class="juge admin competitor editor">
 					<label>Nom Prénom :</label>
 					<input id="name" list="nameList" type="text" placeholder="Nom Prenom">
 					<datalist id="nameList"></datalist>
 				</div>
-				<div class="juge admin staff">
+				<div class="juge admin editor">
 					<label>Password :</label>
 					<input id="pass" type="password" placeholder="Password">
 				</div>
@@ -165,7 +165,7 @@
 						break;
 					}
 					case "admin":
-					case "staff":
+					case "editor":
 					case "juge":
 					{
 						data.pass = domEls.pass.value;
