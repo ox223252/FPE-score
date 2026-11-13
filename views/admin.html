@@ -208,59 +208,12 @@
 								let reader = new FileReader ( );
 								reader.readAsText ( newDb, "UTF-8" );
 								
-								switch ( [ file ]?.constructor.name )
-								{
-									case "Array":
-									{
-										data = await new Promise ( (ok,ko)=>{
-											reader.onload = (ev)=>{
-												let lines = ev.target.result.split ( "\n" );
-												let keys = lines.shift ( ).split ( ";" );
+								data = await new Promise ( (ok,ko)=>{
+									reader.onload = (ev)=>{
+										ok ( ev.target.result );
+									};
+								});
 
-												lines = lines.map ( line=>{
-													let r = line.split ( ";" )
-														.map ( (cell,index)=>{
-															if ( "" == cell )
-															{
-																return {};
-															}
-
-															if ( "routes" == file )
-															{
-																if ( [ "categories", "scores" ].includes ( keys[ index ] ) )
-																{
-																	return {
-																		[ keys[ index ] ]: cell.split( ',' )
-																	}
-																}
-															}
-															
-															return {
-																[ keys[ index ] ]: cell
-															};
-														})
-														.reduce ( (a,v)=>{
-															return Object.assign ( a, v );
-														}, {})
-
-													if ( "bloc" == r.type )
-													{
-														r.scores = {
-															zone: r.scores[ 0 ],
-															top: r.scores[ 1 ]
-														};
-													}
-
-													return r;
-												});
-
-												ok ( lines );
-											};
-										});
-
-										break;
-									}
-								}
 								break;
 							}
 						}

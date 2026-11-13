@@ -551,7 +551,7 @@ function exportFile ( data, file )
 	// }
 
 	const downloadLink = document.createElement('a');
-	downloadLink.href = URL.createObjectURL ( new Blob ( [ data ], { type: 'text/plain' } ) );
+	downloadLink.href = URL.createObjectURL ( new Blob ( [ out ], { type: 'text/plain' } ) );
 	downloadLink.download = file + ".csv";
 
 	document.body.appendChild ( downloadLink );
@@ -559,12 +559,14 @@ function exportFile ( data, file )
 	document.body.removeChild ( downloadLink );
 }
 
-
-
 function ajaxReq ( path, data = {} )
 {
 	let domEl = document.querySelector ( "body" );
 	domEl.style.backgroundColor = "orange";
+
+	data = ( "String" == data.constructor.name )
+		? {msg:data}
+		: data;
 
 	return fetch ( path,{
 			method:"POST",

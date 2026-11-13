@@ -2,6 +2,7 @@ import express from 'express'; // routing module
 import fs from 'fs'; // read / write files
 import sharp from 'sharp';
 import {checkId} from './fnct.js';
+import * as parser from './parser.js';
 
 export default function ( params )
 {
@@ -482,7 +483,13 @@ export default function ( params )
 			}
 			case "set":
 			{
-				fs.writeFileSync ( params.args.db[ req.params.file ], JSON.stringify ( req.body, null, 4 ), 'utf8' );
+				params.db.routes = parser[ req.params.file ]( req.body.msg );
+
+				fs.writeFileSync (
+					params.args.db[ req.params.file ],
+					JSON.stringify ( params.db.routes, null, 4 ),
+					'utf8' );
+				
 				res.status ( 200 );
 				res.json ({});
 				res.end ( );
