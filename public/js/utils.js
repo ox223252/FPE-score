@@ -442,74 +442,54 @@ function getUsersList ( userArray, filters )
 }
 
 function exportFile ( data, file )
-{
-	function getKeys ( objArray )
+{	
+	function getOne ( key, obj )
 	{
-		return objArray.map ( (d)=>Object.keys ( d ) )
-			.flat ( Infinity )
-			.distinct ( );
-	}
-	
-	function manageOneElement ( cell )
-	{
-		switch ( cell?.constructor.name )
+		switch ( obj[ key ]?.constructor?.name )
 		{
-			case "Number":
-			case "String":
-			{
-				return cell;
-			}
 			case "Array":
 			{
-				return cell.join ( "," );
+				return obj[ key ].join ( "," );
 			}
 			case "Object":
 			{
-				if ( cell.zone
-					|| cell.top )
+				switch ( key )
 				{
-					return `${cell.zone ?? 0}, ${cell.top ?? 0}`;
+					case "scores":
+					{
+						return Object.values ( obj[ key ] ).join ( "," );
+					}
+					default:
+					{
+						return JSON.stringify ( obj[ key ] );
+					}
 				}
 			}
 			default:
 			{
-				console.log ( cell );
-				return "";
+				return obj[ key ];
 			}
 		}
 	}
 
-	switch ( data.constructor.name )
+	let out = "";
+
+	switch ( data?.data?.constructor.name )
 	{
 		case "Array":
 		{
-			let keys = getKeys ( data ).filter ( k=>"meta"!=k );
+			let keys = data.data.map ( e=>Object.keys ( e ) )
+				.flat ( Infinity )
+				.distinct ( )
+				.filter ( t=>![ "group", "meta", "img" ].includes ( t ) );
 
-
-			data = keys.join ( ";" ) + "\n" + data.map ( line=>{
-					return keys.map ( k=>{
-							return line[ k ] ?? "";
-						})
-						.map ( manageOneElement )
-						.join ( ";" )
-				})
-				.join ( "\n" );
-
+			out += keys.join ( ";") + "\n"
+			out += data.data.map ( line=>keys.map ( k=>getOne ( k, line ) ).join ( ";" ) ).join ( "\n" );
 			break;
 		}
 		case "Object":
 		{
-			let keys = getKeys ( Object.values ( data ) );
-
-			data = "Name ; " + keys.join ( ";" ) + "\n" + Object.keys ( data ).map ( key=>{
-					return [ key, ...keys.map ( k=>{
-							return data[ key ][ k ] ?? ""
-						}) ]
-						.map ( manageOneElement )
-						.join ( ";" )
-				})
-				.join ( "\n" );
-
+			console.log ( data.data )
 			break;
 		}
 	}
