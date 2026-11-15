@@ -165,7 +165,7 @@ export default function ( params )
 
 		params.categories = params.args.categories;
 		console.log ( "user stop" )
-	}); //stop
+	}); // stop
 
 	ajax.post ( "/get/route", function ( req, res )
 	{
@@ -483,6 +483,13 @@ export default function ( params )
 			}
 			case "set":
 			{
+				if ( "Function" != parser[ req.params.file ].constructor.name )
+				{
+					res.status ( 403 );
+					res.end ( );
+					return;
+				}
+
 				params.db.routes = parser[ req.params.file ]( req.body.msg );
 
 				fs.writeFileSync (

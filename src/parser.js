@@ -16,19 +16,11 @@ export function users ( data )
 			obj.categories = obj.categories.split ( "," );
 		}
 
-		// if ( "bloc" == r.type )
-		// {
-		// 	r.scores = {
-		// 		zone: r.scores[ 0 ],
-		// 		top: r.scores[ 1 ]
-		// 	};
-		// }
-
 		return obj;
 	});
 }
 
-export function voies ( data )
+export function routes ( data )
 {
 	let lines = data.split ( "\n" );
 	let keys = lines.shift ( ).split ( ";" );
@@ -44,15 +36,17 @@ export function voies ( data )
 		if ( obj.categories )
 		{
 			obj.categories = obj.categories.split ( "," );
+			console.log ( obj.categories )
 		}
 
-		// if ( "bloc" == r.type )
-		// {
-		// 	r.scores = {
-		// 		zone: r.scores[ 0 ],
-		// 		top: r.scores[ 1 ]
-		// 	};
-		// }
+		if ( obj.score ) try
+		{
+			obj.score = JSON.parse ( obj.score.replace ( /'/g, '"' ) );
+		}
+		catch ( e )
+		{
+			obj.score = obj.score.split ( "," );
+		}
 
 		return obj;
 	});
