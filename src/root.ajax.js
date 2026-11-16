@@ -467,18 +467,18 @@ export default function ( params )
 
 	ajax.post ( "/db/:cmd/:file", function ( req, res )
 	{
+		let data = {};
 		if ( !params.db[ req.params.file ] )
 		{
 			res.status ( 403 );
 			res.end ( );
+			return;
 		}
 		else switch ( req.params.cmd )
 		{
 			case "export":
 			{
-				res.status ( 200 );
-				res.json ( params.db[ req.params.file ] );
-				res.end ( );
+				data = params.db[ req.params.file ];
 				break;
 			}
 			case "set":
@@ -496,10 +496,7 @@ export default function ( params )
 					params.args.db[ req.params.file ],
 					JSON.stringify ( params.db.routes, null, 4 ),
 					'utf8' );
-				
-				res.status ( 200 );
-				res.json ({});
-				res.end ( );
+
 				break;
 			}
 			case "delete":
@@ -509,11 +506,13 @@ export default function ( params )
 					case "Array":
 					{
 						fs.writeFileSync ( params.args.db[ req.params.file ], "[]", 'utf8' );
+						params.db[ req.params.file ] = [];
 						break;
 					}
 					case "Object":
 					{
 						fs.writeFileSync ( params.args.db[ req.params.file ], "{}", 'utf8' );
+						params.db[ req.params.file ] = {};
 						break;
 					}
 					default:
@@ -524,9 +523,6 @@ export default function ( params )
 					}
 				}
 
-				res.status ( 200 );
-				res.json ({});
-				res.end ( );
 				break;
 			}
 			default:
@@ -536,6 +532,12 @@ export default function ( params )
 				return;
 			}
 		}
+
+		params.io.to ( req.params.file ).emit ( req.params.file, params.db[ req.params.file ] );
+
+		res.status ( 200 );
+		res.json ( data );
+		res.end ( );
 	}); // db
 
 	return params;

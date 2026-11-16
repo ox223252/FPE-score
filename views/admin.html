@@ -3,10 +3,6 @@
 	<head>
 		<%- include("part/head.html") -%>
 		<style>
-			.transparent {
-				gap: 20px;
-			}
-
 			input[ type=file ] {
 				display: none;
 			}
@@ -17,24 +13,30 @@
 
 			section {
 				background-color: transparent !important;
-				grap: 10px;
+				gap: 20px;
+
+				align-items: baseline !important;
+
+				& > .form {
+					flex-shrink: 1;
+
+					background-color: var( --grey );
+					border-radius: 10px;
+
+					&:first-child {
+						flex-shrink: 0;
+					}
+				}
 			}
 
-			.form {
-				flex-shrink: 1;
-
-				background-color: var( --grey );
-				border-radius: 10px;
-
-				&:first-child {
-					flex-shrink: 0;
-				}
+			html {
+				height: unset;
 			}
 		</style>
 	</head>
 	<body>
 		<%- include("part/nav.html") -%>
-		<section class="transparent">
+		<section>
 			<div class="form">
 				<div style="justify-content: space-between;">
 					<button id="start">Start</button>
@@ -53,10 +55,10 @@
 				</div>
 				<p id="serverMsg"></p>
 			</div>
-			<div class="form specific">
+			<div class="form">
 				<div>
 					<div>
-						CSV contenant les competiteurs (<%- locals.users?.length %>)
+						<label for="usersFiles">CSV contenant les competiteurs (<span id="userLength"><%- locals.users?.length %></span>)</label>
 						<input id="usersFiles" type="file"/>
 					</div>
 					<div class="buttonDiv">
@@ -72,7 +74,7 @@
 						<label for="routesFiles" class="button fa-solid fa-upload"></label>
 					</div>
 					<div>
-						CSV contenant les routes (<%- locals.routes?.length %>)
+						<label for="routesFiles">CSV contenant les routes (<span id="routesLength"><%- locals.routes?.length %></span>)</label>
 						<input id="routesFiles" type="file"/>
 					</div>
 				</div>
@@ -112,11 +114,13 @@
 					set: document.getElementById ( "usersFiles" ),
 					delete: document.getElementById ( "usersClean" ),
 					export: document.getElementById ( "usersExport" ),
+					length: document.getElementById ( "userLength" ),
 				},
 				routes: {
 					set: document.getElementById ( "routesFiles" ),
 					delete: document.getElementById ( "routesClean" ),
 					export: document.getElementById ( "routesExport" ),
+					length: document.getElementById ( "routesLength" ),
 				},
 				scores: {
 					delete: document.getElementById ( "scoreClean" ),
@@ -170,15 +174,23 @@
 				Object.keys ( domEls[ file ] ).map ( cmd=>{
 					let evName = undefined;
 
-					if (  "BUTTON" == domEls[ file ][ cmd ].nodeName )
+					switch ( domEls[ file ][ cmd ].nodeName )
 					{
-						evName = "click";
+						case "BUTTON":
+						{
+							evName = "click";
+							break;
+						}
+						case "SPAN":
+						{
+							return;
+						}
+						default:
+						{
+							evName = "change";
+							break;
+						}
 					}
-					else
-					{
-						evName = "change";
-					}
-
 
 					domEls[ file ][ cmd ].addEventListener ( evName, async ( ev )=>{
 						ev.preventDefault ( );
@@ -231,6 +243,25 @@
 								}
 							})
 					});
+				});
+
+				if ( file == "scores" )
+				{
+					return;
+				}
+
+				socket.on ( file, ( msg )=>{
+					if ( "routes" == file )
+					{
+						routes = msg;
+					}
+
+					if ( "users" == file )
+					{
+						users = msg;
+					}
+
+					domEls[ file ].length.innerText = msg.length;
 				});
 			});
 		</script>

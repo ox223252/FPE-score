@@ -449,7 +449,7 @@ function exportFile ( data, file )
 		{
 			case "Array":
 			{
-				return obj[ key ].join ( "," );
+				return obj[ key ].join ( " " );
 			}
 			case "Object":
 			{
@@ -457,7 +457,7 @@ function exportFile ( data, file )
 				{
 					case "scores":
 					{
-						return Object.values ( obj[ key ] ).join ( "," );
+						return Object.values ( obj[ key ] ).join ( " " );
 					}
 					default:
 					{
@@ -493,62 +493,6 @@ function exportFile ( data, file )
 			break;
 		}
 	}
-
-	// let sI = undefined;
-	// switch ( msg.file )
-	// {
-	// 	case "voies":
-	// 	case "users":
-	// 	{
-	// 		sI = getKeys ( msg.data );
-	// 		data = msg.data.map ( (d,i)=>{
-	// 				let out = [];
-
-	// 				for ( let k of sI )
-	// 				{
-	// 					switch ( d[ k ]?.constructor.name )
-	// 					{
-	// 						case "Object":
-	// 						{
-	// 							out.push ( JSON.stringify ( d[ k ] ) );
-	// 							break;
-	// 						}
-	// 						case "Array":
-	// 						{
-	// 							out.push ( d[ k ].join ( "," ) );
-	// 							break;
-	// 						}
-	// 						case undefined:
-	// 						{
-	// 							out.push ( "" );
-	// 							break;
-	// 						}
-	// 						default:
-	// 						{
-	// 							out.push ( d[ k ] );
-	// 							break;
-	// 						}
-	// 					}
-	// 				}
-
-	// 				return out.join ( ";" );
-	// 			})
-			
-	// 		data.unshift ( sI.join ( ";" ) );
-	// 		data = data.join ( "\n" );
-
-	// 		break;
-	// 	}
-	// 	case "score":
-	// 	{
-	// 		data = JSON.stringify ( msg.data, null, 4 );
-	// 		break;
-	// 	}
-	// 	default:
-	// 	{
-	// 		return;
-	// 	}
-	// }
 
 	const downloadLink = document.createElement('a');
 	downloadLink.href = URL.createObjectURL ( new Blob ( [ out ], { type: 'text/plain' } ) );

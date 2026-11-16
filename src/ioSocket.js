@@ -87,6 +87,14 @@ export default function ( params )
 				
 			switch ( page )
 			{
+				case "/admin":
+				{
+					socket.join ( "admin" );
+					socket.join ( "scores" );
+					socket.join ( "routes" );
+					socket.join ( "users" );
+					break;
+				}
 				case "/":
 				{
 					socket.join ( "scores" );
@@ -94,7 +102,7 @@ export default function ( params )
 				}
 				case "/road":
 				{
-					socket.join ( "route" );
+					socket.join ( "routes" );
 					break;
 				}
 				case "/addUser":

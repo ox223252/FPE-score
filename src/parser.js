@@ -35,17 +35,25 @@ export function routes ( data )
 
 		if ( obj.categories )
 		{
-			obj.categories = obj.categories.split ( "," );
-			console.log ( obj.categories )
+			obj.categories = obj.categories.split ( / / );
 		}
 
-		if ( obj.score ) try
+		if ( obj.scores ) try
 		{
-			obj.score = JSON.parse ( obj.score.replace ( /'/g, '"' ) );
+			obj.scores = JSON.parse ( obj.scores.replace ( /'/g, '"' ) );
 		}
 		catch ( e )
 		{
-			obj.score = obj.score.split ( "," );
+			obj.scores = obj.scores.split ( / / );
+		}
+
+		if ( "bloc" == obj.type
+			&& "Array" == obj.scores?.constructor?.name )
+		{
+			obj.scores = {
+				top: Math.max ( ...obj.scores ),
+				zone: Math.min ( ...obj.scores )
+			};
 		}
 
 		return obj;
