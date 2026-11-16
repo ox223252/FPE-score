@@ -40,7 +40,7 @@ export function routes ( data )
 
 		if ( obj.scores ) try
 		{
-			obj.scores = JSON.parse ( obj.scores.replace ( /'/g, '"' ) );
+			obj.scores = JSON.parse ( obj.scores.trim ( ).replace ( /'/g, '"' ) );
 		}
 		catch ( e )
 		{
