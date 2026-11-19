@@ -70,12 +70,28 @@
 	});
 
 	let domTimer = undefined;
+	let start = false;
 
 	socket.on ( "timer", (msg)=>{
-		if ( domTimer )
+		if ( !domTimer )
 		{
-			domTimer.innerText = msg;
+			return;
 		}
+
+
+		if ( !!start ^ !!msg)
+		{
+			start = !!msg;
+
+			document.body.style.backgroundColor = "blue";
+
+			setTimeout ( ()=>{
+				document.body.style.backgroundColor = "";
+			}, 1000 );
+		}
+
+		domTimer.style.display = (msg)?"":"none";
+		domTimer.innerText = msg;
 	});
 
 	window.addEventListener ( "load", ()=>{

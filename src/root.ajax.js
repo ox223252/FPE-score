@@ -146,6 +146,10 @@ export default function ( params )
 
 			console.log ( "normal end" )
 		},remainingTime );
+
+		res.status ( 200 );
+		res.json ({});
+		res.end ( );
 	}); // start
 
 	ajax.post ( "/stop", function ( req, res )
@@ -164,7 +168,11 @@ export default function ( params )
 		params.io.emit ( "timer",  "" );
 
 		params.categories = params.args.categories;
-		console.log ( "user stop" )
+		console.log ( "user stop" );
+
+		res.status ( 200 );
+		res.json ({});
+		res.end ( );
 	}); // stop
 
 	ajax.post ( "/get/route", function ( req, res )
