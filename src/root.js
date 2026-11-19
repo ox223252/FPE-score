@@ -30,9 +30,9 @@ export default function ( params )
 				res.locals.logged = false;
 				break;
 			}
-			case "editor":
+			case "staff":
 			{
-				// during the competition editor are down classed to juge only
+				// during the competition staff are down classed to juge only
 				// reduce nav barre
 				if ( params.interval )
 				{
@@ -40,7 +40,7 @@ export default function ( params )
 				}
 				else
 				{
-					res.locals.logged = "editor";
+					res.locals.logged = "staff";
 				}
 				break;
 			}
@@ -66,7 +66,7 @@ export default function ( params )
 				routes.push ( "/admin" );
 				routes.push ( "/edit" );
 			}
-			case "editor":
+			case "staff":
 			{
 				routes.push ( "/addUser" );
 				routes.push ( "/road" );

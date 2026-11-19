@@ -23,7 +23,7 @@ export default function ( params )
 				next ( );
 				return;
 			}
-			case "editor":
+			case "staff":
 			{
 				route.push ( "/set/route" );
 				route.push ( "/set/score" );
@@ -388,7 +388,7 @@ export default function ( params )
 		switch ( req.body.group )
 		{
 			case "admin":
-			case "editor":
+			case "staff":
 			{
 				if ( "admin" != req.session?.logged )
 				{
