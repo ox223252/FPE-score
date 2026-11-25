@@ -145,6 +145,21 @@
 				})
 			})
 
+			domEls.name.addEventListener ( "input", (ev)=>{
+				let usr = users.filter ( u=>u.name == ev.target.value );
+
+				if ( 1 != usr.length )
+				{
+					return;
+				}
+
+				usr = usr[ 0 ];
+
+				domEls.categorie.value = usr.categorie;
+				domEls.genre.value = usr.genre;
+				domEls.club.value = usr.club;
+			});
+
 			domEls.validate.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
 				let data = {
