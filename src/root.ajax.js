@@ -147,6 +147,8 @@ export default function ( params )
 			console.log ( "normal end" )
 		},remainingTime );
 
+		params.io.emit ( "timer", getTime ( remainingTime ) );
+
 		res.status ( 200 );
 		res.json ({});
 		res.end ( );

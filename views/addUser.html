@@ -90,8 +90,8 @@
 					<datalist id="clubList"></datalist>
 				</div>
 				<button id="validate">Sauver</button>
+				<div id="serverMsg"></div>
 			</div>
-			<p id="serverMsg"></p>
 		</section>
 		<script type="text/javascript" nonce="<%- locals.nonce %>" src="/js/utils.js"></script>
 		<script type="text/javascript" nonce="<%- locals.nonce %>">
@@ -152,14 +152,6 @@
 					name: domEls.name.value.trim ( ),
 				};
 
-				domEls.serverMsg.innerText = "";
-
-				if ( undefined == data.name )
-				{
-					domEls.serverMsg.innerText = "il manque le nom";
-					return;
-				}
-
 				switch ( data.group )
 				{
 					case "competitor":
@@ -201,6 +193,7 @@
 				if ( error.length )
 				{
 					domEls.serverMsg.innerText = `il manque des infos : ${error.join ( " / " )}`;
+					domEls.serverMsg.style.display = "";
 					return;
 				}
 
