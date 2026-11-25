@@ -132,17 +132,18 @@ export default function ( params )
 				describe: "competitor",
 				default: [ "M", "F" ],
 			})
+			.option('db.path',{
+				describe: '/path/to/file',
+				default: "db"
+			})
 			.option('db.routes',{
 				describe: '/path/to/file',
-				default: "private/routes.js"
 			})
 			.option('db.scores',{
 				describe: '/path/to/file',
-				default: "private/scores.js"
 			})
 			.option('db.users',{
 				describe: '/path/to/file',
-				default: "private/users.js"
 			})
 			.option("halt",{
 				type: 'boolean',

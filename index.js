@@ -8,6 +8,8 @@ import error from "./src/root.error.js"
 import user from "./src/db.user.js"
 import socket from "./src/ioSocket.js"
 
+import DBFile from "./src/db.file.js"
+
 import path from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
@@ -22,7 +24,35 @@ let params = {
 };
 
 getParams ( params )
-	.then ( pre )
+	// .then ( pre )
+	.then ( p=>{
+		if ( !params.db )
+		{
+			params.db = {};
+		}
+
+		params.db.routes = new DBFile ({
+			path: path.join ( dir, params.args.db.path ),
+			name: params.args.db.routes,
+			default: [],
+			live: false,
+		});
+
+		params.db.users = new DBFile ({
+			path: path.join ( dir, params.args.db.path ),
+			name: params.args.db.users,
+			default: [],
+			live: false,
+		});
+
+		params.db.scores = new DBFile ({
+			path: path.join ( dir, params.args.db.path ),
+			name: params.args.db.scores,
+			default: {},
+			live: false,
+		});
+		return p;
+	})
 	.then ( user )
 	.then ( init )
 	.then ( ajax )
