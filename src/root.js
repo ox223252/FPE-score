@@ -11,6 +11,29 @@ function toJs ( value )
 		.replace ( /\u2029/g, "\\u2029" );
 }
 
+function getRoutes ( params )
+{
+	if ( !params.db.routes )
+	{
+		return [];
+	}
+
+	return params.db.routes
+		.filter ( x=>"Array" == x.categories?.constructor.name )
+		.filter ( r1=>r1.categories?.some ( r2=>params.categories.includes ( r2 ) ) );
+}
+
+function getUsers ( params )
+{
+	if ( !params.db.users )
+	{
+		return [];
+	}
+
+	return params.db.users
+		.filter ( u=>params.categories?.includes ( u.categorie ) );
+}
+
 export default function ( params )
 {
 	console.log ( "   - Init Root part" );
@@ -107,8 +130,8 @@ export default function ( params )
 	params.express.get ( '/', function ( req, res )
 	{
 		res.locals.types = params.types;
-		res.locals.users = params.db.users.filter ( u=>params.categories?.includes ( u.categorie ) );
-		res.locals.routes = params.db.routes.filter ( r1=>r1.categories?.some ( r2=>params.categories.includes ( r2 ) ) );
+		res.locals.users = getUsers ( params );
+		res.locals.routes = getRoutes ( params );
 		res.locals.scores = params.db.scores;
 
 		res.render ( 'main.html' );
@@ -132,7 +155,7 @@ export default function ( params )
 	params.express.all ( "/addUser", function ( req, res )
 	{
 		res.locals.categories = params.args.categories ?? [];
-		res.locals.users = params.db.users ?? [];
+		res.locals.users = getUsers ( params );
 		res.locals.genres = params.args.genres ?? [];
 
 		res.render ( 'addUser.html' );
@@ -141,9 +164,9 @@ export default function ( params )
 	params.express.all ( "/admin", function ( req, res )
 	{
 		res.locals.types = params.types;
-		res.locals.routes = params.db.routes;
+		res.locals.users = getUsers ( params );
+		res.locals.routes = getRoutes ( params );
 		res.locals.categories = params.args.categories;
-		res.locals.users = params.db.users;
 
 		res.render ( 'admin.html' );
 	});
@@ -151,17 +174,17 @@ export default function ( params )
 	params.express.all ( "/set", function ( req, res )
 	{
 		res.locals.types = params.types;
-		res.locals.routes = params.db.routes.filter ( r1=>r1.categories?.some ( r2=>params.categories.includes ( r2 ) ) );
-		res.locals.users = params.db.users.filter ( u=>params.categories?.includes ( u.categorie ) );
+		res.locals.users = getUsers ( params );
+		res.locals.routes = getRoutes ( params );
 
 		res.render ( 'set.html' );
 	});
 
 	params.express.all ( "/edit", function ( req, res )
 	{
-		res.locals.users = params.db.users;
 		res.locals.scores = params.db.scores;
-		res.locals.routes = params.db.routes.filter ( r1=>r1.categories.some ( r2=>params.categories.includes ( r2 ) ) );
+		res.locals.users = getUsers ( params );
+		res.locals.routes = getRoutes ( params );
 
 		res.render ( 'edit.html' );
 	});
@@ -169,9 +192,9 @@ export default function ( params )
 	params.express.all ( "/road", function ( req, res )
 	{
 		res.locals.types = params.types;
-		res.locals.routes = params.db.routes;
 		res.locals.categories = params.args.categories;
 		res.locals.mode = params.args.mode;
+		res.locals.routes = getRoutes ( params );
 
 		res.render ( 'road.html' );
 	});
