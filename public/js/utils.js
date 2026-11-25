@@ -546,7 +546,7 @@ function ajaxReq ( path, data = {} )
 				return r;
 			}
 
-			domEl.style.backgroundColor = (r.status)?"lightgreen":"red";
+			domEl.style.backgroundColor = `var(${(r.status)?"--ok":"--error"})`;
 
 			setTimeout ( ()=>{
 				domEl.style.backgroundColor = "";

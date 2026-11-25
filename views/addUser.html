@@ -24,16 +24,16 @@
 			}
 
 			#juge:checked ~ label.juge {
-				background-color: var( --grey );
+				background-color: var( --button-acitve );
 			}
 			#admin:checked ~ label.admin {
-				background-color: var( --grey );
+				background-color: var( --button-acitve );
 			}
 			#staff:checked ~ label.staff {
-				background-color: var( --grey );
+				background-color: var( --button-acitve );
 			}
 			#competitor:checked ~ label.competitor {
-				background-color: var( --grey );
+				background-color: var( --button-acitve );
 			}
 		</style>
 		<section>
@@ -140,6 +140,12 @@
 				list:users.map ( u2=>u2.name ).distinct ( ).sort ( ),
 			});
 
+			[ "name", "pass", "categorie", "genre", "club" ].map ( key=>{
+				domEls[ key ].addEventListener ( "change", (ev)=>{
+					ev.target.style.backgroundColor = "";
+				})
+			})
+
 			domEls.validate.addEventListener ( "click", (ev)=>{
 				ev.preventDefault ( );
 				let data = {
@@ -173,13 +179,30 @@
 					}
 				}
 
+				let error = []
 				for ( let key in data )
 				{
-					if ( !data[ key ])
+					if ( "all" == data[ key ] )
 					{
-						domEls.serverMsg.innerText = "il manque une info : "+key;
-						return;
+						data[ key ] = undefined;
 					}
+
+					if ( !domEls[ key ] )
+					{
+						continue;
+					}
+
+					if ( !data[ key ] )
+					{
+						error.push ( key );
+						domEls[ key ].style.backgroundColor = "var( --error )";
+					}
+				}
+
+				if ( error.length )
+				{
+					domEls.serverMsg.innerText = `il manque des infos : ${error.join ( " / " )}`;
+					return;
 				}
 
 				ajaxReq ( "/ajax/set/user", data )
