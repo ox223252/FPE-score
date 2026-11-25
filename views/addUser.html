@@ -133,6 +133,7 @@
 				list:users.map ( u2=>u2.club ).distinct ( ).sort ( ),
 			});
 			uOneSlector ({
+				all: false,
 				default: "",
 				selector: domEls.nameList,
 				list:users.map ( u2=>u2.name ).distinct ( ).sort ( ),
@@ -217,6 +218,7 @@
 				users = msg;
 
 				uOneSlector ({
+					all: false,
 					default: domEls.name.value.trim ( ),
 					selector: domEls.nameList,
 					list: users.map ( u2=>u2.name ).distinct ( ).sort ( ),

@@ -26,9 +26,12 @@ function uOneSlector ( params = {} )
 		params.selector.removeChild ( params.selector.lastChild );
 	}
 
-	// set first option to everything
-	params.selector.appendChild ( new Option ( params.default, 0 ) );
-	params.selector.options[ 0 ].value = "all";
+	if ( false != params.all )
+	{
+		// set first option to everything
+		params.selector.appendChild ( new Option ( params.default, 0 ) );
+		params.selector.options[ 0 ].value = "all";
+	}
 
 	let length = 0;
 
@@ -41,12 +44,14 @@ function uOneSlector ( params = {} )
 
 		for ( let i = 0; i < params.list.length; i++ )
 		{
-			params.selector.appendChild ( new Option ( params.list[ i ], i + 1 ) );
-			params.selector.options[ i + 1 ].value = params.list[ i ];
+			let o =  new Option ( params.list[ i ], i + 1 );
 
-			if ( params.value == params.selector.options[ i + 1 ].value )
+			params.selector.appendChild ( o );
+			o.value = params.list[ i ];
+
+			if ( params.value == o.value )
 			{
-				params.selector.options[ i + 1 ].selected = true;
+				o.selected = true;
 			}
 		}
 
