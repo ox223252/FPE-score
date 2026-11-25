@@ -64,12 +64,12 @@
 				<hr style="width: 90%;">
 				<div class="juge admin competitor staff">
 					<label>Nom Prénom :</label>
-					<input id="name" list="nameList" type="text" placeholder="Nom Prenom">
+					<input id="name" list="nameList" type="text" placeholder="Nom Prenom" autocomplete="off">
 					<datalist id="nameList"></datalist>
 				</div>
 				<div class="juge admin staff">
 					<label>Password :</label>
-					<input id="pass" type="password" placeholder="Password">
+					<input id="pass" placeholder="Password" autocomplete="off">
 				</div>
 				<div class="competitor">
 					<label for="categorie">Catégorie</label>
@@ -86,10 +86,8 @@
 				</div>
 				<div class="competitor">
 					<label for="club">Club</label>
-					<input id="club" list="clubList" placeholder="club" type="text">
-					<datalist id="clubList">
-						<option value="test"></option>
-					</datalist>
+					<input id="club" list="clubList" placeholder="club" type="text" autocomplete="off">
+					<datalist id="clubList"></datalist>
 				</div>
 				<button id="validate">Sauver</button>
 			</div>
