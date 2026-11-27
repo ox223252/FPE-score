@@ -23,7 +23,8 @@ export function calcAll ( db, mode )
 	}
 
 	let local = {
-		speed: {}
+		speed: {},
+		wait: {},
 	};
 
 	db.routes.filter ( v=>{
@@ -34,20 +35,40 @@ export function calcAll ( db, mode )
 			return v.name;
 		});
 
+	db.routes.filter ( v=>{
+			return "endurance" == v.type;
+		})
+		.map ( v=>{
+			local.wait[ v.name ] = [];
+			return v.name;
+		});
+
+
 	// recuperation du meilleur chrono de chaque grimpeur sur chaque voie de vitesse
 	Object.keys ( db.scores ).map ( u=>{
 			Object.keys ( db.scores[ u ] ).map ( v=>{
-				if ( !local.speed[ v ] )
+				if ( local.speed[ v ] )
 				{
+					local.speed[ v ].push ( Math.min ( ...db.scores[ u ][ v ] ) )
 					return;
 				}
-				local.speed[ v ].push ( Math.min ( ...db.scores[ u ][ v ] ) )
+
+				if ( local.wait[ v ] )
+				{
+					local.wait[ v ].push ( Math.max ( ...db.scores[ u ][ v ] ) )
+					return;
+				}
 			})
 		})
 
 	// reordonne les resultat dans l'ordre croissant (plus rapide au debut)
 	Object.keys ( local.speed ).map ( v=>{
 			local.speed[ v ] = local.speed[ v ].sort ( (a,b)=>a-b);
+		})
+
+	// reordonne les resultat dans l'ordre croissant (plus rapide au debut)
+	Object.keys ( local.wait ).map ( v=>{
+			local.wait[ v ] = local.wait[ v ].sort ( (a,b)=>b-a);
 		})
 
 	return new Promise ( (ok,ko)=>{
@@ -83,6 +104,22 @@ export function calcAll ( db, mode )
 							case "vitesse":
 							{
 								let index = local.speed[ route ]?.indexOf ( Math.min ( ...db.scores[ user.name ]?.[ route ] ) );
+
+								if ( ( undefined == index )
+									|| ( 0 > index )
+									|| ( index > 50 ) )
+								{
+								}
+								else
+								{
+									db.scores[ user.name ].total += 50 - index;
+								}
+								break;
+							}
+							case "endurance":
+							{
+								let index = local.wait[ route ]?.indexOf ( Math.max ( ...db.scores[ user.name ]?.[ route ] ) );
+								console.log ( index )
 
 								if ( ( undefined == index )
 									|| ( 0 > index )

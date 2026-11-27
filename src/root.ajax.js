@@ -349,12 +349,9 @@ export default function ( params )
 				break;
 			}
 			case "vitesse":
-			{
-				points = req.body.score.vitesse;
-				break;
-			}
 			case "endurance":
 			{
+				points = req.body.score.vitesse;
 				break;
 			}
 			case undefined:
