@@ -39,7 +39,6 @@
 					<label for=voie>Voie</label>
 					<select id="voie"></select>
 				</div>
-				<hr>
 				<div class="marged">
 					<input id="scoreDiff"></input>
 					<select id="scoreBloc">
@@ -213,6 +212,7 @@
 						domEls.score.bloc.style.display = "";
 						break;
 					}
+					case "slack":
 					case "diff":
 					{
 						domEls.score.diff.style.display = "";
@@ -225,6 +225,10 @@
 
 								domEls.score.diff.replaceWith ( s );
 								domEls.score.diff = s;
+
+								domEls.score.diff.addEventListener ( "change", (ev)=>{
+									domEls.validate.disabled = false;
+								});
 							}
 
 							let tableS = [];
@@ -253,6 +257,10 @@
 								
 								domEls.score.diff.replaceWith ( i );
 								domEls.score.diff = i;
+							
+								domEls.score.diff.addEventListener ( "change", (ev)=>{
+									domEls.validate.disabled = false;
+								});
 							}
 						}
 						break;
@@ -261,11 +269,6 @@
 					case "endurance":
 					{
 						domEls.div.chrono.style.display = "";
-						break;
-					}
-					case "slack":
-					{
-						domEls.score.diff.style.display = "";
 						break;
 					}
 					default:
@@ -433,14 +436,7 @@
 
 			domEls.user.addEventListener ( "change", (ev)=>{
 				domEls.dossard.value = users.filter ( u=>u.name == ev.target.value )?.[ 0 ]?.dossard ?? "";
-			});
-
-
-			domEls.score.diff.addEventListener ( "change", (ev)=>{
-				domEls.validate.disabled = false;
-			});
-			domEls.score.bloc.addEventListener ( "change", (ev)=>{
-				domEls.validate.disabled = false;
+				console.log ( )
 			});
 		</script>
 	</body>
